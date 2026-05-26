@@ -54,10 +54,7 @@
     "source=${localEnv:HOME}/.config/gh,target=/home/vscode/.config/gh,type=bind,consistency=cached",
     "source=${localEnv:HOME}/.codex,target=/home/vscode/.codex,type=bind,consistency=cached",
     "source=${localEnv:HOME}/.claude,target=/home/vscode/.claude,type=bind,consistency=cached",
-    "source=${localEnv:HOME}/.claude.json,target=/home/vscode/.claude.json,type=bind,consistency=cached",
-    "source=${localEnv:HOME}/workspace/alcos-poc,target=/workspace/ref/poc,type=bind,consistency=cached",
-    "source=${localEnv:HOME}/workspace/alcos-portal,target=/workspace/ref/portal,type=bind,consistency=cached",
-    "source=${localEnv:HOME}/workspace/alcos-flyway,target=/workspace/ref/flyway,type=bind,consistency=cached"
+    "source=${localEnv:HOME}/.claude.json,target=/home/vscode/.claude.json,type=bind,consistency=cached"
   ],
   "containerEnv": {
     "GITHUB_TOKEN": "${localEnv:GITHUB_TOKEN}",

@@ -25,7 +25,7 @@ final class DbConfig {
 
     String host = getenvOrDefault("PGHOST", "localhost");
     String port = getenvOrDefault("PGPORT", "5432");
-    String database = getenvOrDefault("PGDATABASE", "juku_ops_dev");
+    String database = getenvOrDefault("PGDATABASE", "member_pulse_dev");
     String pgUser = getenv("PGUSER");
     String pgPassword = getenv("PGPASSWORD");
     if (pgUser == null || pgPassword == null) {

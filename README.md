@@ -32,9 +32,7 @@ cp -n mise.local.toml.template mise.local.toml
 
 ローカル DB 名は `member_pulse_dev` です。
 
-```sh
-psql -h postgres -p 5432 -U postgres -d postgres -c "CREATE DATABASE member_pulse_dev;"
-```
+Dev Container 起動時に、存在しなければ自動作成されます。
 
 ## Cleanup Status
 

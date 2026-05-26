@@ -22,6 +22,32 @@ MP_JWT_VERIFY_PUBLICKEY_LOCATION=${MP_JWT_VERIFY_PUBLICKEY_LOCATION:-${VITE_BFF_
 APP_FRONTEND_BASE_URL=${APP_FRONTEND_BASE_URL:-http://localhost:${FRONTEND_PORT}}
 BACKEND_GRAPHQL_URL=${BACKEND_GRAPHQL_URL:-http://localhost:${QUARKUS_HTTP_PORT}/graphql}
 BACKEND_BASE_URL=${BACKEND_BASE_URL:-http://localhost:${QUARKUS_HTTP_PORT}}
+POSTGRES_HOST=${POSTGRES_HOST:-postgres}
+POSTGRES_PORT=${POSTGRES_PORT:-5432}
+POSTGRES_USER=${POSTGRES_USER:-postgres}
+POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+APP_DATABASE_NAME=${APP_DATABASE_NAME:-member_pulse_dev}
+
+if command -v psql >/dev/null 2>&1; then
+  echo "Waiting for PostgreSQL at ${POSTGRES_HOST}:${POSTGRES_PORT}..."
+  for i in $(seq 1 30); do
+    if PGPASSWORD="${POSTGRES_PASSWORD}" psql -h "${POSTGRES_HOST}" -p "${POSTGRES_PORT}" -U "${POSTGRES_USER}" -d postgres -c "select 1" >/dev/null 2>&1; then
+      break
+    fi
+    if [ "${i}" -eq 30 ]; then
+      echo "PostgreSQL did not become ready within timeout" >&2
+      exit 1
+    fi
+    sleep 1
+  done
+
+  if PGPASSWORD="${POSTGRES_PASSWORD}" psql -h "${POSTGRES_HOST}" -p "${POSTGRES_PORT}" -U "${POSTGRES_USER}" -d postgres -tAc "select 1 from pg_database where datname = '${APP_DATABASE_NAME}'" | grep -q 1; then
+    echo "Database '${APP_DATABASE_NAME}' already exists"
+  else
+    echo "Creating database '${APP_DATABASE_NAME}'..."
+    PGPASSWORD="${POSTGRES_PASSWORD}" createdb -h "${POSTGRES_HOST}" -p "${POSTGRES_PORT}" -U "${POSTGRES_USER}" "${APP_DATABASE_NAME}"
+  fi
+fi
 
 if ! command -v vault >/dev/null 2>&1; then
   exit 0
@@ -56,7 +82,7 @@ echo "Seeding KV secrets for local development..."
 VAULT_ADDR="${VAULT_ADDR}" VAULT_TOKEN="${VAULT_TOKEN}" vault kv put secret/api \
   quarkus.datasource.username="company_user" \
   quarkus.datasource.password="company_user" \
-  quarkus.datasource.jdbc.url="jdbc:postgresql://postgres:5432/member_pulse_dev" \
+  quarkus.datasource.jdbc.url="jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${APP_DATABASE_NAME}" \
   quarkus.redis.hosts="redis://redis:6379" \
   mp.jwt.verify.publickey.location="${MP_JWT_VERIFY_PUBLICKEY_LOCATION}"
 
@@ -64,7 +90,7 @@ VAULT_ADDR="${VAULT_ADDR}" VAULT_TOKEN="${VAULT_TOKEN}" vault kv put secret/edge
   SESSION_SECRET="f3b2779e38c6f9fa1290cfbf845d2e57d4a9d1059515fa902dd2728cebf680ab" \
   BACKEND_GRAPHQL_URL="${BACKEND_GRAPHQL_URL}" \
   BACKEND_BASE_URL="${BACKEND_BASE_URL}" \
-  DATABASE_URL="postgresql://postgres:postgres@postgres:5432/member_pulse_dev" \
+  DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${APP_DATABASE_NAME}" \
   REDIS_URL="redis://redis:6379" \
   COOKIE_SECURE="false" \
   SESSION_COOKIE_NAME="__bff_session" \

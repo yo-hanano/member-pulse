@@ -7,7 +7,7 @@ export function getDBClient() {
     // 認証用途のみなので単一クライアントを再利用する
     const url =
       process.env.DATABASE_URL ??
-      "postgresql://postgres:postgres@postgres:5432/juku_ops_dev";
+      "postgresql://postgres:postgres@postgres:5432/member_pulse_dev";
     client = postgres(url);
   }
   return client;

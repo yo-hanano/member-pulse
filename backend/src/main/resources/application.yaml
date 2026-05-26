@@ -30,7 +30,7 @@ quarkus:
     username: ${QUARKUS_DATASOURCE_USERNAME:company_user}
     password: ${QUARKUS_DATASOURCE_PASSWORD:company_user}
     jdbc:
-      url: ${QUARKUS_DATASOURCE_JDBC_URL:jdbc:postgresql://postgres:5432/juku_ops_dev}
+      url: ${QUARKUS_DATASOURCE_JDBC_URL:jdbc:postgresql://postgres:5432/member_pulse_dev}
   log:
     level: INFO
   redis:
