@@ -20,7 +20,6 @@ export const clientLoader = async ({ request }: LoaderFunctionArgs) => {
   const guardianName = url.searchParams.get("guardianName") || undefined;
   const schoolName = url.searchParams.get("schoolName") || undefined;
   const channel = url.searchParams.get("channel") || undefined;
-  const branchId = url.searchParams.get("branchId") || undefined;
   const inquiryAtFrom = url.searchParams.get("inquiryAtFrom") || undefined;
   const inquiryAtTo = url.searchParams.get("inquiryAtTo") || undefined;
   const status = url.searchParams.get("status") || undefined;
@@ -50,7 +49,6 @@ export const clientLoader = async ({ request }: LoaderFunctionArgs) => {
       channel,
       inquiryAtFrom: buildDateTime(inquiryAtFrom, false),
       inquiryAtTo: buildDateTime(inquiryAtTo, true),
-      branchId,
       status,
     },
   });

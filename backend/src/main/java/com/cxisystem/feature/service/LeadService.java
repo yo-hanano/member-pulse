@@ -64,8 +64,6 @@ public class LeadService extends AbstractService<LeadRecord, Lead, String, LeadD
   public Lead create(LeadInput input) {
     validateLeadInput(input);
     LeadRecord leadRecord = newRecord(input);
-    leadRecord.setFollowUpAt(null);
-    leadRecord.setIsDeleted(false);
     leadRecord.store();
     leadRecord.refresh();
     return leadRecord.into(Lead.class);
@@ -79,8 +77,6 @@ public class LeadService extends AbstractService<LeadRecord, Lead, String, LeadD
     LeadRecord leadRecord = leadDao.findOptionalById(id)
         .orElseThrow(() -> new NotFoundException("lead not found: " + id));
     leadRecord.from(input);
-    leadRecord.setFollowUpAt(null);
-    leadRecord.setIsDeleted(false);
     leadRecord.store();
     leadRecord.refresh();
     return leadRecord.into(Lead.class);

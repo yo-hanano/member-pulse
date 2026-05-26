@@ -64,7 +64,6 @@ public class AreaService extends AbstractService<AreaRecord, Area, String, AreaD
   @Transactional
   public Area create(AreaInput input) {
     AreaRecord areaRecord = newRecord(input);
-    areaRecord.setIsDeleted(false);
     areaRecord.store();
     areaRecord.refresh();
     return areaRecord.into(Area.class);
@@ -99,9 +98,9 @@ public class AreaService extends AbstractService<AreaRecord, Area, String, AreaD
     }
 
     List<Query> queries = inputs.stream().filter(input -> StringUtils.isNotBlank(input.getId()))
-        .map(input -> dsl().update(com.cxisystem.jooq.tables.Area.AREA)
-            .set(com.cxisystem.jooq.tables.Area.AREA.DISP_ORDER, input.getDispOrder())
-            .where(com.cxisystem.jooq.tables.Area.AREA.ID.eq(input.getId())))
+      .map(input -> (Query) dsl().update(com.cxisystem.jooq.tables.Area.AREA)
+        .set(com.cxisystem.jooq.tables.Area.AREA.DISPLAY_ORDER, input.getDispOrder())
+        .where(com.cxisystem.jooq.tables.Area.AREA.ID.eq(input.getId())))
         .collect(Collectors.toList());
 
     if (!queries.isEmpty()) {

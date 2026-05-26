@@ -3,7 +3,6 @@ import { parseDate, parseTime } from "@internationalized/date";
 import type { UseFormReturn } from "react-hook-form";
 
 import { FieldErrorText } from "~/components/form/field-error-text";
-import { BranchAutocompleteField } from "~/components/form/branch-autocomplete-field";
 import { SelectField } from "~/components/form/select-field";
 import { joinDateTimeLocalValue, splitDateTimeLocalValue } from "~/lib/date";
 import type { LeadForm } from "~/routes/_core+/leads+/_index/lead-form-schema";
@@ -103,7 +102,13 @@ export function LeadFormFields({ form }: Props) {
         <FieldErrorText message={errors.inquiryAt?.message} />
       </div>
 
-      <BranchAutocompleteField form={form} name="branchId" label="拠点" ariaLabel="拠点" />
+      <div className="space-y-1">
+        <Label className="block" isRequired>
+          拠点ID
+        </Label>
+        <Input aria-label="拠点ID" className="w-full" placeholder="例) loc_xxxxxxxxxxxxxxxxxxxxx" {...register("branchId")} />
+        <FieldErrorText message={errors.branchId?.message} />
+      </div>
 
       <div className="space-y-1">
         <Label className="block" isRequired>

@@ -8,16 +8,12 @@ import {
   RangeCalendar,
   Select,
   Surface,
-  useFilter,
 } from "@heroui/react";
 import { type DateValue, parseDate } from "@internationalized/date";
 import { X } from "lucide-react";
 import { useQueryStates } from "nuqs";
 import type { Key } from "react";
-import { useState } from "react";
 
-import { AutocompleteField } from "~/components/form/autocomplete-field";
-import { useBranchOptions } from "~/hooks/useBranchOptions";
 import { buildChangedQueryPatch } from "~/lib/query-state";
 import { leadStatusOptions } from "~/routes/_core+/leads+/_index/lead-status";
 import { leadQueryParsers, leadQueryUrlKeys } from "~/routes/_core+/leads+/_index/query-state";
@@ -29,13 +25,10 @@ type InquiryDateRange = {
 
 // リード一覧のフィルタ入力UIを表示し、変更内容を URL に反映する。
 export function LeadFiltersPanel() {
-  const { contains } = useFilter({ sensitivity: "base" });
-  const [branchSearchText, setBranchSearchText] = useState("");
   const [
     {
       inquiryAtFromFilter,
       inquiryAtToFilter,
-      branchIdFilter,
       studentNameFilter,
       guardianNameFilter,
       schoolNameFilter,
@@ -68,7 +61,6 @@ export function LeadFiltersPanel() {
       updates.guardianNameFilter === null ||
       updates.schoolNameFilter === null ||
       updates.channelFilter === null ||
-      updates.branchIdFilter !== undefined ||
       updates.inquiryAtFromFilter !== undefined ||
       updates.inquiryAtToFilter !== undefined;
 
@@ -83,13 +75,6 @@ export function LeadFiltersPanel() {
   const shortFieldClassName = "app-filter-field-sm";
   const mediumFieldClassName = "app-filter-field-md";
   const statusTriggerClassName = statusFilter ? "app-filter-field-xs pr-14" : "app-filter-field-xs";
-  const {
-    data: branchOptions,
-    loading: isBranchLoading,
-    error: branchError,
-  } = useBranchOptions(branchSearchText, branchIdFilter ?? null);
-  const selectedBranchName =
-    branchOptions.find((branch) => branch.id === branchIdFilter)?.name ?? null;
 
   const updateInquiryAtRange = (nextRange: InquiryDateRange | null) => {
     updateFilters({
@@ -149,49 +134,6 @@ export function LeadFiltersPanel() {
                 </RangeCalendar>
               </DateRangePicker.Popover>
             </DateRangePicker>
-          </div>
-
-          <div className="app-filter-group">
-            <AutocompleteField
-              ariaLabel="拠点で絞り込み"
-              className={`${mediumFieldClassName} space-y-0`}
-              emptyState={
-                isBranchLoading
-                  ? "拠点を検索中..."
-                  : branchError
-                    ? "拠点の取得に失敗しました"
-                    : "該当する拠点がありません"
-              }
-              filter={contains}
-              items={branchOptions.map((branch) => ({
-                id: branch.id ?? "",
-                textValue: branch.name ?? "",
-                content: (
-                  <div className="flex flex-col">
-                    <span>{branch.name ?? ""}</span>
-                    <span className="text-muted-foreground text-xs">
-                      {branch.code ?? "-"} /{" "}
-                      {branch.prefecture?.name ?? branch.prefecture?.code ?? "-"}
-                    </span>
-                  </div>
-                ),
-              }))}
-              label="拠点"
-              labelClassName={fieldLabelClassName}
-              onChange={(nextValue) => updateFilters({ branchIdFilter: nextValue || null })}
-              onSearchValueChange={setBranchSearchText}
-              popoverClassName="w-[var(--trigger-width)] min-w-[240px] p-0"
-              searchPlaceholder="拠点名"
-              searchValue={branchSearchText}
-              selectedValue={
-                selectedBranchName ? (
-                  <span className="block truncate">{selectedBranchName}</span>
-                ) : undefined
-              }
-              valueClassName="min-w-0"
-              variant="secondary"
-              value={branchIdFilter ?? null}
-            />
           </div>
 
           <div className="app-filter-group">
@@ -301,7 +243,6 @@ export function LeadFiltersPanel() {
                   channelFilter: null,
                   inquiryAtFromFilter: null,
                   inquiryAtToFilter: null,
-                  branchIdFilter: null,
                   statusFilter: null,
                 },
                 { limitUrlUpdates: undefined },

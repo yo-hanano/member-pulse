@@ -116,7 +116,6 @@ export default function CoreLayout() {
           icon: MapPin,
           children: [
             { type: "item", label: "エリア", to: "/areas", icon: MapPin, end: false },
-            { type: "item", label: "拠点", to: "/branches", icon: Building2, end: false },
           ],
         },
         {

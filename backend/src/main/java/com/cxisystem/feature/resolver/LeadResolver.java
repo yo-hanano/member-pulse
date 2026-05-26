@@ -1,12 +1,11 @@
 package com.cxisystem.feature.resolver;
 
 import com.cxisystem.feature.dto.Page;
+import com.cxisystem.feature.type.Branch;
 import com.cxisystem.feature.input.LeadFilterInput;
 import com.cxisystem.feature.input.LeadInput;
 import com.cxisystem.feature.input.Pagination;
-import com.cxisystem.feature.service.BranchService;
 import com.cxisystem.feature.service.LeadService;
-import com.cxisystem.feature.type.Branch;
 import com.cxisystem.feature.type.Lead;
 import io.smallrye.common.annotation.RunOnVirtualThread;
 import jakarta.annotation.security.RolesAllowed;
@@ -16,11 +15,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Mutation;
 import org.eclipse.microprofile.graphql.Query;
@@ -35,9 +30,6 @@ public class LeadResolver extends AbstractResolver {
 
   @Inject
   LeadService leadService;
-
-  @Inject
-  BranchService branchService;
 
   /** すべてのリードを返します。 */
   @Query("allLeads")
@@ -81,19 +73,11 @@ public class LeadResolver extends AbstractResolver {
     return leadService.deleteLead(leadId);
   }
 
-  /** リード一覧の拠点をまとめて解決します。 */
+  /**
+   * 旧 branch フィールドの互換を維持するため、現状は常に null を返します。
+   */
   @ActivateRequestContext
   public CompletableFuture<List<Branch>> branch(@Source List<Lead> leads) {
-    return vtSupplyAsync(() -> {
-      Set<String> branchIds = leads.stream().map(Lead::getBranchId).filter(Objects::nonNull)
-          .collect(Collectors.toSet());
-      if (branchIds.isEmpty()) {
-        return Collections.nCopies(leads.size(), null);
-      }
-
-      Map<String, Branch> branchMap = branchService.findByIds(branchIds).stream()
-          .collect(Collectors.toMap(Branch::getId, branch -> branch));
-      return leads.stream().map(lead -> branchMap.get(lead.getBranchId())).toList();
-    });
+    return vtSupplyAsync(() -> Collections.nCopies(leads.size(), null));
   }
 }

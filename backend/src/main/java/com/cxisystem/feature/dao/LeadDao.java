@@ -51,19 +51,13 @@ public class LeadDao extends AbstractDao<LeadRecord, String> {
       condition = condition.and(LEAD.INQUIRY_AT.le(filter.getInquiryAtTo()));
     }
     if (StringUtils.isNotBlank(filter.getBranchId())) {
-      condition = condition.and(LEAD.BRANCH_ID.eq(filter.getBranchId()));
+      condition = condition.and(LEAD.LOCATION_ID.eq(filter.getBranchId()));
     }
     if (StringUtils.isNotBlank(filter.getStudentName())) {
-      condition = condition.and(LEAD.STUDENT_NAME.like("%" + filter.getStudentName() + "%"));
-    }
-    if (StringUtils.isNotBlank(filter.getGuardianName())) {
-      condition = condition.and(LEAD.GUARDIAN_NAME.like("%" + filter.getGuardianName() + "%"));
-    }
-    if (StringUtils.isNotBlank(filter.getSchoolName())) {
-      condition = condition.and(LEAD.SCHOOL_NAME.like("%" + filter.getSchoolName() + "%"));
+      condition = condition.and(LEAD.NAME.like("%" + filter.getStudentName() + "%"));
     }
     if (StringUtils.isNotBlank(filter.getChannel())) {
-      condition = condition.and(LEAD.CHANNEL.like("%" + filter.getChannel() + "%"));
+      condition = condition.and(LEAD.SOURCE.like("%" + filter.getChannel() + "%"));
     }
     if (StringUtils.isNotBlank(filter.getStatus())) {
       condition = condition.and(LEAD.STATUS.eq(filter.getStatus()));
