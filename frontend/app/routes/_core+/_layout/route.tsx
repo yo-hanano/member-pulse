@@ -3,7 +3,6 @@ import {
   Building2,
   ChevronDown,
   ChevronRight,
-  GraduationCap,
   LayoutDashboard,
   MapPin,
   Menu,
@@ -100,7 +99,6 @@ export default function CoreLayout() {
             children: [
               { type: "item", label: "リード", to: "/leads", icon: MessageSquare, end: false },
               { type: "item", label: "生徒", to: "/students", icon: Users, end: false },
-              { type: "item", label: "講師", to: "/teachers", icon: GraduationCap, end: false },
               { type: "item", label: "従業員", to: "/employees", icon: UserCircle2, end: false },
               { type: "item", label: "商品", to: "/products", icon: Building2, end: false },
           ],
@@ -119,16 +117,6 @@ export default function CoreLayout() {
           children: [
             { type: "item", label: "エリア", to: "/areas", icon: MapPin, end: false },
             { type: "item", label: "拠点", to: "/branches", icon: Building2, end: false },
-          ],
-        },
-        {
-          type: "group",
-          id: "company-master",
-          label: "会社マスタ",
-          icon: Settings,
-          children: [
-            { type: "item", label: "時限", to: "/lesson-periods", icon: Settings, end: false },
-            { type: "item", label: "開校テンプレート", to: "/opening-schedule-templates", icon: Settings, end: false },
           ],
         },
         {
@@ -469,7 +457,7 @@ export default function CoreLayout() {
                   setOpen(true);
                 }}
               />
-            
+
               <Kbd className="pointer-events-none absolute top-1/2 right-2 -translate-y-1/2">
                 <Kbd.Content>Ctrl</Kbd.Content>
                 <Kbd.Content>K</Kbd.Content>

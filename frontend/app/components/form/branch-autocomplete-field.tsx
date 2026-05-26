@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import { AutocompleteField } from "~/components/form/autocomplete-field";
 import { FieldErrorText } from "~/components/form/field-error-text";
-import { useBranchOptions } from "~/routes/_core+/students+/_index/hooks/useBranchOptions";
+import { useBranchOptions } from "~/hooks/useBranchOptions";
 
 interface Props<TForm extends FieldValues> {
   form: UseFormReturn<TForm>;

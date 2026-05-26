@@ -222,15 +222,6 @@ export function BranchListTable({
                         >
                           <div className="flex justify-center gap-2">
                             <Button
-                              className="border-transparent text-foreground hover:bg-default-100"
-                              isDisabled={isProcessing}
-                              size="sm"
-                              variant="outline"
-                              onPress={() => window.location.assign(`/branches/${branchId}/opening-schedules`)}
-                            >
-                              開校
-                            </Button>
-                            <Button
                               className="border-transparent text-accent hover:bg-accent-soft"
                               isDisabled={isProcessing}
                               isIconOnly

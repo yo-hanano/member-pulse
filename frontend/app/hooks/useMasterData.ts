@@ -4,10 +4,7 @@ import type {
   AllAreasQuery,
   AllBranchesQuery,
   AllGendersQuery,
-  AllRelationshipsQuery,
   AllPrefecturesQuery,
-  AllSchoolGradesQuery,
-  AllSchoolTypesQuery,
 } from "~/generated/graphql";
 import { getSdk } from "~/generated/graphql";
 import { getGraphQLClient } from "~/services/graphql-client";
@@ -15,10 +12,7 @@ import { getGraphQLClient } from "~/services/graphql-client";
 type AreaMaster = NonNullable<NonNullable<AllAreasQuery["allAreas"]>[number]>;
 type BranchMaster = NonNullable<NonNullable<AllBranchesQuery["allBranches"]>[number]>;
 type GenderMaster = NonNullable<NonNullable<AllGendersQuery["allGenders"]>[number]>;
-type RelationshipMaster = NonNullable<NonNullable<AllRelationshipsQuery["allRelationships"]>[number]>;
 type PrefectureMaster = NonNullable<NonNullable<AllPrefecturesQuery["allPrefectures"]>[number]>;
-type SchoolGradeMaster = NonNullable<NonNullable<AllSchoolGradesQuery["allSchoolGrades"]>[number]>;
-type SchoolTypeMaster = NonNullable<NonNullable<AllSchoolTypesQuery["allSchoolTypes"]>[number]>;
 
 type CacheEntry<T> = {
   data?: T;
@@ -35,11 +29,7 @@ const MASTER_CACHE_KEYS = {
   areas: "allAreas",
   branches: "allBranches",
   genders: "allGenders",
-  relationships: "allRelationships",
   prefectures: "allPrefectures",
-  schoolGrades: "allSchoolGrades",
-  schoolTypes: "allSchoolTypes",
-  students: "allStudents",
 } as const;
 
 const isFresh = <T,>(entry?: CacheEntry<T>) => {
@@ -59,12 +49,7 @@ export const invalidateMasterData = (...keys: string[]) => {
 export const invalidateMasterAreas = () => invalidateMasterData(MASTER_CACHE_KEYS.areas);
 export const invalidateMasterBranches = () => invalidateMasterData(MASTER_CACHE_KEYS.branches);
 export const invalidateMasterGenders = () => invalidateMasterData(MASTER_CACHE_KEYS.genders);
-export const invalidateMasterRelationships = () =>
-  invalidateMasterData(MASTER_CACHE_KEYS.relationships);
 export const invalidateMasterPrefectures = () => invalidateMasterData(MASTER_CACHE_KEYS.prefectures);
-export const invalidateMasterSchoolGrades = () => invalidateMasterData(MASTER_CACHE_KEYS.schoolGrades);
-export const invalidateMasterSchoolTypes = () => invalidateMasterData(MASTER_CACHE_KEYS.schoolTypes);
-export const invalidateMasterStudents = () => invalidateMasterData(MASTER_CACHE_KEYS.students);
 
 // 取得済み master を再利用しつつ、必要なら GraphQL から再読込する共通 hook。
 const useCachedMaster = <T,>(key: string, fetcher: () => Promise<T>) => {
@@ -141,19 +126,6 @@ export const useMasterGenders = () => {
   return useCachedMaster(MASTER_CACHE_KEYS.genders, fetcher);
 };
 
-// 続柄 master を取得する薄い wrapper。
-export const useMasterRelationships = () => {
-  const fetcher = useCallback(async () => {
-    const client = getGraphQLClient();
-    const sdk = getSdk(client);
-    const { allRelationships } = await sdk.allRelationships();
-    return (allRelationships ?? []).filter(
-      (relationship): relationship is RelationshipMaster => Boolean(relationship),
-    );
-  }, []);
-  return useCachedMaster(MASTER_CACHE_KEYS.relationships, fetcher);
-};
-
 // 都道府県 master を取得する薄い wrapper。
 export const useMasterPrefectures = () => {
   const fetcher = useCallback(async () => {
@@ -163,26 +135,4 @@ export const useMasterPrefectures = () => {
     return (allPrefectures ?? []).filter((prefecture): prefecture is PrefectureMaster => Boolean(prefecture));
   }, []);
   return useCachedMaster(MASTER_CACHE_KEYS.prefectures, fetcher);
-};
-
-// 学年 master を取得する薄い wrapper。
-export const useMasterSchoolGrades = () => {
-  const fetcher = useCallback(async () => {
-    const client = getGraphQLClient();
-    const sdk = getSdk(client);
-    const { allSchoolGrades } = await sdk.allSchoolGrades();
-    return (allSchoolGrades ?? []).filter((schoolGrade): schoolGrade is SchoolGradeMaster => Boolean(schoolGrade));
-  }, []);
-  return useCachedMaster(MASTER_CACHE_KEYS.schoolGrades, fetcher);
-};
-
-// 学校種 master を取得する薄い wrapper。
-export const useMasterSchoolTypes = () => {
-  const fetcher = useCallback(async () => {
-    const client = getGraphQLClient();
-    const sdk = getSdk(client);
-    const { allSchoolTypes } = await sdk.allSchoolTypes();
-    return (allSchoolTypes ?? []).filter((schoolType): schoolType is SchoolTypeMaster => Boolean(schoolType));
-  }, []);
-  return useCachedMaster(MASTER_CACHE_KEYS.schoolTypes, fetcher);
 };

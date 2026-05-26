@@ -39,32 +39,11 @@ export function CommandMenu() {
         action: () => navigate("/"),
       },
       {
-        id: "/students",
-        label: "生徒",
-        description: "生徒一覧と関連データを確認",
-        keywords: ["student", "pupil", "生徒", "student list"],
-        action: () => navigate("/students"),
-      },
-      {
-        id: "/teachers",
-        label: "講師",
-        description: "講師一覧と基本情報を確認",
-        keywords: ["teacher", "instructor", "講師", "teacher list"],
-        action: () => navigate("/teachers"),
-      },
-      {
         id: "/leads",
         label: "リード",
         description: "リード一覧と対応状況を確認",
         keywords: ["lead", "inquiry", "リード", "contact"],
         action: () => navigate("/leads"),
-      },
-      {
-        id: "/lead-activities",
-        label: "訪問・来塾予定",
-        description: "リードの訪問・来塾予定を確認",
-        keywords: ["lead activity", "history", "訪問来塾", "予定", "activity"],
-        action: () => navigate("/lead-activities"),
       },
       {
         id: "/employees",

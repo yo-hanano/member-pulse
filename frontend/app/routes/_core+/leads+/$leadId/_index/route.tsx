@@ -1,6 +1,6 @@
 import { Button, Card, Chip, Label, Modal, TextArea } from "@heroui/react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft, PencilLine, UserPlus } from "lucide-react";
+import { ArrowLeft, PencilLine } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { SubmitHandler } from "react-hook-form";
 import { useForm } from "react-hook-form";
@@ -13,11 +13,6 @@ import { SelectField } from "~/components/form/select-field";
 import { useActionFetcher } from "~/hooks/useActionFetcher";
 import { formatDateTimeYmdHm } from "~/lib/date";
 import { formatLeadStatus, leadStatusColor, leadStatusOptions, leadStatusValues } from "~/routes/_core+/leads+/_index/lead-status";
-import {
-  formatScheduleEventStatus,
-  formatScheduleEventType,
-  scheduleEventStatusColor,
-} from "~/routes/_core+/schedule-events+/_index/schedule-event-options";
 
 const statusNoteSchema = z.object({
   status: z.enum(leadStatusValues),
@@ -29,10 +24,9 @@ type UpdateLeadStatusNoteActionData = Awaited<ReturnType<typeof updateLeadStatus
 
 // リード詳細の概要タブ。
 export default function LeadDetailOverviewRoute() {
-  const { lead, latestScheduleEvent } = useOutletContext<LeadDetailContext>();
+  const { lead } = useOutletContext<LeadDetailContext>();
   const navigate = useNavigate();
   const [isStatusNoteOpen, setStatusNoteOpen] = useState(false);
-  const canStartEnrollment = lead.status === "contracted";
 
   return (
     <div className="space-y-4">
@@ -42,12 +36,6 @@ export default function LeadDetailOverviewRoute() {
           一覧へ戻る
         </Button>
         <div className="flex flex-wrap items-center gap-2">
-          {canStartEnrollment ? (
-            <Button className="app-primary-button" onPress={() => navigate(`/leads/${lead.id}/enrollment`)}>
-              <UserPlus className="size-4" />
-              入会処理へ
-            </Button>
-          ) : null}
           <Button className="border-border text-foreground hover:bg-default-100" variant="outline" onPress={() => setStatusNoteOpen(true)}>
             <PencilLine className="size-4" />
             状態・メモを更新
@@ -106,21 +94,6 @@ export default function LeadDetailOverviewRoute() {
             <Chip color={leadStatusColor(lead.status)} size="sm" variant="soft">
               {formatLeadStatus(lead.status)}
             </Chip>
-          </div>
-          <div className="space-y-1">
-            <p className="text-muted-foreground text-xs">訪問来塾</p>
-            {latestScheduleEvent ? (
-              <div className="flex flex-wrap items-center gap-2 text-sm">
-                <span className="font-medium">{formatScheduleEventType(latestScheduleEvent.activityType)}</span>
-                <span className="text-muted-foreground">/</span>
-                <span className="font-medium">{formatDateTimeYmdHm(latestScheduleEvent.activityAt)}</span>
-                <Chip color={scheduleEventStatusColor(latestScheduleEvent.status)} size="sm" variant="soft">
-                  {formatScheduleEventStatus(latestScheduleEvent.status)}
-                </Chip>
-              </div>
-            ) : (
-              <p className="text-sm font-medium">-</p>
-            )}
           </div>
           <div className="space-y-1 md:col-span-2">
             <p className="text-muted-foreground text-xs">メモ</p>

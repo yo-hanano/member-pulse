@@ -17,10 +17,10 @@ import type { Key } from "react";
 import { useState } from "react";
 
 import { AutocompleteField } from "~/components/form/autocomplete-field";
+import { useBranchOptions } from "~/hooks/useBranchOptions";
 import { buildChangedQueryPatch } from "~/lib/query-state";
 import { leadStatusOptions } from "~/routes/_core+/leads+/_index/lead-status";
 import { leadQueryParsers, leadQueryUrlKeys } from "~/routes/_core+/leads+/_index/query-state";
-import { useBranchOptions } from "~/routes/_core+/students+/_index/hooks/useBranchOptions";
 
 type InquiryDateRange = {
   start: DateValue;

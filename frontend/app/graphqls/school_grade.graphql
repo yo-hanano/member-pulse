@@ -1,7 +1,0 @@
-query allSchoolGrades {
-  allSchoolGrades {
-    code
-    name
-    sortOrder
-  }
-}

@@ -1,22 +1,12 @@
 import { Breadcrumbs, Tabs } from "@heroui/react";
 import { Outlet, type ActionFunctionArgs, type LoaderFunctionArgs, useLoaderData, useLocation, useNavigate } from "react-router";
 
-import { type LeadDetailViewFragment, type LeadInput, type ScheduleEventListItemFragment, getSdk } from "~/generated/graphql";
+import { type LeadDetailViewFragment, type LeadInput, getSdk } from "~/generated/graphql";
 import { leadStatusValues } from "~/routes/_core+/leads+/_index/lead-status";
 import { getGraphQLClient } from "~/services/graphql-client";
 
-export type LeadLatestScheduleEvent = {
-  id?: string | null;
-  activityAt?: string | null;
-  activityType?: string | null;
-  status?: string | null;
-  reason?: string | null;
-  note?: string | null;
-};
-
 export type LeadDetailContext = {
   lead: LeadDetailViewFragment;
-  latestScheduleEvent: ScheduleEventListItemFragment | null;
 };
 
 // リード詳細に必要なデータを取得する。
@@ -28,22 +18,10 @@ export const clientLoader = async ({ params }: LoaderFunctionArgs) => {
 
   const client = getGraphQLClient();
   const sdk = getSdk(client);
-  const [{ leadById }, { scheduleEventPagination }] = await Promise.all([
-    sdk.leadById({ leadId }),
-    sdk.scheduleEventPage({
-      pagination: {
-        offset: 0,
-        limit: 10,
-        orderBy: "scheduled_at",
-        orderDirection: "DESC",
-      },
-      filter: { scheduleSubjectId: leadId },
-    }),
-  ]);
+  const { leadById } = await sdk.leadById({ leadId });
 
   return {
     lead: leadById,
-    latestScheduleEvent: scheduleEventPagination?.contents?.[0] ?? null,
   };
 };
 
@@ -98,23 +76,18 @@ export const clientAction = async ({ params, request }: ActionFunctionArgs) => {
 };
 
 export function meta() {
-  return [{ title: "リード詳細" }, { name: "description", content: "リード詳細、訪問・来塾予定" }];
+  return [{ title: "リード詳細" }, { name: "description", content: "リード詳細" }];
 }
 
 // リード詳細レイアウト。タブの選択状態と子ルート描画をまとめる。
 export default function LeadDetailRoute() {
-  const { lead: leadData, latestScheduleEvent } = useLoaderData<typeof clientLoader>();
+  const { lead: leadData } = useLoaderData<typeof clientLoader>();
   const navigate = useNavigate();
   const location = useLocation();
   const lead = leadData!;
 
-  const selectedKey = location.pathname.endsWith("/activities")
-    ? "activities"
-    : location.pathname.endsWith("/enrollment")
-      ? "enrollment"
-      : "overview";
+  const selectedKey = "overview";
   const basePath = `/leads/${lead.id}`;
-  const showEnrollmentTab = lead.status === "contracted" || selectedKey === "enrollment";
 
   return (
     <section className="space-y-6">
@@ -128,7 +101,7 @@ export default function LeadDetailRoute() {
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <h1 className="text-xl font-semibold tracking-tight">{lead.studentName ?? "リード詳細"}</h1>
-            <p className="text-muted-foreground mt-1 text-xs">リードの基本情報と訪問・来塾予定を管理します。</p>
+            <p className="text-muted-foreground mt-1 text-xs">リードの基本情報を管理します。</p>
           </div>
         </div>
 
@@ -139,10 +112,6 @@ export default function LeadDetailRoute() {
           onSelectionChange={(key) => {
             if (key === "overview") {
               navigate(basePath);
-            } else if (key === "activities") {
-              navigate(`${basePath}/activities`);
-            } else if (key === "enrollment") {
-              navigate(`${basePath}/enrollment`);
             }
           }}
         >
@@ -152,22 +121,12 @@ export default function LeadDetailRoute() {
                 概要
                 <Tabs.Indicator />
               </Tabs.Tab>
-              <Tabs.Tab id="activities" className="whitespace-nowrap">
-                訪問・来塾予定
-                <Tabs.Indicator />
-              </Tabs.Tab>
-              {showEnrollmentTab ? (
-                <Tabs.Tab id="enrollment" className="whitespace-nowrap">
-                  入会処理
-                  <Tabs.Indicator />
-                </Tabs.Tab>
-              ) : null}
             </Tabs.List>
           </Tabs.ListContainer>
         </Tabs>
       </div>
 
-      <Outlet context={{ lead, latestScheduleEvent }} />
+      <Outlet context={{ lead }} />
     </section>
   );
 }
