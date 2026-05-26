@@ -9,31 +9,7 @@ databaseChangeLog:
       path: schemas/tables/foundation/identity/
       relativeToChangelogFile: true
   - includeAll:
-      path: schemas/tables/foundation/organization/
-      relativeToChangelogFile: true
-  - includeAll:
-      path: schemas/tables/foundation/academic/
-      relativeToChangelogFile: true
-  - includeAll:
-      path: schemas/tables/domains/customer/
-      relativeToChangelogFile: true
-  - includeAll:
-      path: schemas/tables/domains/teacher/
-      relativeToChangelogFile: true
-  - includeAll:
-      path: schemas/tables/domains/contract/
-      relativeToChangelogFile: true
-  - includeAll:
-      path: schemas/tables/domains/billing/
-      relativeToChangelogFile: true
-  - includeAll:
-      path: schemas/tables/domains/schedule/
-      relativeToChangelogFile: true
-  - includeAll:
-      path: schemas/tables/maintenance/alter/
-      relativeToChangelogFile: true
-  - includeAll:
-      path: schemas/tables/maintenance/backfill/
+      path: schemas/tables/domains/member_pulse/
       relativeToChangelogFile: true
   - includeAll:
       path: schemas/seeds/

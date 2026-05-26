@@ -1,6 +1,6 @@
 --liquibase formatted sql
 
---changeset codex:jukuops-init-base-1-create-company
+--changeset codex:memberpulse-identity-1-create-company
 CREATE TABLE public.company (
   id VARCHAR(21) NOT NULL,
   code VARCHAR(50) NOT NULL,
@@ -13,7 +13,7 @@ CREATE TABLE public.company (
   CONSTRAINT company_pkey PRIMARY KEY (id),
   CONSTRAINT uq_company_code UNIQUE (code)
 );
-COMMENT ON TABLE public.company IS '塾運営会社';
+COMMENT ON TABLE public.company IS '利用会社';
 COMMENT ON COLUMN public.company.id IS 'ID';
 COMMENT ON COLUMN public.company.code IS '会社コード';
 COMMENT ON COLUMN public.company.name IS '会社名';
@@ -24,7 +24,7 @@ COMMENT ON COLUMN public.company.is_deleted IS '削除フラグ';
 COMMENT ON COLUMN public.company.deleted_at IS '削除日時';
 --rollback DROP TABLE IF EXISTS public.company CASCADE;
 
---changeset codex:jukuops-init-base-3-create-employee
+--changeset codex:memberpulse-identity-2-create-employee
 CREATE TABLE public.employee (
   id VARCHAR(21) NOT NULL,
   company_id VARCHAR(21) NOT NULL,
@@ -67,7 +67,7 @@ COMMENT ON COLUMN public.employee.is_deleted IS '削除フラグ';
 COMMENT ON COLUMN public.employee.deleted_at IS '削除日時';
 --rollback DROP TABLE IF EXISTS public.employee CASCADE;
 
---changeset codex:jukuops-init-base-4-create-employee-token
+--changeset codex:memberpulse-identity-3-create-employee-token
 CREATE TABLE public.employee_token (
   id VARCHAR(21) NOT NULL,
   company_id VARCHAR(21) NOT NULL,

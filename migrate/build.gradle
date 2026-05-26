@@ -70,40 +70,6 @@ tasks.register('jooqCodegenWithTestcontainers', JavaExec) {
     dependsOn 'compileCodegenJava'
 }
 
-tasks.register('generateSeedData', JavaExec) {
-    group = 'codegen'
-    description = 'local/stg DBへシードデータを投入する'
-    classpath = files(sourceSets.codegen.runtimeClasspath)
-    mainClass.set('com.cxisystem.seed.SeedDataGenerator')
-    doFirst {
-        // 対話入力時にログとプロンプトを見やすくする。
-        gradle.startParameter.consoleOutput = org.gradle.api.logging.configuration.ConsoleOutput.Plain
-    }
-    standardInput = System.in
-    def seedArgs = project.findProperty('seedDataArgs') ?: System.getenv('SEED_DATA_ARGS')
-    if (seedArgs) {
-        args org.apache.tools.ant.types.Commandline.translateCommandline(seedArgs)
-    }
-    systemProperty 'org.slf4j.simpleLogger.defaultLogLevel', 'INFO'
-    dependsOn 'compileCodegenJava'
-}
-
-tasks.register('importSchoolCsv', JavaExec) {
-    group = 'codegen'
-    description = 'src/csv の学校CSVを public.school に反映する'
-    classpath = files(sourceSets.codegen.runtimeClasspath)
-    mainClass.set('com.cxisystem.importer.SchoolCsvImportGenerator')
-    doFirst {
-        gradle.startParameter.consoleOutput = org.gradle.api.logging.configuration.ConsoleOutput.Plain
-    }
-    def schoolCsvArgs = project.findProperty('schoolCsvArgs') ?: System.getenv('SCHOOL_CSV_ARGS')
-    if (schoolCsvArgs) {
-        args org.apache.tools.ant.types.Commandline.translateCommandline(schoolCsvArgs)
-    }
-    systemProperty 'org.slf4j.simpleLogger.defaultLogLevel', 'INFO'
-    dependsOn 'compileCodegenJava'
-}
-
 tasks.named('compileJava') { dependsOn 'jooqCodegenWithTestcontainers' }
 tasks.register('cleanJooqGen', Delete) { delete jooqOutDir }
 clean.dependsOn 'cleanJooqGen'
