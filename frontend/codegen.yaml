@@ -1,0 +1,24 @@
+overwrite: true
+schema:
+  - app/graphqls/schema.graphql
+documents:
+  - app/graphqls/*.graphql
+
+generates:
+  app/generated/graphql.ts:
+    plugins:
+      - typescript-operations
+      - typescript-graphql-request
+    config:
+      withHooks: false
+      maybeValue: "T | undefined | null"
+      scalars:
+        Long: number
+        BigDecimal: number
+        BigInteger: number
+        Upload: File
+        Time: string
+        Date: string
+        DateTime: string
+        LocalDate: string
+        LocalDateTime: string

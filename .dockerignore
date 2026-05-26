@@ -1,0 +1,6 @@
+.git
+**/build
+!backend/build/alcos-api.jar
+**/.gradle
+**/node_modules
+.vscode

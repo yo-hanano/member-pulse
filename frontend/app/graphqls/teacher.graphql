@@ -1,0 +1,83 @@
+fragment TeacherFormInitial on Teacher {
+  id
+  code
+  name
+  kana
+  birthday
+  genderCode
+  schoolCode
+  schoolName
+  schoolGradeCode
+  phone
+  email
+  status
+  note
+}
+
+fragment TeacherListItem on Teacher {
+  id
+  code
+  name
+  kana
+  birthday
+  genderCode
+  schoolCode
+  schoolName
+  schoolGradeCode
+  phone
+  email
+  status
+}
+
+fragment TeacherOption on Teacher {
+  id
+  code
+  name
+  kana
+  schoolCode
+  schoolName
+  schoolGradeCode
+  phone
+  email
+  status
+}
+
+query teacherById($teacherId: String!) {
+  teacherById(teacherId: $teacherId) {
+    ...TeacherFormInitial
+  }
+}
+
+query teacherPage($pagination: Pagination!, $filter: TeacherFilterInput) {
+  teacherPagination(pagination: $pagination, filter: $filter) {
+    contents {
+      ...TeacherListItem
+    }
+    totalCount
+    totalPages
+    limit
+    offset
+  }
+}
+
+query allTeachers {
+  allTeachers {
+    ...TeacherOption
+  }
+}
+
+mutation createTeacher($input: TeacherInput!) {
+  createTeacher(input: $input) {
+    id
+  }
+}
+
+mutation updateTeacher($teacherId: String!, $input: TeacherInput!) {
+  updateTeacher(teacherId: $teacherId, input: $input) {
+    id
+  }
+}
+
+mutation deleteTeacher($teacherId: String!) {
+  deleteTeacher(teacherId: $teacherId)
+}

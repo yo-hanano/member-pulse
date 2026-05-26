@@ -1,0 +1,23 @@
+query schoolByCode($schoolCode: String!) {
+  schoolByCode(schoolCode: $schoolCode) {
+    code
+    name
+    prefectureCode
+    schoolTypeCode
+  }
+}
+
+query schoolPagination($pagination: Pagination!, $filter: SchoolFilterInput) {
+  schoolPagination(pagination: $pagination, filter: $filter) {
+    contents {
+      code
+      name
+      prefectureCode
+      schoolTypeCode
+    }
+    totalCount
+    totalPages
+    limit
+    offset
+  }
+}

@@ -1,0 +1,118 @@
+plugins {
+    id 'java-library'
+}
+
+group = 'com.cxisystem'
+version = '1.0.0'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
+}
+
+repositories { mavenCentral() }
+
+dependencies {
+    api 'org.jooq:jooq:3.21.4'
+    implementation platform('org.testcontainers:testcontainers-bom:2.0.3')
+    implementation 'org.testcontainers:testcontainers-postgresql'
+    implementation 'org.jooq:jooq-codegen:3.21.4'
+    implementation 'commons-dbutils:commons-dbutils:1.8.1'
+    implementation 'net.datafaker:datafaker:2.5.4'
+    implementation 'org.postgresql:postgresql:42.7.11'
+    implementation 'org.liquibase:liquibase-core:5.0.3'
+    implementation 'org.slf4j:slf4j-simple:2.0.17'
+    compileOnly 'org.projectlombok:lombok:1.18.46'
+    annotationProcessor 'org.projectlombok:lombok:1.18.46'
+}
+
+/** jOOQ 出力先（生成物を main に含めるだけ。“事前 mkdir”等は不要） */
+def jooqOutDir = "$buildDir/generated/sources/jooq-codegen"
+sourceSets {
+    main { java.srcDir(jooqOutDir) }
+    codegen {
+        java {
+            srcDir('src/codegen/java')
+            exclude 'com/cxisystem/liquibasegen/**'
+        }
+        resources.srcDir('src/codegen/resources')
+    }
+}
+
+configurations {
+    codegenImplementation.extendsFrom implementation
+    codegenRuntimeOnly.extendsFrom runtimeOnly
+    codegenCompileOnly.extendsFrom compileOnly
+    codegenAnnotationProcessor.extendsFrom annotationProcessor
+}
+
+/** jOOQ生成(生成 → compileJava の順序だけ保証) */
+tasks.register('jooqCodegenWithTestcontainers', JavaExec) {
+    group = 'codegen'
+    description = 'TestcontainersでPostgreSQLを起動しjOOQコード生成'
+    classpath = files(sourceSets.codegen.runtimeClasspath, sourceSets.main.resources.srcDirs)
+    mainClass.set('com.cxisystem.jooq.JooqCodegenWithTestcontainers')
+    systemProperty 'jooq.outDir', file(jooqOutDir).absolutePath
+    systemProperty 'liquibase.searchPath', file('src/main/resources').absolutePath
+    // CI環境モードで実行する場合
+    // (DBの準備がいるがTestcontainersでやるより効率がいいかも)
+    environment 'CI', System.getenv('CI') ?: 'false'
+    environment 'PGHOST', System.getenv('PGHOST') ?: 'postgres'
+    environment 'PGPORT', System.getenv('PGPORT') ?: '5432'
+    environment 'PGDATABASE', System.getenv('PGDATABASE') ?: 'jooq_codegen'
+    environment 'PGUSER', System.getenv('PGUSER') ?: 'postgres'
+    environment 'PGPASSWORD', System.getenv('PGPASSWORD') ?: 'postgres'
+    // SLF4J simple logger の設定
+    systemProperty 'org.slf4j.simpleLogger.defaultLogLevel', 'INFO'
+    systemProperty 'org.slf4j.simpleLogger.log.org.testcontainers', 'INFO'
+    inputs.files(fileTree('src/main/resources/db/changelog'))
+    outputs.dir jooqOutDir
+    dependsOn 'compileCodegenJava'
+}
+
+tasks.register('generateSeedData', JavaExec) {
+    group = 'codegen'
+    description = 'local/stg DBへシードデータを投入する'
+    classpath = files(sourceSets.codegen.runtimeClasspath)
+    mainClass.set('com.cxisystem.seed.SeedDataGenerator')
+    doFirst {
+        // 対話入力時にログとプロンプトを見やすくする。
+        gradle.startParameter.consoleOutput = org.gradle.api.logging.configuration.ConsoleOutput.Plain
+    }
+    standardInput = System.in
+    def seedArgs = project.findProperty('seedDataArgs') ?: System.getenv('SEED_DATA_ARGS')
+    if (seedArgs) {
+        args org.apache.tools.ant.types.Commandline.translateCommandline(seedArgs)
+    }
+    systemProperty 'org.slf4j.simpleLogger.defaultLogLevel', 'INFO'
+    dependsOn 'compileCodegenJava'
+}
+
+tasks.register('importSchoolCsv', JavaExec) {
+    group = 'codegen'
+    description = 'src/csv の学校CSVを public.school に反映する'
+    classpath = files(sourceSets.codegen.runtimeClasspath)
+    mainClass.set('com.cxisystem.importer.SchoolCsvImportGenerator')
+    doFirst {
+        gradle.startParameter.consoleOutput = org.gradle.api.logging.configuration.ConsoleOutput.Plain
+    }
+    def schoolCsvArgs = project.findProperty('schoolCsvArgs') ?: System.getenv('SCHOOL_CSV_ARGS')
+    if (schoolCsvArgs) {
+        args org.apache.tools.ant.types.Commandline.translateCommandline(schoolCsvArgs)
+    }
+    systemProperty 'org.slf4j.simpleLogger.defaultLogLevel', 'INFO'
+    dependsOn 'compileCodegenJava'
+}
+
+tasks.named('compileJava') { dependsOn 'jooqCodegenWithTestcontainers' }
+tasks.register('cleanJooqGen', Delete) { delete jooqOutDir }
+clean.dependsOn 'cleanJooqGen'
+
+/** コンパイルオプション（任意） */
+tasks.compileJava {
+    options.encoding = 'UTF-8'
+    options.compilerArgs << '-parameters'
+}
+tasks.compileTestJava { options.encoding = 'UTF-8' }
+
+test { systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager" }

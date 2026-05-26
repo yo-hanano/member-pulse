@@ -1,0 +1,266 @@
+fragment StudentFormInitial on Student {
+  id
+  code
+  name
+  kana
+  birthday
+  genderCode
+  branchId
+  schoolCode
+  schoolName
+  schoolGradeCode
+  schoolGradeName
+  branchLabels {
+    name
+    primary
+  }
+  status
+  note
+  primaryGuardian {
+    id
+    name
+    kana
+    relationshipCode
+    prefectureCode
+    phone
+    email
+    postalCode
+    address
+    note
+  }
+  guardians {
+    id
+    name
+    kana
+    relationshipCode
+    relationshipName
+    prefectureCode
+    phone
+    email
+    postalCode
+    address
+    note
+    primaryContact
+  }
+  billingContacts {
+    id
+    name
+    kana
+    prefectureCode
+    phone
+    email
+    postalCode
+    address
+    note
+    primary
+  }
+}
+
+fragment StudentListItem on Student {
+  id
+  code
+  name
+  kana
+  birthday
+  genderCode
+  branchId
+  schoolCode
+  schoolName
+  schoolTypeName
+  schoolGradeCode
+  schoolGradeName
+  branchLabels {
+    name
+    primary
+  }
+  status
+}
+
+fragment StudentOption on Student {
+  id
+  code
+  name
+  kana
+  branchId
+  schoolCode
+  schoolName
+  schoolGradeCode
+  schoolGradeName
+  branchLabels {
+    name
+    primary
+  }
+  status
+}
+
+fragment BillingContactOption on BillingContact {
+  id
+  name
+  kana
+  phone
+  email
+  postalCode
+  address
+}
+
+fragment SubjectOption on Subject {
+  id
+  code
+  name
+}
+
+fragment StudentContractListItem on Contract {
+  id
+  courseType
+  coursePlanName
+  contractStartDate
+  contractEndDate
+  subjectId
+  weeklyLessons
+  preferredWeekday
+  preferredStartTime
+  preferredEndTime
+  monthlyFee
+  discountAmount
+  seatGenerationEligible
+  status
+  note
+}
+
+query studentById($studentId: String!) {
+  studentById(studentId: $studentId) {
+    ...StudentFormInitial
+  }
+}
+
+query studentPage($pagination: Pagination!, $filter: StudentFilterInput) {
+  studentPagination(pagination: $pagination, filter: $filter) {
+    contents {
+      ...StudentListItem
+    }
+    totalCount
+    totalPages
+    limit
+    offset
+  }
+}
+
+query allStudents {
+  allStudents {
+    ...StudentOption
+  }
+}
+
+query billingContactOptions($searchText: String) {
+  billingContactOptions(searchText: $searchText) {
+    ...BillingContactOption
+  }
+}
+
+query subjectOptions {
+  subjectOptions {
+    ...SubjectOption
+  }
+}
+
+query studentContracts($studentId: String!) {
+  contractsByStudentId(studentId: $studentId) {
+    ...StudentContractListItem
+  }
+}
+
+mutation createStudent($input: StudentInput!) {
+  createStudent(input: $input) {
+    id
+  }
+}
+
+mutation enrollLead($leadId: String!, $input: LeadEnrollmentInput!) {
+  enrollLead(leadId: $leadId, input: $input) {
+    id
+  }
+}
+
+mutation updateStudent($studentId: String!, $input: StudentInput!) {
+  updateStudent(studentId: $studentId, input: $input) {
+    id
+  }
+}
+
+mutation saveStudentGuardian($studentId: String!, $input: GuardianInput!) {
+  saveStudentGuardian(studentId: $studentId, input: $input) {
+    id
+    name
+    kana
+    relationshipCode
+    relationshipName
+    prefectureCode
+    phone
+    email
+    postalCode
+    address
+    note
+    primaryContact
+  }
+}
+
+mutation setPrimaryStudentGuardian($studentId: String!, $guardianId: String!) {
+  setPrimaryStudentGuardian(studentId: $studentId, guardianId: $guardianId) {
+    id
+    primaryContact
+  }
+}
+
+mutation saveStudentBillingContact($studentId: String!, $input: BillingContactInput!) {
+  saveStudentBillingContact(studentId: $studentId, input: $input) {
+    id
+    name
+    kana
+    prefectureCode
+    phone
+    email
+    postalCode
+    address
+    note
+    primary
+  }
+}
+
+mutation linkStudentBillingContact($studentId: String!, $billingContactId: String!) {
+  linkStudentBillingContact(studentId: $studentId, billingContactId: $billingContactId) {
+    id
+    name
+    kana
+    prefectureCode
+    phone
+    email
+    postalCode
+    address
+    note
+    primary
+  }
+}
+
+mutation createStudentContract($studentId: String!, $input: ContractInput!) {
+  createStudentContract(studentId: $studentId, input: $input) {
+    ...StudentContractListItem
+  }
+}
+
+mutation updateStudentContract($contractId: String!, $input: ContractInput!) {
+  updateStudentContract(contractId: $contractId, input: $input) {
+    ...StudentContractListItem
+  }
+}
+
+mutation deleteStudentContract($contractId: String!) {
+  deleteStudentContract(contractId: $contractId)
+}
+
+mutation deleteStudentGuardian($studentId: String!, $guardianId: String!) {
+  deleteStudentGuardian(studentId: $studentId, guardianId: $guardianId)
+}
+
+mutation deleteStudent($studentId: String!) {
+  deleteStudent(studentId: $studentId)
+}

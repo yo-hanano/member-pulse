@@ -1,0 +1,80 @@
+fragment BranchDetailView on Branch {
+  id
+  areaId
+  code
+  name
+  zipCode
+  prefectureCode
+  address
+  prefecture {
+    code
+    name
+  }
+}
+
+fragment BranchListItem on Branch {
+  id
+  code
+  name
+  zipCode
+  address
+  area {
+    id
+    name
+  }
+  prefecture {
+    code
+    name
+  }
+}
+
+fragment BranchOption on Branch {
+  id
+  code
+  name
+  prefecture {
+    code
+    name
+    sortOrder
+  }
+}
+
+query branchById($branchId: String!) {
+  branchById(branchId: $branchId) {
+    ...BranchDetailView
+  }
+}
+
+query branchPage($pagination: Pagination!, $filter: BranchFilterInput) {
+  branchPagination(pagination: $pagination, filter: $filter) {
+    contents {
+      ...BranchListItem
+    }
+    totalCount
+    totalPages
+    limit
+    offset
+  }
+}
+
+query allBranches {
+  allBranches {
+    ...BranchOption
+  }
+}
+
+mutation createBranch($input: BranchInput!) {
+  createBranch(input: $input) {
+    id
+  }
+}
+
+mutation updateBranch($branchId: String!, $input: BranchInput!) {
+  updateBranch(branchId: $branchId, input: $input) {
+    id
+  }
+}
+
+mutation deleteBranch($branchId: String!) {
+  deleteBranch(branchId: $branchId)
+}

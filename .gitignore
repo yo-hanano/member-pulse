@@ -1,0 +1,132 @@
+# --- OS固有 ---
+.DS_Store
+
+# --- Node.js/Frontend ---
+node_modules/
+.react-router/
+build/
+**/build/
+.pnpm-store/
+dist/
+**/dist/
+.cache/
+.npm-cache/
+
+# --- Java/Quarkus/Gradle ---
+.gradle/
+target/
+!spec/target/
+!spec/target/**
+bin/
+**/bin/
+*.jar
+*.war
+*.ear
+!gradle-wrapper.jar
+
+# --- Quarkus CLI plugins ---
+.quarkus/
+
+# --- migrate ---
+profiles/local.env
+profiles/prod.env
+profiles/stg.env
+
+# --- deploy infra ---
+.terraform
+deploy/infra/terraform/terraform.tfstate
+deploy/infra/terraform/terraform.tfstate.backup
+
+# --- kamal ---
+deploy/kamal/.kamal/
+!deploy/kamal/.kamal/
+deploy/kamal/.kamal/*
+!deploy/kamal/.kamal/hooks/
+!deploy/kamal/.kamal/hooks/**
+
+# --- Expo/React Native ---
+expo-env.d.ts
+.expo/
+
+# Native
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+expo-env.d.ts
+
+# Metro
+.metro-health-check*
+
+# typescript
+*.tsbuildinfo
+
+# generated native folders
+/ios
+/android
+
+# --- TLS Certificates ---
+.certs/
+
+# --- IDE ---
+.idea/
+*.ipr
+*.iml
+*.iws
+.project
+.classpath
+.settings/
+nb-configuration.xml
+.factorypath
+
+# VSCode 全体を無視
+.vscode/*
+
+# ただしチーム共通の設定だけは追跡
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# --- 環境ファイル ---
+.env
+.env.*
+!.env.template
+**/.envrc
+!**/.envrc.template
+.miserc.toml
+mise.local.toml
+
+# --- Vim/エディタ ---
+*.swp
+*.swo
+
+# --- patch/一時ファイル ---
+*.orig
+*.rej
+
+# --- その他 ---
+*.log
+
+# --- mcp ---
+.claude/*
+.serena/*
+.understand-anything-plugin/*
+.understand-anything-plugin
+**/.claude
+**/.serena
+
+# .codex はルートの skills だけ追跡し、設定ファイルは除外
+**/.codex/*
+!/.codex/
+!/.codex/skills/
+!/.codex/skills/**
+/.codex/config.toml
+/.codex/*.local.toml
+reference/*
+/ref/

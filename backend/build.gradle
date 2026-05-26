@@ -1,0 +1,96 @@
+plugins {
+	id 'java'
+	id 'io.quarkus'
+	id 'io.smallrye.graphql' version '2.17.0'
+	id 'com.diffplug.spotless' version '8.4.0'
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	// app
+	implementation 'io.quarkus:quarkus-smallrye-health'
+	implementation 'io.quarkus:quarkus-smallrye-context-propagation'
+	implementation 'io.quarkus:quarkus-virtual-threads'
+	implementation 'io.quarkus:quarkus-jackson'
+	implementation 'io.quarkus:quarkus-redis-client'
+	implementation 'io.quarkus:quarkus-smallrye-jwt'
+	implementation 'io.quarkus:quarkus-jdbc-postgresql'
+	implementation 'io.quarkus:quarkus-config-yaml'
+	implementation 'io.quarkus:quarkus-smallrye-graphql'
+	implementation 'io.quarkus:quarkus-arc'
+	implementation 'io.quarkus:quarkus-rest'
+	implementation 'io.quarkus:quarkus-rest-jackson'
+	implementation 'io.quarkiverse.vault:quarkus-vault'
+	implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
+	implementation 'com.github.ben-manes.caffeine:caffeine:3.2.4'
+  // db
+  implementation 'org.jooq:jooq:3.21.4'
+	// util
+	implementation 'org.apache.commons:commons-lang3:3.20.0'
+	implementation 'org.apache.commons:commons-collections4:4.5.0'
+	implementation 'org.apache.commons:commons-text:1.15.0'
+	implementation 'commons-beanutils:commons-beanutils:1.11.0'
+	implementation 'com.aventrix.jnanoid:jnanoid:2.0.0'
+	implementation 'com.password4j:password4j:1.8.4'
+	// migrate codegen
+	implementation "com.cxisystem:migrate:1.0.0"
+	// lombok
+	compileOnly 'org.projectlombok:lombok:1.18.46'
+	annotationProcessor 'org.projectlombok:lombok:1.18.46'
+	// test
+	testImplementation 'io.quarkus:quarkus-junit5'
+	testImplementation 'io.quarkus:quarkus-smallrye-jwt-build'
+	testImplementation 'io.quarkus:quarkus-config-yaml'
+}
+
+/** migrate 側の jOOQ生成タスクを included build 経由で呼び出す */
+tasks.register("codegen") {
+    group = "codegen"
+    description = "Run jOOQ codegen in the included migrate build"
+    dependsOn(gradle.includedBuild("migrate").task(":jooqCodegenWithTestcontainers"))
+}
+
+tasks.named("compileJava") { dependsOn("codegen") }
+
+group = 'com.cxisystem'
+version = '1.0.0'
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_25
+	targetCompatibility = JavaVersion.VERSION_25
+	toolchain { languageVersion = JavaLanguageVersion.of(25) }
+}
+
+generateSchema {
+	destination = file("$buildDir/generated/schema.graphql")
+	includeTransitiveDependencies = true
+	includeScalars = true
+}
+
+test {
+	systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"
+}
+
+compileJava {
+	options.encoding = 'UTF-8'
+	options.compilerArgs << '-parameters'
+}
+
+compileTestJava {
+	options.encoding = 'UTF-8'
+}
+
+spotless {
+	java {
+    target 'src/*/java/**/*.java'
+    importOrder()
+    removeUnusedImports()
+    eclipse().configFile project.file("eclipse-java-google-style.xml")
+    formatAnnotations()
+    trimTrailingWhitespace()
+    endWithNewline()
+	}
+}

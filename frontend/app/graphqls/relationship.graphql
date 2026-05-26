@@ -1,0 +1,11 @@
+fragment RelationshipOption on Relationship {
+  code
+  name
+  sortOrder
+}
+
+query allRelationships {
+  allRelationships {
+    ...RelationshipOption
+  }
+}

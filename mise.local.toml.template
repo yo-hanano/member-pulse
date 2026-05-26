@@ -1,0 +1,7 @@
+# 読み込むプロファイル env をここで切り替える
+# 切り替え後、go-task などに確実に反映するために以下を実行すること
+# eval "$(mise hook-env)"
+[env]
+_.file = "profiles/local.env"
+# _.file = "profiles/stg.env"
+# _.file = "profiles/prod.env"

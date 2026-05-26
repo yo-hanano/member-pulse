@@ -1,0 +1,28 @@
+# backend 開発用ショートカット
+
+default:
+  @just --list
+
+dev:
+  ./gradlew quarkusDev
+
+codegen:
+  ./gradlew codegen
+
+compile:
+  ./gradlew compileJava
+
+test:
+  ./gradlew test
+
+build:
+  ./gradlew build
+
+fmt:
+  ./gradlew spotlessApply
+
+check:
+  ./gradlew spotlessCheck test
+
+dep-updates:
+  ./gradlew dependencyUpdates

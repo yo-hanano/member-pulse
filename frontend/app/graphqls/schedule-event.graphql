@@ -1,0 +1,121 @@
+fragment ScheduleEventListItem on ScheduleEvent {
+  id
+  leadId: scheduleSubjectId
+  activityType: scheduleType
+  activityAt: scheduledAt
+  status
+  reason
+  note
+  createdAt
+  updatedAt
+  subject {
+    id
+    lead {
+      id
+      studentName
+      guardianName
+      schoolName
+      status
+    }
+  }
+}
+
+query scheduleEventById($scheduleEventId: String!) {
+  scheduleEventById(scheduleEventId: $scheduleEventId) {
+    ...ScheduleEventListItem
+  }
+}
+
+query scheduleEventPage($pagination: Pagination!, $filter: ScheduleEventFilterInput) {
+  scheduleEventPagination(pagination: $pagination, filter: $filter) {
+    contents {
+      ...ScheduleEventListItem
+    }
+    totalCount
+    totalPages
+    limit
+    offset
+  }
+}
+
+query allScheduleEvents {
+  allScheduleEvents {
+    ...ScheduleEventListItem
+  }
+}
+
+query allScheduleEventTypes {
+  allScheduleEventTypes: allScheduleEventTypes {
+    code
+    name
+    sortOrder
+  }
+}
+
+query allScheduleEventStatuses {
+  allScheduleEventStatuses: allScheduleEventStatuses {
+    code
+    name
+    sortOrder
+  }
+}
+
+mutation createScheduleEvent($input: ScheduleEventInput!) {
+  createScheduleEvent(input: $input) {
+    id
+  }
+}
+
+mutation updateScheduleEvent($scheduleEventId: String!, $input: ScheduleEventInput!) {
+  updateScheduleEvent(scheduleEventId: $scheduleEventId, input: $input) {
+    id
+  }
+}
+
+mutation rescheduleScheduleEvent($scheduleEventId: String!, $input: ScheduleEventRescheduleInput!) {
+  rescheduleScheduleEvent(scheduleEventId: $scheduleEventId, input: $input) {
+    id
+  }
+}
+
+mutation cancelScheduleEvent($scheduleEventId: String!, $input: ScheduleEventStatusChangeInput!) {
+  cancelScheduleEvent(scheduleEventId: $scheduleEventId, input: $input) {
+    id
+  }
+}
+
+mutation completeScheduleEvent($scheduleEventId: String!, $input: ScheduleEventCompleteInput!) {
+  completeScheduleEvent(scheduleEventId: $scheduleEventId, input: $input) {
+    id
+  }
+}
+
+mutation recordScheduleEventOutcome($scheduleEventId: String!, $input: ScheduleEventOutcomeInput!) {
+  recordScheduleEventOutcome(scheduleEventId: $scheduleEventId, input: $input) {
+    id
+  }
+}
+
+mutation deleteScheduleEvent($scheduleEventId: String!) {
+  deleteScheduleEvent(scheduleEventId: $scheduleEventId)
+}
+
+mutation createScheduleSubject($input: ScheduleSubjectInput!) {
+  createScheduleSubject(input: $input) {
+    id
+    leadId
+    studentId
+    teacherId
+    guardianId
+  }
+}
+
+mutation updateScheduleSubject($scheduleSubjectId: String!, $input: ScheduleSubjectInput!) {
+  updateScheduleSubject(scheduleSubjectId: $scheduleSubjectId, input: $input) {
+    id
+    leadId
+    studentId
+    teacherId
+    guardianId
+  }
+}

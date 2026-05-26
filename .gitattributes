@@ -1,0 +1,6 @@
+# テキストはLFで統一（Gitがテキストと判定したものに適用）
+* text=auto eol=lf
+# Windows実行用スクリプトはCRLFを維持
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf

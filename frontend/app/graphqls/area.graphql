@@ -1,0 +1,49 @@
+fragment AreaListItem on Area {
+  id
+  name
+  dispOrder
+}
+
+query allAreas {
+  allAreas {
+    ...AreaListItem
+  }
+}
+
+query areaById($areaId: String!) {
+  areaById(areaId: $areaId) {
+    ...AreaListItem
+  }
+}
+
+query areaPage($pagination: Pagination!, $filter: AreaFilterInput) {
+  areaPagination(pagination: $pagination, filter: $filter) {
+    contents {
+      ...AreaListItem
+    }
+    totalCount
+    totalPages
+    limit
+    offset
+  }
+}
+
+mutation createArea($input: AreaInput!) {
+  createArea(input: $input) {
+    id
+  }
+}
+
+mutation updateArea($areaId: String!, $input: AreaInput!) {
+  updateArea(areaId: $areaId, input: $input) {
+    id
+  }
+}
+
+mutation deleteArea($areaId: String!) {
+  deleteArea(areaId: $areaId)
+}
+
+mutation updateAreaOrders($inputs: [AreaOrderInput!]!) {
+  updateAreaOrders(inputs: $inputs)
+}

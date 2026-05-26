@@ -1,0 +1,8 @@
+mutation issueEmployeeInvite($input: EmployeeInviteInput!) {
+  issueEmployeeInvite(input: $input) {
+    employeeId
+    email
+    inviteUrl
+    expiresAt
+  }
+}

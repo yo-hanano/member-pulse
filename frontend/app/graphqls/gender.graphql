@@ -1,0 +1,7 @@
+query allGenders {
+  allGenders {
+    code
+    name
+    sortOrder
+  }
+}

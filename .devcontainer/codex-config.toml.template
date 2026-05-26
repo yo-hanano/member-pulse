@@ -1,0 +1,51 @@
+[mcp_servers.serena]
+command = "uvx"
+args = ["--from", "git+https://github.com/oraios/serena", "serena", "start-mcp-server", "--context", "codex", "--project", ".", "--enable-web-dashboard", "false"]
+startup_timeout_sec = 45.0
+
+[mcp_servers.context7]
+command = "npx"
+args = ["-y", "@upstash/context7-mcp"]
+startup_timeout_sec = 30.0
+
+[mcp_servers.context7.env]
+CLIENT_IP_ENCRYPTION_KEY = "fa7fcc66ea55f52a04682ee4c9b637c23bd07f5257ed9111cfa57c9e5e44e5fa"
+
+[mcp_servers.postgres]
+command = "npx"
+args = ["-y", "@henkey/postgres-mcp-server"]
+startup_timeout_sec = 30.0
+
+[mcp_servers.postgres.env]
+POSTGRES_CONNECTION_STRING = "postgresql://postgres:postgres@postgres:5432/member_pulse_dev"
+
+[mcp_servers.chrome_devtools]
+command = "npx"
+args = [
+  "-y",
+  "chrome-devtools-mcp@latest",
+  "--headless",
+  "--executablePath=/workspace/.cache/puppeteer/chrome/chrome",
+  "--chromeArg=--no-sandbox",
+  "--chromeArg=--disable-dev-shm-usage"
+]
+startup_timeout_sec = 20.0
+
+[mcp_servers.chrome_devtools.tools.new_page]
+approval_mode = "approve"
+
+[mcp_servers.chrome_devtools.tools.take_snapshot]
+approval_mode = "approve"
+
+[mcp_servers.chrome_devtools.tools.click]
+approval_mode = "approve"
+
+[mcp_servers.chrome_devtools.tools.navigate_page]
+approval_mode = "approve"
+
+[mcp_servers.chrome_devtools.tools.fill_form]
+approval_mode = "approve"
+
+[mcp_servers.playwright]
+command = "npx"
+args = ["@playwright/mcp@latest"]

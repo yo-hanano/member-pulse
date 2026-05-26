@@ -1,0 +1,306 @@
+version: '3'
+
+vars:
+  PROFILE: '{{default (env "PROFILE") .PROFILE | default "local"}}'
+  CHANGELOG_MASTER: '{{default "src/main/resources/db/changelog/db.changelog-master.yaml" .CHANGELOG_MASTER}}'
+  CHANGELOG_DIR: '{{default "src/main/resources/db/changelog/schemas/tables" .CHANGELOG_DIR}}'
+  GENERATED_CHANGELOG_DIR: '{{default "src/main/resources/db/changelog/schemas/tables/maintenance/_generated" .GENERATED_CHANGELOG_DIR}}'
+  CHANGELOG_FORMAT: '{{default (env "CHANGELOG_FORMAT") .CHANGELOG_FORMAT | default "sql"}}'
+  CHANGELOG_DBMS: '{{default (env "CHANGELOG_DBMS") .CHANGELOG_DBMS | default "postgresql"}}'
+  SNAPSHOT_FILE: '{{default "build/liquibase/baseline-snapshot.json" .SNAPSHOT_FILE}}'
+  AUTO_TAG: '{{default (env "AUTO_TAG") .AUTO_TAG | default "true"}}'
+  AUTO_TAG_PREFIX: '{{default (env "AUTO_TAG_PREFIX") .AUTO_TAG_PREFIX | default "checkpoint"}}'
+  AUTO_TAG_AUTHOR: '{{default (env "AUTO_TAG_AUTHOR") .AUTO_TAG_AUTHOR | default "task-auto"}}'
+  FILE: '{{default .SNAPSHOT_FILE .FILE}}'
+
+tasks:
+  default:
+    cmds:
+      - task: help
+
+  help:
+    # コマンド一覧
+    desc: Show Liquibase helper usage
+    silent: true
+    cmds:
+      - |
+        echo "Liquibase 最頻出コマンドのみ対応:"
+        echo "  task up                                        # liquibase update (migrate)"
+        echo "  task st                                        # liquibase status (migrate)"
+        echo "  task rb [COUNT=1]                              # liquibase rollback-count <COUNT> (migrate)"
+        echo "  task rbt TAG=...                               # liquibase rollback to tag (migrate)"
+        echo "  task diff                                      # liquibase diff-changelog (snapshot vs current DB)"
+        echo "  task sql [OUT=...]                             # liquibase update-sql -> stdout or OUT file (migrate)"
+        echo "  task validate                                  # liquibase validate (migrate)"
+        echo "  task clear                                     # liquibase clear-checksums (migrate)"
+        echo "  task snapshot [FILE=...]                       # liquibase snapshot JSON to FILE (migrate)"
+        echo "  task sync                                      # liquibase changelog-sync (migrate)"
+        echo "  task gen [OUT=...]                             # liquibase generate-changelog from existing DB (migrate)"
+        echo "  task tag FILE=...                              # append tagDatabase changeset to changelog file"
+        echo "  task seed [ARGS='']                            # run seed data generator with ARGS (gradle task)"
+        echo "  task school [ARGS='']                          # load school CSVs from src/csv (gradle task)"
+
+  update:
+    aliases: [up]
+    # マイグレーション実行（後でsnapshot取得）
+    desc: Run liquibase update for the selected profile
+    silent: true
+    cmds:
+      - |
+        LIQUIBASE_COMMAND_CHANGELOG_FILE="{{.CHANGELOG_MASTER}}" \
+          MODE=migrate liquibase --show-banner=false update
+      - task: snapshot
+        vars:
+          PROFILE: '{{.PROFILE}}'
+
+  diff-changelog:
+    aliases: [diff]
+    # snapshot vs current DB の差分を生成
+    desc: Run liquibase diff-changelog for the selected profile
+    vars:
+      OUT: '{{default "" .OUT}}'
+      OFFLINE_URL: 'offline:postgresql?snapshot={{.SNAPSHOT_FILE}}'
+    silent: true
+    cmds:
+      - |
+        if [[ ! -f "{{.SNAPSHOT_FILE}}" ]]; then
+          echo "Snapshot file not found: {{.SNAPSHOT_FILE}}"
+          echo "Run: task snapshot [PROFILE={{.PROFILE}}]"
+          exit 1
+        fi
+        OUT_PATH="{{.OUT}}"
+        if [[ -z "${OUT_PATH}" ]]; then
+          if [[ "{{.CHANGELOG_FORMAT}}" == "sql" ]]; then
+            OUT_PATH="{{.GENERATED_CHANGELOG_DIR}}/db.changelog-$(date +%Y%m%d_%H%M%S).generated.{{.CHANGELOG_DBMS}}.sql"
+          else
+            OUT_PATH="{{.GENERATED_CHANGELOG_DIR}}/db.changelog-$(date +%Y%m%d_%H%M%S).generated.yaml"
+          fi
+        fi
+        mkdir -p "$(dirname "${OUT_PATH}")"
+        CURRENT_URL="${LIQUIBASE_COMMAND_URL}"
+        CURRENT_USERNAME="${LIQUIBASE_COMMAND_USERNAME}"
+        CURRENT_PASSWORD="${LIQUIBASE_COMMAND_PASSWORD}"
+        MODE=changelog liquibase \
+          --show-banner=false \
+          --generated-changeset-ids-contains-description=true \
+          --url="{{.OFFLINE_URL}}" \
+          --reference-url="${CURRENT_URL}" \
+          --reference-username="${CURRENT_USERNAME}" \
+          --reference-password="${CURRENT_PASSWORD}" \
+          --changelog-file="${OUT_PATH}" \
+          diff-changelog
+        if [[ "{{.AUTO_TAG}}" == "true" ]]; then
+          task append-tag \
+            FILE="${OUT_PATH}" \
+            AUTO_TAG_PREFIX="{{.AUTO_TAG_PREFIX}}" \
+            AUTO_TAG_AUTHOR="{{.AUTO_TAG_AUTHOR}}"
+        fi
+        echo "Generated diff changelog: ${OUT_PATH}"
+
+  rollback:
+    aliases: [rb]
+    # 指定件数ロールバック（後でsnapshot取得）
+    desc: 'Run liquibase rollback-count with COUNT (default: 1)'
+    vars:
+      COUNT: '{{default "1" .COUNT}}'
+    silent: true
+    cmds:
+      - |
+        LIQUIBASE_COMMAND_CHANGELOG_FILE="{{.CHANGELOG_MASTER}}" \
+          MODE=migrate liquibase --show-banner=false rollback-count {{.COUNT}}
+      - task: snapshot
+        vars:
+          PROFILE: '{{.PROFILE}}'
+
+  rollback-tag:
+    aliases: [rbt]
+    # 指定タグまでロールバック（後でsnapshot取得）
+    desc: 'Run liquibase rollback to TAG'
+    vars:
+      TAG: '{{default "" .TAG}}'
+    silent: true
+    cmds:
+      - |
+        if [[ -z "{{.TAG}}" ]]; then
+          echo "TAG is required. Usage: task rbt TAG=<tag-name>"
+          exit 1
+        fi
+        LIQUIBASE_COMMAND_CHANGELOG_FILE="{{.CHANGELOG_MASTER}}" \
+          MODE=migrate liquibase --show-banner=false rollback --tag="{{.TAG}}"
+      - task: snapshot
+        vars:
+          PROFILE: '{{.PROFILE}}'
+
+  snapshot:
+    # DBスナップショットをJSON保存
+    desc: Capture a db snapshot JSON
+    silent: true
+    cmds:
+      - |
+        mkdir -p "$(dirname "{{.FILE}}")"
+        MODE=migrate liquibase --show-banner=false snapshot --snapshot-format=JSON --output-file="{{.FILE}}"
+
+  update-sql:
+    aliases: [sql]
+    # 実行SQLのドライラン
+    desc: Generate Liquibase update SQL
+    silent: true
+    cmds:
+      - |
+        {{- if .OUT }}
+        mkdir -p "$(dirname "{{.OUT}}")"
+        LIQUIBASE_COMMAND_CHANGELOG_FILE="{{.CHANGELOG_MASTER}}" \
+          MODE=migrate liquibase --show-banner=false update-sql --output-file="{{.OUT}}"
+        {{- else }}
+        LIQUIBASE_COMMAND_CHANGELOG_FILE="{{.CHANGELOG_MASTER}}" \
+          MODE=migrate liquibase --show-banner=false update-sql
+        {{- end }}
+
+  status:
+    aliases: [st]
+    # 変更セットの適用状況を確認
+    desc: Show Liquibase status
+    silent: true
+    cmds:
+      - |
+        LIQUIBASE_COMMAND_CHANGELOG_FILE="{{.CHANGELOG_MASTER}}" \
+          MODE=migrate liquibase --show-banner=false status
+
+  validate:
+    # changelogの整合性チェック
+    desc: Validate Liquibase change sets
+    silent: true
+    cmds:
+      - |
+        LIQUIBASE_COMMAND_CHANGELOG_FILE="{{.CHANGELOG_MASTER}}" \
+          MODE=migrate liquibase --show-banner=false validate
+
+  clear-checksums:
+    aliases: [clear]
+    # 変更されたchangesetのchecksumをクリア
+    desc: Clear Liquibase checksums
+    silent: true
+    cmds:
+      - |
+        LIQUIBASE_COMMAND_CHANGELOG_FILE="{{.CHANGELOG_MASTER}}" \
+          MODE=migrate liquibase --show-banner=false clear-checksums
+
+  changelog-sync:
+    aliases: [sync]
+    # changelogを適用済みとしてマーク
+    desc: Run Liquibase changelog-sync
+    silent: true
+    cmds:
+      - |
+        LIQUIBASE_COMMAND_CHANGELOG_FILE="{{.CHANGELOG_MASTER}}" \
+          MODE=migrate liquibase --show-banner=false changelog-sync
+      - task: snapshot
+
+  generate-changelog:
+    aliases: [gen]
+    # 既存DBからchangelog生成
+    desc: Run Liquibase generate-changelog from existing DB
+    vars:
+      OUT: '{{default "" .OUT}}'
+    silent: true
+    cmds:
+      - |
+        OUT_PATH="{{.OUT}}"
+        if [[ -z "${OUT_PATH}" ]]; then
+          if [[ "{{.CHANGELOG_FORMAT}}" == "sql" ]]; then
+            OUT_PATH="{{.GENERATED_CHANGELOG_DIR}}/db.changelog-$(date +%Y%m%d_%H%M%S).generated.{{.CHANGELOG_DBMS}}.sql"
+          else
+            OUT_PATH="{{.GENERATED_CHANGELOG_DIR}}/db.changelog-$(date +%Y%m%d_%H%M%S).generated.yaml"
+          fi
+        fi
+        mkdir -p "$(dirname "${OUT_PATH}")"
+        MODE=migrate liquibase \
+          --show-banner=false \
+          --generated-changeset-ids-contains-description=true \
+          --changelog-file="${OUT_PATH}" \
+          --overwrite-output-file=true \
+          generate-changelog
+        if [[ "{{.AUTO_TAG}}" == "true" ]]; then
+          task append-tag \
+            FILE="${OUT_PATH}" \
+            AUTO_TAG_PREFIX="{{.AUTO_TAG_PREFIX}}" \
+            AUTO_TAG_AUTHOR="{{.AUTO_TAG_AUTHOR}}"
+        fi
+        echo "Generated changelog: ${OUT_PATH}"
+
+  append-tag:
+    aliases: [tag]
+    # changelog末尾にtagDatabaseのchangesetを追記
+    desc: Append tagDatabase changeset to a changelog file
+    silent: true
+    requires:
+      vars: [FILE]
+    vars:
+      AUTO_TAG_PREFIX: '{{default (env "AUTO_TAG_PREFIX") .AUTO_TAG_PREFIX | default "checkpoint"}}'
+      AUTO_TAG_AUTHOR: '{{default (env "AUTO_TAG_AUTHOR") .AUTO_TAG_AUTHOR | default "task-auto"}}'
+    cmds:
+      - |
+        if [[ ! -f "{{.FILE}}" ]]; then
+          echo "Changelog file not found: {{.FILE}}"
+          exit 1
+        fi
+        BASE_NAME="$(basename "{{.FILE}}")"
+        TAG_STAMP="$(echo "${BASE_NAME}" | sed -E 's/^db\.changelog-([0-9]{8}_[0-9]{6})(\.[^.]+)?\.(sql|yaml)$/\1/')"
+        if [[ "${TAG_STAMP}" == "${BASE_NAME}" ]]; then
+          TAG_STAMP="$(date +%Y%m%d_%H%M%S)"
+        fi
+        TAG_NAME="{{.AUTO_TAG_PREFIX}}_${TAG_STAMP}"
+        TAG_CHANGESET_ID="auto-tag-${TAG_STAMP}"
+        if grep -q "${TAG_CHANGESET_ID}" "{{.FILE}}"; then
+          echo "Auto tag already exists: ${TAG_NAME}"
+        else
+          if [[ -s "{{.FILE}}" ]] && [[ $(tail -c 1 "{{.FILE}}" | wc -l) -eq 0 ]]; then
+            printf '\n' >> "{{.FILE}}"
+          fi
+          if [[ "{{.FILE}}" == *.sql ]]; then
+            printf -- '--changeset %s:%s\n--tagDatabase: '\''%s'\''\n\n' \
+              "{{.AUTO_TAG_AUTHOR}}" "${TAG_CHANGESET_ID}" "${TAG_NAME}" >> "{{.FILE}}"
+          else
+            printf -- '- changeSet:\n    id: %s\n    author: %s\n    changes:\n    - tagDatabase:\n        tag: %s\n        keepTagOnRollback: true\n' \
+              "${TAG_CHANGESET_ID}" "{{.AUTO_TAG_AUTHOR}}" "${TAG_NAME}" >> "{{.FILE}}"
+          fi
+          echo "Appended auto tag: ${TAG_NAME}"
+        fi
+
+  generate-seed-data:
+    aliases: [seed]
+    # local/stg のシードデータを生成
+    desc: Run seed data generator via Gradle
+    silent: true
+    vars:
+      ARGS: '{{default "" .ARGS}}'
+    cmds:
+      - |
+        {{- if .ARGS }}
+        ./gradlew --console=plain generateSeedData -PseedDataArgs="--non-interactive --truncate {{.ARGS}}"
+        {{- else }}
+        ./gradlew --console=plain generateSeedData -PseedDataArgs="--non-interactive --truncate"
+        {{- end }}
+
+  generate-seed-data-interactive:
+    aliases: [seed-interactive]
+    # local/stg のシードデータを対話入力で生成
+    desc: Run seed data generator in interactive mode via Gradle
+    silent: true
+    cmds:
+      - ./gradlew --console=plain generateSeedData
+
+  import-school-csv:
+    aliases: [school]
+    # 学校CSVを取り込む
+    desc: Import school CSV files via Gradle
+    silent: true
+    vars:
+      ARGS: '{{default "" .ARGS}}'
+    cmds:
+      - |
+        {{- if .ARGS }}
+        ./gradlew --console=plain importSchoolCsv -PschoolCsvArgs="{{.ARGS}}"
+        {{- else }}
+        ./gradlew --console=plain importSchoolCsv
+        {{- end }}

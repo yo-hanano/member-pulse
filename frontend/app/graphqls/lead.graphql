@@ -1,0 +1,101 @@
+fragment LeadDetailView on Lead {
+  id
+  inquiryAt
+  branchId
+  branch {
+    id
+    code
+    name
+    prefecture {
+      code
+      name
+    }
+  }
+  studentName
+  studentKana
+  guardianName
+  guardianKana
+  schoolName
+  gradeName
+  phone
+  email
+  channel
+  status
+  note
+  updatedAt
+}
+
+fragment LeadListItem on Lead {
+  id
+  inquiryAt
+  branchId
+  branch {
+    id
+    code
+    name
+    prefecture {
+      code
+      name
+    }
+  }
+  studentName
+  studentKana
+  guardianName
+  guardianKana
+  schoolName
+  gradeName
+  phone
+  email
+  channel
+  status
+  updatedAt
+}
+
+fragment LeadOption on Lead {
+  id
+  branchId
+  studentName
+  guardianName
+  schoolName
+  status
+}
+
+query leadById($leadId: String!) {
+  leadById(leadId: $leadId) {
+    ...LeadDetailView
+  }
+}
+
+query leadPage($pagination: Pagination!, $filter: LeadFilterInput) {
+  leadPagination(pagination: $pagination, filter: $filter) {
+    contents {
+      ...LeadListItem
+    }
+    totalCount
+    totalPages
+    limit
+    offset
+  }
+}
+
+query allLeads {
+  allLeads {
+    ...LeadOption
+  }
+}
+
+mutation createLead($input: LeadInput!) {
+  createLead(input: $input) {
+    id
+  }
+}
+
+mutation updateLead($leadId: String!, $input: LeadInput!) {
+  updateLead(leadId: $leadId, input: $input) {
+    id
+  }
+}
+
+mutation deleteLead($leadId: String!) {
+  deleteLead(leadId: $leadId)
+}

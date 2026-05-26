@@ -1,0 +1,7 @@
+query allSchoolTypes {
+  allSchoolTypes {
+    code
+    name
+    sortOrder
+  }
+}

@@ -1,0 +1,11 @@
+fragment PrefectureOption on Prefecture {
+  code
+  name
+  sortOrder
+}
+
+query allPrefectures {
+  allPrefectures {
+    ...PrefectureOption
+  }
+}

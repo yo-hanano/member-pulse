@@ -1,0 +1,102 @@
+name: member-pulse-dev
+services:
+  devcontainer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ..:/workspace:cached
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      TESTCONTAINERS_RYUK_DISABLED: "true"
+      TESTCONTAINERS_CHECKS_DISABLE: "true"
+      TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE: "/var/run/docker.sock"
+      DOCKER_NETWORK_MODE: "bridge"
+      DOCKER_HOST: "unix:///var/run/docker.sock"
+      VAULT_ADDR: "http://vault:8200"
+      VAULT_TOKEN: "root"
+      VAULT_TRANSIT_KEY: "dev-root"
+    working_dir: /workspace
+    command: sleep infinity
+    networks: [dev-net]
+    depends_on:
+      - postgres
+      - redis
+      - vault
+
+  postgres:
+    image: postgres:18-bookworm
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: app
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    ports:
+      - "35432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d app"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks: [dev-net]
+
+  redis:
+    image: redis:8.2-bookworm
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    ports:
+      - "36379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks: [dev-net]
+
+  vault:
+    image: hashicorp/vault:1.20
+    command:
+      [
+        "vault",
+        "server",
+        "-dev",
+        "-dev-root-token-id=root",
+        "-dev-listen-address=0.0.0.0:8200"
+      ]
+    cap_add:
+      - IPC_LOCK
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: root
+      VAULT_ADDR: "http://127.0.0.1:8200"
+    ports:
+      - "38200:8200"
+    healthcheck:
+      test: ["CMD", "vault", "status"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks: [dev-net]
+
+  localstack:
+    image: localstack/localstack:3
+    environment:
+      SERVICES: s3,ec2,vpc,elbv2,route53,rds,elasticache,sqs,cloudwatch,ssm,cloudfront,iam
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
+    ports:
+      - "34566:4566"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks: [dev-net]
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  dev-net:
+    driver: bridge

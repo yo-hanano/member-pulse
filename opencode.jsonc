@@ -1,0 +1,58 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "ollama/gemma4:26b",
+  "instructions": ["AGENTS.md"],
+  "provider": {
+    "ollama": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Ollama (local)",
+      "options": {
+        "baseURL": "http://host.docker.internal:11434/v1"
+      },
+      "models": {
+        "gemma4:26b": {
+          "name": "Gemma 4 26B"
+        },
+        "gemma4:e4b": {
+          "name": "Gemma 4 E4B"
+        }
+      }
+    }
+  },
+  "mcp": {
+    "serena": {
+      "type": "local",
+      "command": [
+        "uvx",
+        "--from",
+        "git+https://github.com/oraios/serena@981f560fa334ba52e9a2a45c702f23d971c9dcca",
+        "serena",
+        "start-mcp-server",
+        "--context",
+        "codex",
+        "--project",
+        "/workspace",
+        "--enable-web-dashboard",
+        "false"
+      ],
+      "enabled": true,
+      "timeout": 300000
+    },
+    "context7": {
+      "type": "local",
+      "command": ["npx", "-y", "@upstash/context7-mcp@3.0.0"],
+      "enabled": true,
+      "timeout": 300000
+    },
+    "heroui-react": {
+      "type": "local",
+      "command": ["npx", "-y", "@heroui/react-mcp@1.1.0"],
+      "enabled": true,
+      "timeout": 300000
+    }
+  },
+  "permission": {
+    "edit": "ask",
+    "bash": "ask"
+  }
+}

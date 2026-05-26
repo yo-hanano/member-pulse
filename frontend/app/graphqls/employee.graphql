@@ -1,0 +1,64 @@
+fragment EmployeeFormInitial on Employee {
+  id
+  name
+  email
+  genderCode
+  isAdmin
+}
+
+fragment EmployeeListItem on Employee {
+  id
+  name
+  email
+  genderCode
+  isAdmin
+  status
+}
+
+query allEmployees {
+  allEmployees {
+    ...EmployeeFormInitial
+  }
+}
+
+query employeeById($employeeId: String!) {
+  employeeById(employeeId: $employeeId) {
+    ...EmployeeFormInitial
+  }
+}
+
+query employeePage($pagination: Pagination!, $filter: EmployeeFilterInput) {
+  employeePagination(pagination: $pagination, filter: $filter) {
+    contents {
+      ...EmployeeListItem
+    }
+    totalCount
+    totalPages
+    limit
+    offset
+  }
+}
+
+mutation createEmployee($input: EmployeeInput!) {
+  createEmployee(input: $input) {
+    id
+  }
+}
+
+mutation updateEmployee($employeeId: String!, $input: EmployeeInput!) {
+  updateEmployee(employeeId: $employeeId, input: $input) {
+    id
+  }
+}
+
+mutation deleteEmployee($employeeId: String!) {
+  deleteEmployee(employeeId: $employeeId)
+}
+
+mutation updateOwnAccount($input: OwnAccountUpdateInput!) {
+  updateOwnAccount(input: $input) {
+    id
+    name
+    email
+  }
+}
