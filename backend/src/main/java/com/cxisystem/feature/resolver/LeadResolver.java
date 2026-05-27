@@ -5,24 +5,28 @@ import com.cxisystem.feature.input.LeadFilterInput;
 import com.cxisystem.feature.input.LeadInput;
 import com.cxisystem.feature.input.Pagination;
 import com.cxisystem.feature.service.LeadService;
-import com.cxisystem.feature.type.Branch;
+import com.cxisystem.feature.service.LocationService;
 import com.cxisystem.feature.type.Lead;
+import com.cxisystem.feature.type.Location;
 import io.smallrye.common.annotation.RunOnVirtualThread;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.enterprise.context.control.ActivateRequestContext;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Mutation;
 import org.eclipse.microprofile.graphql.Query;
 import org.eclipse.microprofile.graphql.Source;
 
 /**
- * リード管理画面向けの GraphQL エントリポイントです。 current schema のリード CRUD を公開します。
+ * リード管理画面向けの GraphQL エントリポイントです。Phase 0 のリード CRUD を公開します。
  */
 @RunOnVirtualThread
 @GraphQLApi
@@ -30,6 +34,9 @@ public class LeadResolver extends AbstractResolver {
 
   @Inject
   LeadService leadService;
+
+  @Inject
+  LocationService locationService;
 
   /** すべてのリードを返します。 */
   @Query("allLeads")
@@ -73,11 +80,16 @@ public class LeadResolver extends AbstractResolver {
     return leadService.deleteLead(leadId);
   }
 
-  /**
-   * 旧 branch フィールドの互換を維持するため、現状は常に null を返します。
-   */
+  /** リード一覧に紐づく拠点をまとめて解決します。 */
   @ActivateRequestContext
-  public CompletableFuture<List<Branch>> branch(@Source List<Lead> leads) {
-    return vtSupplyAsync(() -> Collections.nCopies(leads.size(), null));
+  public CompletableFuture<List<Location>> location(@Source List<Lead> leads) {
+    return vtSupplyAsync(() -> {
+      Set<String> locationIds = leads.stream().map(Lead::getLocationId).filter(Objects::nonNull)
+          .collect(Collectors.toSet());
+      List<Location> locationList = locationService.findByIds(locationIds);
+      Map<String, Location> locationMap = locationList.stream()
+          .collect(Collectors.toMap(Location::getId, location -> location));
+      return leads.stream().map(lead -> locationMap.get(lead.getLocationId())).toList();
+    });
   }
 }

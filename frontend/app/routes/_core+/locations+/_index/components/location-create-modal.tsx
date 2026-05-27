@@ -3,6 +3,7 @@ import { schemaResolver, useForm } from "@mantine/form";
 import { MapPinPlus } from "lucide-react";
 import { useRevalidator } from "react-router";
 
+import { modalSizes } from "~/lib/modal-sizes";
 import { LocationFormFields } from "~/routes/_core+/locations+/_index/components/location-form-fields";
 import { useLocationCreate } from "~/routes/_core+/locations+/_index/hooks/useLocationCreate";
 import type { LocationForm } from "~/routes/_core+/locations+/_index/location-form-schema";
@@ -40,7 +41,7 @@ export function LocationCreateModal({ isOpen, onOpenChange }: Props) {
     <Modal
       centered
       opened={isOpen}
-      size="xl"
+      size={modalSizes["2xl"]}
       title={
         <Group gap="sm">
           <ThemeIcon color="brand" radius="sm" variant="light">

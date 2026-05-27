@@ -1,22 +1,31 @@
 // リード状態の選択肢を一覧・フォームで共通利用する。
-export const leadStatusValues = ["new", "visit_scheduled", "contracted", "lost", "enrolled"] as const;
+export const leadStatusValues = [
+  "new",
+  "contacted",
+  "trial_scheduled",
+  "trial_completed",
+  "enrolled",
+  "lost",
+] as const;
 
 export type LeadStatus = (typeof leadStatusValues)[number];
 
 export const leadStatusOptions = [
   { value: "new", label: "新規" },
-  { value: "visit_scheduled", label: "来塾予定" },
-  { value: "contracted", label: "成約" },
-  { value: "lost", label: "不成約" },
-  { value: "enrolled", label: "入会済" },
+  { value: "contacted", label: "連絡済み" },
+  { value: "trial_scheduled", label: "体験予定" },
+  { value: "trial_completed", label: "体験済み" },
+  { value: "enrolled", label: "入会済み" },
+  { value: "lost", label: "失注" },
 ] as const;
 
 export const leadStatusLabels: Record<LeadStatus, string> = {
   new: "新規",
-  visit_scheduled: "来塾予定",
-  contracted: "成約",
-  lost: "不成約",
-  enrolled: "入会済",
+  contacted: "連絡済み",
+  trial_scheduled: "体験予定",
+  trial_completed: "体験済み",
+  enrolled: "入会済み",
+  lost: "失注",
 };
 
 export const formatLeadStatus = (value?: string | null) => {
@@ -25,11 +34,20 @@ export const formatLeadStatus = (value?: string | null) => {
   return leadStatusLabels[key] ?? value;
 };
 
-export const leadStatusColor = (value?: string | null): "success" | "warning" | "default" | "danger" => {
+export const leadStatusBadgeColor = (value?: string | null) => {
   const key = value?.trim().toLowerCase();
-  if (key === "visit_scheduled") return "warning";
-  if (key === "contracted") return "success";
-  if (key === "enrolled") return "success";
+  if (key === "trial_scheduled" || key === "trial_completed") return "yellow";
+  if (key === "contacted" || key === "enrolled") return "teal";
+  if (key === "lost") return "red";
+  return "gray";
+};
+
+export const leadStatusColor = (
+  value?: string | null,
+): "success" | "warning" | "default" | "danger" => {
+  const key = value?.trim().toLowerCase();
+  if (key === "trial_scheduled" || key === "trial_completed") return "warning";
+  if (key === "contacted" || key === "enrolled") return "success";
   if (key === "lost") return "danger";
   return "default";
 };

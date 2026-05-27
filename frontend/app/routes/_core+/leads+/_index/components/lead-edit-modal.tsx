@@ -1,16 +1,20 @@
-import { Button, Modal } from "@heroui/react";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { Button, Group, Loader, Modal, Stack, Text, ThemeIcon, Title } from "@mantine/core";
+import { schemaResolver, useForm } from "@mantine/form";
 import { PencilLine } from "lucide-react";
 import { useEffect, useRef } from "react";
-import type { SubmitHandler } from "react-hook-form";
-import { useForm } from "react-hook-form";
 import { useFetcher, useRevalidator } from "react-router";
 
-import type { clientLoader as leadEditLoader } from "~/routes/_core+/leads+/$leadId.edit/route";
-import { LeadFormFields } from "~/routes/_core+/leads+/_index/components/lead-form-fields";
-import { emptyLeadForm, leadFormSchema, type LeadForm } from "~/routes/_core+/leads+/_index/lead-form-schema";
-import { useLeadEdit } from "~/routes/_core+/leads+/_index/hooks/useLeadEdit";
 import { toDateTimeLocalValue } from "~/lib/date";
+import { modalSizes } from "~/lib/modal-sizes";
+import { LeadFormFields } from "~/routes/_core+/leads+/_index/components/lead-form-fields";
+import { useLeadEdit } from "~/routes/_core+/leads+/_index/hooks/useLeadEdit";
+import {
+  emptyLeadForm,
+  type LeadForm,
+  leadFormSchema,
+  toLeadInput,
+} from "~/routes/_core+/leads+/_index/lead-form-schema";
+import type { clientLoader as leadEditLoader } from "~/routes/_core+/leads+/$leadId.edit/route";
 
 interface Props {
   leadId: string | null;
@@ -22,18 +26,20 @@ interface Props {
 export function LeadEditModal({ leadId, isOpen, onOpenChange }: Props) {
   const fetcher = useFetcher<typeof leadEditLoader>();
   const lastLoadedIdRef = useRef<string | null>(null);
+  const lastAppliedIdRef = useRef<string | null>(null);
   const isLoading = fetcher.state !== "idle";
 
   const form = useForm<LeadForm>({
-    resolver: zodResolver(leadFormSchema),
-    mode: "onSubmit",
-    defaultValues: emptyLeadForm,
+    mode: "uncontrolled",
+    initialValues: emptyLeadForm,
+    validate: schemaResolver(leadFormSchema, { sync: true }),
   });
 
   // オープン時に対象リードを取得する。
   useEffect(() => {
     if (!isOpen || !leadId) {
       lastLoadedIdRef.current = null;
+      lastAppliedIdRef.current = null;
       return;
     }
     if (lastLoadedIdRef.current === leadId) return;
@@ -45,23 +51,24 @@ export function LeadEditModal({ leadId, isOpen, onOpenChange }: Props) {
   // 取得結果をフォームへ反映する。
   useEffect(() => {
     const lead = fetcher.data?.lead;
-    if (!isOpen || !lead) return;
-    form.reset({
+    const loadedLeadId = lead?.id ? String(lead.id) : null;
+    if (!isOpen || !lead || !loadedLeadId) return;
+    if (lastAppliedIdRef.current === loadedLeadId) return;
+
+    lastAppliedIdRef.current = loadedLeadId;
+    form.setValues({
       inquiryAt: toDateTimeLocalValue(lead.inquiryAt ?? ""),
-      branchId: lead.branchId ?? "",
-      studentName: lead.studentName ?? "",
-      studentKana: lead.studentKana ?? "",
-      guardianName: lead.guardianName ?? "",
-      guardianKana: lead.guardianKana ?? "",
-      schoolName: lead.schoolName ?? "",
-      gradeName: lead.gradeName ?? "",
+      locationId: lead.locationId ?? "",
+      name: lead.name ?? "",
       phone: lead.phone ?? "",
       email: lead.email ?? "",
-      channel: lead.channel ?? "",
+      source: lead.source ?? "",
       status: (lead.status ?? "new") as LeadForm["status"],
+      lostAt: toDateTimeLocalValue(lead.lostAt ?? ""),
+      lostReason: lead.lostReason ?? "",
       note: lead.note ?? "",
     });
-  }, [fetcher.data, form, isOpen]);
+  }, [fetcher.data?.lead, form.setValues, isOpen]);
 
   const revalidator = useRevalidator();
   const editMutation = useLeadEdit(() => {
@@ -69,55 +76,55 @@ export function LeadEditModal({ leadId, isOpen, onOpenChange }: Props) {
     onOpenChange(false);
   });
 
-  // 検証後に action hook へ送信する。
-  const onValid: SubmitHandler<LeadForm> = (data) => {
+  const handleSubmit = form.onSubmit((data) => {
     if (!leadId) return;
-    editMutation.submit(data, [{ leadId }]);
-  };
+    editMutation.submit(toLeadInput(data), [{ leadId }]);
+  });
 
   const isPending = editMutation.submitting || isLoading;
 
   return (
-    <Modal.Backdrop
-      isOpen={isOpen}
-      onOpenChange={(open) => {
-        onOpenChange(open);
-        if (!open) form.reset(emptyLeadForm);
+    <Modal
+      centered
+      opened={isOpen}
+      size={modalSizes.cover}
+      title={
+        <Group gap="sm">
+          <ThemeIcon color="brand" radius="sm" variant="light">
+            <PencilLine size={18} />
+          </ThemeIcon>
+          <Title order={3} size="h4">
+            リードを編集
+          </Title>
+        </Group>
+      }
+      onClose={() => {
+        onOpenChange(false);
+        form.setValues(emptyLeadForm);
       }}
     >
-      <Modal.Container className="max-w-6xl" size="cover">
-        <Modal.Dialog>
-          <Modal.CloseTrigger />
-          <Modal.Header>
-            <Modal.Heading className="flex items-center gap-2.5 text-xl">
-              <span className="inline-flex size-10 items-center justify-center rounded-full bg-gray-200/70">
-                <PencilLine className="size-5 text-gray-700" />
-              </span>
-              <span>リードを編集</span>
-            </Modal.Heading>
-          </Modal.Header>
-          <Modal.Body>
-            <p className="text-muted-foreground mb-3 text-sm">
-              必要な情報を入力して編集します。完了したら更新をクリックしてください。
-            </p>
+      <form noValidate onSubmit={handleSubmit}>
+        <Stack gap="md">
+          <Text c="dimmed" size="sm">
+            必要な情報を入力して編集します。完了したら更新をクリックしてください。
+          </Text>
+          {isLoading && !fetcher.data?.lead ? (
+            <Group justify="center" py="xl">
+              <Loader size="sm" />
+            </Group>
+          ) : (
             <LeadFormFields form={form} />
-          </Modal.Body>
-          <Modal.Footer>
-            <Button className="border-border text-foreground hover:bg-default-100" slot="close" variant="outline">
+          )}
+          <Group justify="flex-end" mt="sm">
+            <Button disabled={isPending} variant="default" onClick={() => onOpenChange(false)}>
               キャンセル
             </Button>
-            <Button
-              className="app-primary-button"
-              isPending={isPending}
-              onPress={() => {
-                void form.handleSubmit(onValid)();
-              }}
-            >
+            <Button loading={isPending} type="submit">
               更新
             </Button>
-          </Modal.Footer>
-        </Modal.Dialog>
-      </Modal.Container>
-    </Modal.Backdrop>
+          </Group>
+        </Stack>
+      </form>
+    </Modal>
   );
 }

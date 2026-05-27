@@ -38,33 +38,29 @@ export type EmployeeInviteInput = {
 };
 
 export type LeadFilterInput = {
-  branchId?: string | null | undefined;
-  channel?: string | null | undefined;
-  guardianName?: string | null | undefined;
   /** ISO-8601 */
   inquiryAtFrom?: string | null | undefined;
   /** ISO-8601 */
   inquiryAtTo?: string | null | undefined;
-  schoolName?: string | null | undefined;
+  locationId?: string | null | undefined;
+  name?: string | null | undefined;
+  source?: string | null | undefined;
   status?: string | null | undefined;
-  studentName?: string | null | undefined;
 };
 
 export type LeadInput = {
-  branchId: string;
-  channel?: string | null | undefined;
   email?: string | null | undefined;
-  gradeName?: string | null | undefined;
-  guardianKana?: string | null | undefined;
-  guardianName?: string | null | undefined;
   /** ISO-8601 */
-  inquiryAt: string;
+  inquiryAt?: string | null | undefined;
+  locationId?: string | null | undefined;
+  /** ISO-8601 */
+  lostAt?: string | null | undefined;
+  lostReason?: string | null | undefined;
+  name: string;
   note?: string | null | undefined;
   phone?: string | null | undefined;
-  schoolName?: string | null | undefined;
+  source?: string | null | undefined;
   status: string;
-  studentKana?: string | null | undefined;
-  studentName: string;
 };
 
 export type LocationFilterInput = {
@@ -212,18 +208,18 @@ export type IssueEmployeeInviteMutationVariables = Exact<{
 
 export type IssueEmployeeInviteMutation = { issueEmployeeInvite: { employeeId: string | undefined | null, email: string | undefined | null, inviteUrl: string | undefined | null, expiresAt: string | undefined | null } | undefined | null };
 
-export type LeadDetailViewFragment = { id: string | undefined | null, inquiryAt: string | undefined | null, phone: string | undefined | null, email: string | undefined | null, status: string | undefined | null, note: string | undefined | null, updatedAt: string | undefined | null, branchId: string | undefined | null, studentName: string | undefined | null, studentKana: string | undefined | null, guardianName: string | undefined | null, guardianKana: string | undefined | null, schoolName: string | undefined | null, gradeName: string | undefined | null, channel: string | undefined | null, branch: { id: string | undefined | null, code: string | undefined | null, name: string | undefined | null, prefecture: { code: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null };
+export type LeadDetailViewFragment = { id: string | undefined | null, locationId: string | undefined | null, name: string | undefined | null, phone: string | undefined | null, email: string | undefined | null, source: string | undefined | null, status: string | undefined | null, inquiryAt: string | undefined | null, lostAt: string | undefined | null, lostReason: string | undefined | null, note: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null };
 
-export type LeadListItemFragment = { id: string | undefined | null, inquiryAt: string | undefined | null, phone: string | undefined | null, email: string | undefined | null, status: string | undefined | null, updatedAt: string | undefined | null, branchId: string | undefined | null, studentName: string | undefined | null, studentKana: string | undefined | null, guardianName: string | undefined | null, guardianKana: string | undefined | null, schoolName: string | undefined | null, gradeName: string | undefined | null, channel: string | undefined | null, branch: { id: string | undefined | null, code: string | undefined | null, name: string | undefined | null, prefecture: { code: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null };
+export type LeadListItemFragment = { id: string | undefined | null, locationId: string | undefined | null, name: string | undefined | null, phone: string | undefined | null, email: string | undefined | null, source: string | undefined | null, status: string | undefined | null, inquiryAt: string | undefined | null, lostAt: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null };
 
-export type LeadOptionFragment = { id: string | undefined | null, status: string | undefined | null, branchId: string | undefined | null, studentName: string | undefined | null, guardianName: string | undefined | null, schoolName: string | undefined | null };
+export type LeadOptionFragment = { id: string | undefined | null, locationId: string | undefined | null, name: string | undefined | null, status: string | undefined | null };
 
 export type LeadByIdQueryVariables = Exact<{
   leadId: string;
 }>;
 
 
-export type LeadByIdQuery = { leadById: { id: string | undefined | null, inquiryAt: string | undefined | null, phone: string | undefined | null, email: string | undefined | null, status: string | undefined | null, note: string | undefined | null, updatedAt: string | undefined | null, branchId: string | undefined | null, studentName: string | undefined | null, studentKana: string | undefined | null, guardianName: string | undefined | null, guardianKana: string | undefined | null, schoolName: string | undefined | null, gradeName: string | undefined | null, channel: string | undefined | null, branch: { id: string | undefined | null, code: string | undefined | null, name: string | undefined | null, prefecture: { code: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null } | undefined | null };
+export type LeadByIdQuery = { leadById: { id: string | undefined | null, locationId: string | undefined | null, name: string | undefined | null, phone: string | undefined | null, email: string | undefined | null, source: string | undefined | null, status: string | undefined | null, inquiryAt: string | undefined | null, lostAt: string | undefined | null, lostReason: string | undefined | null, note: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null };
 
 export type LeadPageQueryVariables = Exact<{
   pagination: Pagination;
@@ -231,19 +227,19 @@ export type LeadPageQueryVariables = Exact<{
 }>;
 
 
-export type LeadPageQuery = { leadPagination: { totalCount: number, totalPages: number, limit: number, offset: number, contents: Array<{ id: string | undefined | null, inquiryAt: string | undefined | null, phone: string | undefined | null, email: string | undefined | null, status: string | undefined | null, updatedAt: string | undefined | null, branchId: string | undefined | null, studentName: string | undefined | null, studentKana: string | undefined | null, guardianName: string | undefined | null, guardianKana: string | undefined | null, schoolName: string | undefined | null, gradeName: string | undefined | null, channel: string | undefined | null, branch: { id: string | undefined | null, code: string | undefined | null, name: string | undefined | null, prefecture: { code: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null } | undefined | null> | undefined | null } | undefined | null };
+export type LeadPageQuery = { leadPagination: { offset: number, limit: number, totalCount: number, totalPages: number, contents: Array<{ id: string | undefined | null, locationId: string | undefined | null, name: string | undefined | null, phone: string | undefined | null, email: string | undefined | null, source: string | undefined | null, status: string | undefined | null, inquiryAt: string | undefined | null, lostAt: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null> | undefined | null } | undefined | null };
 
 export type AllLeadsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type AllLeadsQuery = { allLeads: Array<{ id: string | undefined | null, status: string | undefined | null, branchId: string | undefined | null, studentName: string | undefined | null, guardianName: string | undefined | null, schoolName: string | undefined | null } | undefined | null> | undefined | null };
+export type AllLeadsQuery = { allLeads: Array<{ id: string | undefined | null, locationId: string | undefined | null, name: string | undefined | null, status: string | undefined | null } | undefined | null> | undefined | null };
 
 export type CreateLeadMutationVariables = Exact<{
   input: LeadInput;
 }>;
 
 
-export type CreateLeadMutation = { createLead: { id: string | undefined | null } | undefined | null };
+export type CreateLeadMutation = { createLead: { id: string | undefined | null, locationId: string | undefined | null, name: string | undefined | null, phone: string | undefined | null, email: string | undefined | null, source: string | undefined | null, status: string | undefined | null, inquiryAt: string | undefined | null, lostAt: string | undefined | null, lostReason: string | undefined | null, note: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null };
 
 export type UpdateLeadMutationVariables = Exact<{
   leadId: string;
@@ -251,7 +247,7 @@ export type UpdateLeadMutationVariables = Exact<{
 }>;
 
 
-export type UpdateLeadMutation = { updateLead: { id: string | undefined | null } | undefined | null };
+export type UpdateLeadMutation = { updateLead: { id: string | undefined | null, locationId: string | undefined | null, name: string | undefined | null, phone: string | undefined | null, email: string | undefined | null, source: string | undefined | null, status: string | undefined | null, inquiryAt: string | undefined | null, lostAt: string | undefined | null, lostReason: string | undefined | null, note: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null };
 
 export type DeleteLeadMutationVariables = Exact<{
   leadId: string;
@@ -342,65 +338,44 @@ export const EmployeeListItemFragmentDoc = gql`
 export const LeadDetailViewFragmentDoc = gql`
     fragment LeadDetailView on Lead {
   id
-  inquiryAt
-  branchId: locationId
-  branch {
+  locationId
+  location {
     id
-    code
     name
-    prefecture {
-      code
-      name
-    }
   }
-  studentName: name
-  studentKana: name
-  guardianName: name
-  guardianKana: name
-  schoolName: name
-  gradeName: source
+  name
   phone
   email
-  channel: source
+  source
   status
+  inquiryAt
+  lostAt
+  lostReason
   note
-  updatedAt
 }
     `;
 export const LeadListItemFragmentDoc = gql`
     fragment LeadListItem on Lead {
   id
-  inquiryAt
-  branchId: locationId
-  branch {
+  locationId
+  location {
     id
-    code
     name
-    prefecture {
-      code
-      name
-    }
   }
-  studentName: name
-  studentKana: name
-  guardianName: name
-  guardianKana: name
-  schoolName: name
-  gradeName: source
+  name
   phone
   email
-  channel: source
+  source
   status
-  updatedAt
+  inquiryAt
+  lostAt
 }
     `;
 export const LeadOptionFragmentDoc = gql`
     fragment LeadOption on Lead {
   id
-  branchId: locationId
-  studentName: name
-  guardianName: name
-  schoolName: name
+  locationId
+  name
   status
 }
     `;
@@ -581,10 +556,10 @@ export const LeadPageDocument = gql`
     contents {
       ...LeadListItem
     }
+    offset
+    limit
     totalCount
     totalPages
-    limit
-    offset
   }
 }
     ${LeadListItemFragmentDoc}`;
@@ -598,17 +573,17 @@ export const AllLeadsDocument = gql`
 export const CreateLeadDocument = gql`
     mutation createLead($input: LeadInput!) {
   createLead(input: $input) {
-    id
+    ...LeadDetailView
   }
 }
-    `;
+    ${LeadDetailViewFragmentDoc}`;
 export const UpdateLeadDocument = gql`
     mutation updateLead($leadId: String!, $input: LeadInput!) {
   updateLead(leadId: $leadId, input: $input) {
-    id
+    ...LeadDetailView
   }
 }
-    `;
+    ${LeadDetailViewFragmentDoc}`;
 export const DeleteLeadDocument = gql`
     mutation deleteLead($leadId: String!) {
   deleteLead(leadId: $leadId)

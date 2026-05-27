@@ -15,7 +15,7 @@ import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
 
 /**
- * リード一覧・詳細取得の SQL をまとめる Dao です。 画面側の検索条件を jOOQ 条件へ変換する責務に寄せます。
+ * リード一覧・詳細取得の SQL をまとめる Dao です。画面側の検索条件を jOOQ 条件へ変換します。
  */
 @ApplicationScoped
 @NoArgsConstructor
@@ -50,14 +50,14 @@ public class LeadDao extends AbstractDao<LeadRecord, String> {
     if (filter.getInquiryAtTo() != null) {
       condition = condition.and(LEAD.INQUIRY_AT.le(filter.getInquiryAtTo()));
     }
-    if (StringUtils.isNotBlank(filter.getBranchId())) {
-      condition = condition.and(LEAD.LOCATION_ID.eq(filter.getBranchId()));
+    if (StringUtils.isNotBlank(filter.getLocationId())) {
+      condition = condition.and(LEAD.LOCATION_ID.eq(filter.getLocationId()));
     }
-    if (StringUtils.isNotBlank(filter.getStudentName())) {
-      condition = condition.and(LEAD.NAME.like("%" + filter.getStudentName() + "%"));
+    if (StringUtils.isNotBlank(filter.getName())) {
+      condition = condition.and(LEAD.NAME.like("%" + filter.getName() + "%"));
     }
-    if (StringUtils.isNotBlank(filter.getChannel())) {
-      condition = condition.and(LEAD.SOURCE.like("%" + filter.getChannel() + "%"));
+    if (StringUtils.isNotBlank(filter.getSource())) {
+      condition = condition.and(LEAD.SOURCE.like("%" + filter.getSource() + "%"));
     }
     if (StringUtils.isNotBlank(filter.getStatus())) {
       condition = condition.and(LEAD.STATUS.eq(filter.getStatus()));

@@ -1,7 +1,6 @@
 package com.cxisystem.feature.service;
 
 import com.cxisystem.annotation.Rls;
-import com.cxisystem.exception.BadRequestException;
 import com.cxisystem.exception.NotFoundException;
 import com.cxisystem.feature.dao.LeadDao;
 import com.cxisystem.feature.dto.Page;
@@ -19,7 +18,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * リード管理の業務操作をまとめるサービスです。 current schema の CRUD と検索、論理削除を扱います。
+ * リード管理の業務操作をまとめるサービスです。Phase 0 の CRUD と検索、論理削除を扱います。
  */
 @ApplicationScoped
 public class LeadService extends AbstractService<LeadRecord, Lead, String, LeadDao> {
@@ -62,8 +61,8 @@ public class LeadService extends AbstractService<LeadRecord, Lead, String, LeadD
   @Rls
   @Transactional
   public Lead create(LeadInput input) {
-    validateLeadInput(input);
     LeadRecord leadRecord = newRecord(input);
+    normalizeOptionalFields(leadRecord);
     leadRecord.store();
     leadRecord.refresh();
     return leadRecord.into(Lead.class);
@@ -73,10 +72,10 @@ public class LeadService extends AbstractService<LeadRecord, Lead, String, LeadD
   @Rls
   @Transactional
   public Lead update(String id, LeadInput input) {
-    validateLeadInput(input);
     LeadRecord leadRecord = leadDao.findOptionalById(id)
         .orElseThrow(() -> new NotFoundException("lead not found: " + id));
     leadRecord.from(input);
+    normalizeOptionalFields(leadRecord);
     leadRecord.store();
     leadRecord.refresh();
     return leadRecord.into(Lead.class);
@@ -90,10 +89,12 @@ public class LeadService extends AbstractService<LeadRecord, Lead, String, LeadD
     return true;
   }
 
-  /** DB の連絡先必須制約に合わせて、電話番号かメールアドレスの入力を確認します。 */
-  private void validateLeadInput(LeadInput input) {
-    if (StringUtils.isAllBlank(input.getPhone(), input.getEmail())) {
-      throw new BadRequestException("lead phone or email is required");
-    }
+  private void normalizeOptionalFields(LeadRecord leadRecord) {
+    leadRecord.setLocationId(StringUtils.trimToNull(leadRecord.getLocationId()));
+    leadRecord.setPhone(StringUtils.trimToNull(leadRecord.getPhone()));
+    leadRecord.setEmail(StringUtils.trimToNull(leadRecord.getEmail()));
+    leadRecord.setSource(StringUtils.trimToNull(leadRecord.getSource()));
+    leadRecord.setLostReason(StringUtils.trimToNull(leadRecord.getLostReason()));
+    leadRecord.setNote(StringUtils.trimToNull(leadRecord.getNote()));
   }
 }

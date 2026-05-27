@@ -1,204 +1,94 @@
-import { Calendar, DateField, DatePicker, Input, Label, TextArea, TimeField } from "@heroui/react";
-import { parseDate, parseTime } from "@internationalized/date";
-import type { UseFormReturn } from "react-hook-form";
+import { Select, SimpleGrid, Textarea, TextInput } from "@mantine/core";
+import type { UseFormReturnType } from "@mantine/form";
 
-import { FieldErrorText } from "~/components/form/field-error-text";
-import { SelectField } from "~/components/form/select-field";
-import { joinDateTimeLocalValue, splitDateTimeLocalValue } from "~/lib/date";
+import { useMasterLocations } from "~/hooks/useMasterData";
 import type { LeadForm } from "~/routes/_core+/leads+/_index/lead-form-schema";
 import { leadStatusOptions } from "~/routes/_core+/leads+/_index/lead-status";
 
 interface Props {
-  form: UseFormReturn<LeadForm>;
+  form: UseFormReturnType<LeadForm>;
 }
-
-const dateTimeGroupClassName =
-  "border-border w-full rounded-lg border bg-default-50 shadow-sm outline-none ring-0 " +
-  "focus-within:!border-border focus-within:!outline-none focus-within:!ring-0 " +
-  "data-[focus-within=true]:!border-border data-[focus-within=true]:!shadow-sm data-[focus-within=true]:!ring-0";
-const dateTimeSegmentClassName =
-  "focus:!bg-default-100 focus:!text-foreground data-[focused=true]:!bg-default-100 data-[focused=true]:!text-foreground";
 
 // リード作成・編集モーダルで共通利用するフォーム描画コンポーネント。
 export function LeadFormFields({ form }: Props) {
-  const {
-    register,
-    setValue,
-    watch,
-    formState: { errors },
-  } = form;
-  const inquiryAt = splitDateTimeLocalValue(watch("inquiryAt"));
-  const setInquiryAt = (date: string, time: string) => {
-    setValue("inquiryAt", joinDateTimeLocalValue(date, time), {
-      shouldDirty: true,
-      shouldValidate: true,
-    });
-  };
+  const { data: locations = [] } = useMasterLocations();
+  const locationOptions = locations.map((location) => ({
+    value: String(location.id),
+    label: location.name ?? String(location.id),
+  }));
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-      <div className="space-y-1">
-        <Label className="block" isRequired>
-          問合せ日
-        </Label>
-        <input type="hidden" {...register("inquiryAt")} />
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_160px]">
-          <DatePicker
-            aria-label="問合せ日"
-            className="w-full"
-            value={inquiryAt.date ? parseDate(inquiryAt.date) : null}
-            onChange={(value) => setInquiryAt(value ? value.toString() : "", inquiryAt.time)}
-          >
-            <DateField.Group className={dateTimeGroupClassName}>
-              <DateField.Input>
-                {(segment) => (
-                  <DateField.Segment className={dateTimeSegmentClassName} segment={segment}>
-                    {["month", "day"].includes(segment.type) && !segment.isPlaceholder
-                      ? String(segment.value).padStart(2, "0")
-                      : segment.text}
-                  </DateField.Segment>
-                )}
-              </DateField.Input>
-              <DateField.Suffix>
-                <DatePicker.Trigger className="text-foreground hover:bg-default-100 data-[pressed=true]:bg-default-200">
-                  <DatePicker.TriggerIndicator className="text-foreground" />
-                </DatePicker.Trigger>
-              </DateField.Suffix>
-            </DateField.Group>
-            <DatePicker.Popover>
-              <Calendar aria-label="問合せ日">
-                <Calendar.Header>
-                  <Calendar.YearPickerTrigger>
-                    <Calendar.YearPickerTriggerHeading />
-                    <Calendar.YearPickerTriggerIndicator />
-                  </Calendar.YearPickerTrigger>
-                  <Calendar.NavButton slot="previous" />
-                  <Calendar.NavButton slot="next" />
-                </Calendar.Header>
-                <Calendar.Grid>
-                  <Calendar.GridHeader>{(day) => <Calendar.HeaderCell>{day}</Calendar.HeaderCell>}</Calendar.GridHeader>
-                  <Calendar.GridBody>{(date) => <Calendar.Cell date={date} />}</Calendar.GridBody>
-                </Calendar.Grid>
-                <Calendar.YearPickerGrid>
-                  <Calendar.YearPickerGridBody>{({ year }) => <Calendar.YearPickerCell year={year} />}</Calendar.YearPickerGridBody>
-                </Calendar.YearPickerGrid>
-              </Calendar>
-            </DatePicker.Popover>
-          </DatePicker>
-          <TimeField
-            aria-label="問合せ時刻"
-            className="w-full"
-            hourCycle={24}
-            value={inquiryAt.time ? parseTime(inquiryAt.time) : null}
-            onChange={(value) => setInquiryAt(inquiryAt.date, value ? value.toString().slice(0, 5) : "")}
-          >
-            <TimeField.Group className={dateTimeGroupClassName}>
-              <TimeField.Input>
-                {(segment) => <TimeField.Segment className={dateTimeSegmentClassName} segment={segment} />}
-              </TimeField.Input>
-            </TimeField.Group>
-          </TimeField>
-        </div>
-        <FieldErrorText message={errors.inquiryAt?.message} />
-      </div>
-
-      <div className="space-y-1">
-        <Label className="block" isRequired>
-          拠点ID
-        </Label>
-        <Input aria-label="拠点ID" className="w-full" placeholder="例) loc_xxxxxxxxxxxxxxxxxxxxx" {...register("branchId")} />
-        <FieldErrorText message={errors.branchId?.message} />
-      </div>
-
-      <div className="space-y-1">
-        <Label className="block" isRequired>
-          生徒名
-        </Label>
-        <Input aria-label="生徒名" className="w-full" placeholder="例) 山田 太郎" {...register("studentName")} />
-        <FieldErrorText message={errors.studentName?.message} />
-      </div>
-
-      <div className="space-y-1">
-        <Label className="block">生徒名かな</Label>
-        <Input aria-label="生徒名かな" className="w-full" placeholder="例) ヤマダ タロウ" {...register("studentKana")} />
-        <FieldErrorText message={errors.studentKana?.message} />
-      </div>
-
-      <div className="space-y-1">
-        <Label className="block">保護者名</Label>
-        <Input aria-label="保護者名" className="w-full" placeholder="例) 山田 花子" {...register("guardianName")} />
-        <FieldErrorText message={errors.guardianName?.message} />
-      </div>
-
-      <div className="space-y-1">
-        <Label className="block">保護者名かな</Label>
-        <Input aria-label="保護者名かな" className="w-full" placeholder="例) ヤマダ ハナコ" {...register("guardianKana")} />
-        <FieldErrorText message={errors.guardianKana?.message} />
-      </div>
-
-      <div className="space-y-1">
-        <Label className="block">学校名</Label>
-        <Input aria-label="学校名" className="w-full" placeholder="例) 〇〇中学校" {...register("schoolName")} />
-        <FieldErrorText message={errors.schoolName?.message} />
-      </div>
-
-      <div className="space-y-1">
-        <Label className="block">学年名</Label>
-        <Input aria-label="学年名" className="w-full" placeholder="例) 中学2年" {...register("gradeName")} />
-        <FieldErrorText message={errors.gradeName?.message} />
-      </div>
-
-      <div className="space-y-1">
-        <Label className="block">電話番号</Label>
-        <Input aria-label="電話番号" className="w-full" placeholder="例) 090-1234-5678" {...register("phone")} />
-        <FieldErrorText message={errors.phone?.message} />
-      </div>
-
-      <div className="space-y-1">
-        <Label className="block">メールアドレス</Label>
-        <Input aria-label="メールアドレス" className="w-full" placeholder="例) sample@example.com" type="email" {...register("email")} />
-        <FieldErrorText message={errors.email?.message} />
-      </div>
-
-      <div className="space-y-1">
-        <Label className="block">流入経路</Label>
-        <Input aria-label="流入経路" className="w-full" placeholder="例) Web / 紹介 / チラシ" {...register("channel")} />
-        <FieldErrorText message={errors.channel?.message} />
-      </div>
-
-      <div className="space-y-1">
-        <SelectField
-          ariaLabel="状態"
-          isRequired
-          items={leadStatusOptions.map((option) => ({
-            id: option.value,
-            textValue: option.label,
-            content: option.label,
-          }))}
-          label="状態"
-          onChange={(nextValue) => {
-            setValue("status", nextValue as LeadForm["status"], {
-              shouldDirty: true,
-              shouldValidate: true,
-            });
-          }}
-          popoverClassName="w-[var(--trigger-width)] min-w-[240px] p-0"
-          value={watch("status")}
-        />
-        <FieldErrorText message={errors.status?.message} />
-      </div>
-
-      <div className="space-y-1 md:col-span-2">
-        <Label className="block">メモ</Label>
-        <TextArea
-          aria-label="メモ"
-          className="border-border w-full rounded-lg border bg-default-50 shadow-sm"
-          rows={4}
-          placeholder="対応メモを入力"
-          {...register("note")}
-        />
-        <FieldErrorText message={errors.note?.message} />
-      </div>
-    </div>
+    <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
+      <TextInput
+        key={form.key("inquiryAt")}
+        {...form.getInputProps("inquiryAt")}
+        label="問合せ日"
+        type="datetime-local"
+        withAsterisk
+      />
+      <Select
+        key={form.key("locationId")}
+        {...form.getInputProps("locationId")}
+        clearable
+        data={locationOptions}
+        label="拠点"
+        placeholder="項目を選択"
+        searchable
+      />
+      <TextInput
+        key={form.key("name")}
+        {...form.getInputProps("name")}
+        label="氏名"
+        placeholder="例) 山田 太郎"
+        withAsterisk
+      />
+      <TextInput
+        key={form.key("phone")}
+        {...form.getInputProps("phone")}
+        label="電話番号"
+        placeholder="例) 090-1234-5678"
+      />
+      <TextInput
+        key={form.key("email")}
+        {...form.getInputProps("email")}
+        label="メールアドレス"
+        placeholder="例) sample@example.com"
+        type="email"
+      />
+      <TextInput
+        key={form.key("source")}
+        {...form.getInputProps("source")}
+        label="流入元"
+        placeholder="例) Web / 紹介 / チラシ"
+      />
+      <Select
+        key={form.key("status")}
+        {...form.getInputProps("status")}
+        data={leadStatusOptions.map((option) => ({ value: option.value, label: option.label }))}
+        label="状態"
+        withAsterisk
+      />
+      <TextInput
+        key={form.key("lostAt")}
+        {...form.getInputProps("lostAt")}
+        label="失注日時"
+        type="datetime-local"
+      />
+      <TextInput
+        key={form.key("lostReason")}
+        {...form.getInputProps("lostReason")}
+        className="md:col-span-2"
+        label="失注理由"
+        placeholder="例) 価格が合わない"
+      />
+      <Textarea
+        key={form.key("note")}
+        {...form.getInputProps("note")}
+        className="md:col-span-2"
+        label="メモ"
+        minRows={4}
+        placeholder="対応メモを入力"
+      />
+    </SimpleGrid>
   );
 }

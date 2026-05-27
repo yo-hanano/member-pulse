@@ -3,6 +3,7 @@ import { schemaResolver, useForm } from "@mantine/form";
 import { UserPlus2 } from "lucide-react";
 import { useRevalidator } from "react-router";
 
+import { modalSizes } from "~/lib/modal-sizes";
 import { EmployeeFormFields } from "~/routes/_core+/employees+/_index/components/employee-form-fields";
 import type { EmployeeForm } from "~/routes/_core+/employees+/_index/employee-form-schema";
 import {
@@ -40,7 +41,7 @@ export function EmployeeCreateModal({ isOpen, onOpenChange }: Props) {
     <Modal
       centered
       opened={isOpen}
-      size="xl"
+      size={modalSizes["2xl"]}
       title={
         <Group gap="sm">
           <ThemeIcon color="brand" radius="sm" variant="light">

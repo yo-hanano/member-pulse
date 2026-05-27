@@ -1,25 +1,30 @@
-import { Breadcrumbs, Button } from "@heroui/react";
+import { Anchor, Breadcrumbs, Button, Group, Stack, Text, Title } from "@mantine/core";
 import { Plus } from "lucide-react";
 import { useState } from "react";
-import { type LoaderFunctionArgs, useLoaderData, useNavigation, useRevalidator } from "react-router";
+import {
+  Link,
+  type LoaderFunctionArgs,
+  useLoaderData,
+  useNavigation,
+  useRevalidator,
+} from "react-router";
 
-import { type LeadListItemFragment, getSdk } from "~/generated/graphql";
+import { getSdk, type LeadListItemFragment } from "~/generated/graphql";
 import { usePageData } from "~/hooks/usePageData";
-import { getGraphQLClient } from "~/services/graphql-client";
 import { LeadCreateModal } from "~/routes/_core+/leads+/_index/components/lead-create-modal";
 import { LeadDeleteDialog } from "~/routes/_core+/leads+/_index/components/lead-delete-dialog";
 import { LeadEditModal } from "~/routes/_core+/leads+/_index/components/lead-edit-modal";
 import { LeadFiltersPanel } from "~/routes/_core+/leads+/_index/components/lead-filters-panel";
 import { LeadListTable } from "~/routes/_core+/leads+/_index/components/lead-list-table";
 import { useLeadDelete } from "~/routes/_core+/leads+/_index/hooks/useLeadDelete";
+import { getGraphQLClient } from "~/services/graphql-client";
 
 // リード一覧に必要なページデータだけを取得するローダー。
 export const clientLoader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
-  const studentName = url.searchParams.get("studentName") || undefined;
-  const guardianName = url.searchParams.get("guardianName") || undefined;
-  const schoolName = url.searchParams.get("schoolName") || undefined;
-  const channel = url.searchParams.get("channel") || undefined;
+  const name = url.searchParams.get("name") || undefined;
+  const source = url.searchParams.get("source") || undefined;
+  const locationId = url.searchParams.get("locationId") || undefined;
   const inquiryAtFrom = url.searchParams.get("inquiryAtFrom") || undefined;
   const inquiryAtTo = url.searchParams.get("inquiryAtTo") || undefined;
   const status = url.searchParams.get("status") || undefined;
@@ -43,10 +48,9 @@ export const clientLoader = async ({ request }: LoaderFunctionArgs) => {
       orderDirection,
     },
     filter: {
-      studentName,
-      guardianName,
-      schoolName,
-      channel,
+      name,
+      source,
+      locationId,
       inquiryAtFrom: buildDateTime(inquiryAtFrom, false),
       inquiryAtTo: buildDateTime(inquiryAtTo, true),
       status,
@@ -80,9 +84,7 @@ export default function LeadsIndexRoute() {
   });
 
   const isProcessing =
-    navigation.state !== "idle" ||
-    revalidator.state !== "idle" ||
-    deleteMutation.submitting;
+    navigation.state !== "idle" || revalidator.state !== "idle" || deleteMutation.submitting;
 
   // 編集モーダルを開く。
   const openEdit = (leadIdValue: string) => {
@@ -103,21 +105,30 @@ export default function LeadsIndexRoute() {
   };
 
   return (
-    <section className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <Breadcrumbs className="mb-3 text-sm text-muted-foreground">
-            <Breadcrumbs.Item href="/">ホーム</Breadcrumbs.Item>
-            <Breadcrumbs.Item className="text-foreground">リード</Breadcrumbs.Item>
+    <Stack gap="lg">
+      <Group align="flex-end" justify="space-between">
+        <Stack gap={4}>
+          <Breadcrumbs>
+            <Anchor component={Link} c="dimmed" size="sm" to="/">
+              ホーム
+            </Anchor>
+            <Text c="dimmed" size="sm">
+              リード
+            </Text>
           </Breadcrumbs>
-          <h1 className="text-xl font-semibold tracking-tight">リード一覧</h1>
-          <p className="text-muted-foreground mt-1 text-xs">リード情報を管理します。</p>
-        </div>
-        <Button className="app-primary-button" onPress={() => setIsCreateOpen(true)}>
-          <Plus className="size-4" />
-          新規追加
+          <Title order={2}>リード一覧</Title>
+          <Text c="dimmed" size="sm">
+            見込み客情報を管理します。
+          </Text>
+        </Stack>
+        <Button
+          leftSection={<Plus size={18} />}
+          loading={isProcessing}
+          onClick={() => setIsCreateOpen(true)}
+        >
+          リードを追加
         </Button>
-      </div>
+      </Group>
 
       <LeadFiltersPanel />
 
@@ -150,6 +161,6 @@ export default function LeadsIndexRoute() {
         isPending={deleteMutation.submitting}
         onConfirm={submitDelete}
       />
-    </section>
+    </Stack>
   );
 }

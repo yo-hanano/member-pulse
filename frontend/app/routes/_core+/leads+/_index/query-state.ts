@@ -6,22 +6,15 @@ const FILTER_DEBOUNCE_MS = 300;
 export const leadQueryParsers = {
   pageParam: parseAsInteger.withOptions({ shallow: false }),
   limitParam: parseAsInteger.withOptions({ shallow: false }),
-  studentNameFilter: parseAsString.withOptions({
+  nameFilter: parseAsString.withOptions({
     shallow: false,
     limitUrlUpdates: debounce(FILTER_DEBOUNCE_MS),
   }),
-  guardianNameFilter: parseAsString.withOptions({
+  sourceFilter: parseAsString.withOptions({
     shallow: false,
     limitUrlUpdates: debounce(FILTER_DEBOUNCE_MS),
   }),
-  schoolNameFilter: parseAsString.withOptions({
-    shallow: false,
-    limitUrlUpdates: debounce(FILTER_DEBOUNCE_MS),
-  }),
-  channelFilter: parseAsString.withOptions({
-    shallow: false,
-    limitUrlUpdates: debounce(FILTER_DEBOUNCE_MS),
-  }),
+  locationIdFilter: parseAsString.withOptions({ shallow: false }),
   inquiryAtFromFilter: parseAsString.withOptions({
     shallow: false,
     limitUrlUpdates: debounce(FILTER_DEBOUNCE_MS),
@@ -38,10 +31,9 @@ export const leadQueryParsers = {
 export const leadQueryUrlKeys = {
   pageParam: "page",
   limitParam: "limit",
-  studentNameFilter: "studentName",
-  guardianNameFilter: "guardianName",
-  schoolNameFilter: "schoolName",
-  channelFilter: "channel",
+  nameFilter: "name",
+  sourceFilter: "source",
+  locationIdFilter: "locationId",
   inquiryAtFromFilter: "inquiryAtFrom",
   inquiryAtToFilter: "inquiryAtTo",
   statusFilter: "status",

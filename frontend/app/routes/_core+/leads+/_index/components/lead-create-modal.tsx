@@ -1,14 +1,18 @@
-import { Button, Modal } from "@heroui/react";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { Button, Group, Modal, Stack, Text, ThemeIcon, Title } from "@mantine/core";
+import { schemaResolver, useForm } from "@mantine/form";
 import { MessageSquare } from "lucide-react";
 import { useEffect } from "react";
-import type { SubmitHandler } from "react-hook-form";
-import { useForm } from "react-hook-form";
 import { useRevalidator } from "react-router";
 
+import { modalSizes } from "~/lib/modal-sizes";
 import { LeadFormFields } from "~/routes/_core+/leads+/_index/components/lead-form-fields";
-import { emptyLeadForm, leadFormSchema, type LeadForm } from "~/routes/_core+/leads+/_index/lead-form-schema";
 import { useLeadCreate } from "~/routes/_core+/leads+/_index/hooks/useLeadCreate";
+import {
+  emptyLeadForm,
+  type LeadForm,
+  leadFormSchema,
+  toLeadInput,
+} from "~/routes/_core+/leads+/_index/lead-form-schema";
 
 interface Props {
   isOpen: boolean;
@@ -18,68 +22,63 @@ interface Props {
 // リード作成モーダル。フォーム、保存処理、再読込を内包する。
 export function LeadCreateModal({ isOpen, onOpenChange }: Props) {
   const form = useForm<LeadForm>({
-    resolver: zodResolver(leadFormSchema),
-    mode: "onSubmit",
-    defaultValues: emptyLeadForm,
+    mode: "uncontrolled",
+    initialValues: emptyLeadForm,
+    validate: schemaResolver(leadFormSchema, { sync: true }),
   });
 
   // オープン時は初期値を反映する。
   useEffect(() => {
-    if (isOpen) form.reset(emptyLeadForm);
-  }, [form, isOpen]);
+    if (isOpen) form.setValues(emptyLeadForm);
+  }, [form.setValues, isOpen]);
 
   const revalidator = useRevalidator();
   const createMutation = useLeadCreate(() => {
     revalidator.revalidate();
+    form.setValues(emptyLeadForm);
     onOpenChange(false);
   });
 
-  // 検証後に action hook へ送信する。
-  const onValid: SubmitHandler<LeadForm> = (data) => {
-    createMutation.submit(data);
-  };
+  const handleSubmit = form.onSubmit((data) => {
+    createMutation.submit(toLeadInput(data));
+  });
 
   return (
-    <Modal.Backdrop
-      isOpen={isOpen}
-      onOpenChange={(open) => {
-        onOpenChange(open);
-        if (!open) form.reset(emptyLeadForm);
+    <Modal
+      centered
+      opened={isOpen}
+      size={modalSizes.cover}
+      title={
+        <Group gap="sm">
+          <ThemeIcon color="brand" radius="sm" variant="light">
+            <MessageSquare size={18} />
+          </ThemeIcon>
+          <Title order={3} size="h4">
+            リードを作成
+          </Title>
+        </Group>
+      }
+      onClose={() => {
+        onOpenChange(false);
+        form.setValues(emptyLeadForm);
       }}
     >
-      <Modal.Container className="max-w-6xl" size="cover">
-        <Modal.Dialog>
-          <Modal.CloseTrigger />
-          <Modal.Header>
-            <Modal.Heading className="flex items-center gap-2.5 text-xl">
-              <span className="inline-flex size-10 items-center justify-center rounded-full bg-gray-200/70">
-                <MessageSquare className="size-5 text-gray-700" />
-              </span>
-              <span>リードを作成</span>
-            </Modal.Heading>
-          </Modal.Header>
-          <Modal.Body>
-            <p className="text-muted-foreground mb-3 text-sm">
-              必要な情報を入力して作成します。完了したら保存をクリックしてください。
-            </p>
-            <LeadFormFields form={form} />
-          </Modal.Body>
-          <Modal.Footer>
-            <Button className="border-border text-foreground hover:bg-default-100" slot="close" variant="outline">
+      <form noValidate onSubmit={handleSubmit}>
+        <Stack gap="md">
+          <Text c="dimmed" size="sm">
+            必要な情報を入力して作成します。完了したら保存をクリックしてください。
+          </Text>
+          <LeadFormFields form={form} />
+          <Group justify="flex-end" mt="sm">
+            <Button variant="default" onClick={() => onOpenChange(false)}>
               キャンセル
             </Button>
-            <Button
-              className="app-primary-button"
-              isPending={createMutation.submitting}
-              onPress={() => {
-                void form.handleSubmit(onValid)();
-              }}
-            >
+            <Button loading={createMutation.submitting} type="submit">
               保存
             </Button>
-          </Modal.Footer>
-        </Modal.Dialog>
-      </Modal.Container>
-    </Modal.Backdrop>
+          </Group>
+        </Stack>
+      </form>
+    </Modal>
   );
 }

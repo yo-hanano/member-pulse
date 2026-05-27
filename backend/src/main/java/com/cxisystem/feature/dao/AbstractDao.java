@@ -1,6 +1,7 @@
 package com.cxisystem.feature.dao;
 
 import com.cxisystem.feature.input.Pagination;
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -54,6 +55,10 @@ public abstract class AbstractDao<R extends TableRecord<R>, PK> {
     Field<Boolean> deletedField = table.field(DSL.name("is_deleted"), SQLDataType.BOOLEAN);
     if (deletedField != null) {
       initialCondition = initialCondition.and(deletedField.isFalse());
+    }
+    Field<Timestamp> deletedAtField = table.field(DSL.name("deleted_at"), SQLDataType.TIMESTAMP);
+    if (deletedAtField != null) {
+      initialCondition = initialCondition.and(deletedAtField.isNull());
     }
     return initialCondition;
   }

@@ -1,7 +1,14 @@
-import { Breadcrumbs, Tabs } from "@heroui/react";
-import { Outlet, type ActionFunctionArgs, type LoaderFunctionArgs, useLoaderData, useLocation, useNavigate } from "react-router";
+import { Anchor, Breadcrumbs, Stack, Tabs, Text, Title } from "@mantine/core";
+import {
+  type ActionFunctionArgs,
+  Link,
+  type LoaderFunctionArgs,
+  Outlet,
+  useLoaderData,
+  useNavigate,
+} from "react-router";
 
-import { type LeadDetailViewFragment, type LeadInput, getSdk } from "~/generated/graphql";
+import { getSdk, type LeadDetailViewFragment, type LeadInput } from "~/generated/graphql";
 import { leadStatusValues } from "~/routes/_core+/leads+/_index/lead-status";
 import { getGraphQLClient } from "~/services/graphql-client";
 
@@ -38,30 +45,30 @@ export const clientAction = async ({ params, request }: ActionFunctionArgs) => {
   }
 
   const form = (await request.json()) as LeadStatusNoteForm;
-  if (!form.status || !leadStatusValues.includes(form.status as (typeof leadStatusValues)[number])) {
+  if (
+    !form.status ||
+    !leadStatusValues.includes(form.status as (typeof leadStatusValues)[number])
+  ) {
     throw new Response("status is invalid", { status: 400 });
   }
 
   const client = getGraphQLClient();
   const sdk = getSdk(client);
   const { leadById } = await sdk.leadById({ leadId });
-  if (!leadById?.inquiryAt || !leadById.studentName) {
+  if (!leadById?.name) {
     throw new Response("lead not found", { status: 404 });
   }
 
   const input: LeadInput = {
-    inquiryAt: leadById.inquiryAt,
-    branchId: leadById.branchId ?? "",
-    studentName: leadById.studentName,
-    studentKana: leadById.studentKana || undefined,
-    guardianName: leadById.guardianName || undefined,
-    guardianKana: leadById.guardianKana || undefined,
-    schoolName: leadById.schoolName || undefined,
-    gradeName: leadById.gradeName || undefined,
+    inquiryAt: leadById.inquiryAt || undefined,
+    locationId: leadById.locationId || undefined,
+    name: leadById.name,
     phone: leadById.phone || undefined,
     email: leadById.email || undefined,
-    channel: leadById.channel || undefined,
+    source: leadById.source || undefined,
     status: form.status,
+    lostAt: leadById.lostAt || undefined,
+    lostReason: leadById.lostReason || undefined,
     note: form.note || undefined,
   };
   const { updateLead } = await sdk.updateLead({ leadId, input });
@@ -83,50 +90,51 @@ export function meta() {
 export default function LeadDetailRoute() {
   const { lead: leadData } = useLoaderData<typeof clientLoader>();
   const navigate = useNavigate();
-  const location = useLocation();
-  const lead = leadData!;
+  if (!leadData) {
+    throw new Response("lead not found", { status: 404 });
+  }
+  const lead = leadData;
 
   const selectedKey = "overview";
   const basePath = `/leads/${lead.id}`;
 
   return (
-    <section className="space-y-6">
-      <div className="space-y-3">
-        <Breadcrumbs className="text-sm text-muted-foreground">
-          <Breadcrumbs.Item href="/">ホーム</Breadcrumbs.Item>
-          <Breadcrumbs.Item href="/leads">リード</Breadcrumbs.Item>
-          <Breadcrumbs.Item className="text-foreground">{lead.studentName ?? "リード詳細"}</Breadcrumbs.Item>
+    <Stack gap="lg">
+      <Stack gap="sm">
+        <Breadcrumbs>
+          <Anchor component={Link} c="dimmed" size="sm" to="/">
+            ホーム
+          </Anchor>
+          <Anchor component={Link} c="dimmed" size="sm" to="/leads">
+            リード
+          </Anchor>
+          <Text c="dimmed" size="sm">
+            {lead.name ?? "リード詳細"}
+          </Text>
         </Breadcrumbs>
 
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h1 className="text-xl font-semibold tracking-tight">{lead.studentName ?? "リード詳細"}</h1>
-            <p className="text-muted-foreground mt-1 text-xs">リードの基本情報を管理します。</p>
-          </div>
-        </div>
+        <Stack gap={4}>
+          <Title order={2}>{lead.name ?? "リード詳細"}</Title>
+          <Text c="dimmed" size="sm">
+            見込み客の基本情報を管理します。
+          </Text>
+        </Stack>
 
         <Tabs
-          className="w-full"
-          selectedKey={selectedKey}
-          variant="secondary"
-          onSelectionChange={(key) => {
-            if (key === "overview") {
+          value={selectedKey}
+          onChange={(value) => {
+            if (value === "overview") {
               navigate(basePath);
             }
           }}
         >
-          <Tabs.ListContainer>
-            <Tabs.List aria-label="リード詳細タブ" className="w-fit min-w-max">
-              <Tabs.Tab id="overview" className="whitespace-nowrap">
-                概要
-                <Tabs.Indicator />
-              </Tabs.Tab>
-            </Tabs.List>
-          </Tabs.ListContainer>
+          <Tabs.List>
+            <Tabs.Tab value="overview">概要</Tabs.Tab>
+          </Tabs.List>
         </Tabs>
-      </div>
+      </Stack>
 
       <Outlet context={{ lead }} />
-    </section>
+    </Stack>
   );
 }

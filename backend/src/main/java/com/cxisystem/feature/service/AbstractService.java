@@ -96,17 +96,25 @@ public abstract class AbstractService<R extends TableRecord<R>, T, PK, D extends
         .collect(Collectors.toList());
   }
 
-  /** 論理削除フラグを更新して対象レコードを削除扱いにします。 */
+  /** 論理削除フラグまたは削除日時を更新して対象レコードを削除扱いにします。 */
   @Rls
   @Transactional
   public int delete(PK id) {
     Field<Boolean> deletedField = table().field(DSL.name("is_deleted"), SQLDataType.BOOLEAN);
     Field<Timestamp> deletedAtField = table().field(DSL.name("deleted_at"), SQLDataType.TIMESTAMP);
-    if (deletedField == null || deletedAtField == null) {
+    if (deletedField == null && deletedAtField == null) {
       throw new IllegalStateException("is_deleted または deleted_at フィールドが存在しません。");
     }
-    return dsl().update(table()).set(deletedField, true)
-        .set(deletedAtField, Timestamp.from(Instant.now())).where(pkField().eq(id)).execute();
+
+    Timestamp deletedAt = Timestamp.from(Instant.now());
+    if (deletedField != null && deletedAtField != null) {
+      return dsl().update(table()).set(deletedField, true).set(deletedAtField, deletedAt)
+          .where(pkField().eq(id)).execute();
+    }
+    if (deletedField != null) {
+      return dsl().update(table()).set(deletedField, true).where(pkField().eq(id)).execute();
+    }
+    return dsl().update(table()).set(deletedAtField, deletedAt).where(pkField().eq(id)).execute();
   }
 
   /** 物理削除で対象レコードを削除します。 */

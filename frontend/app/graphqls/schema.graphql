@@ -11,13 +11,6 @@ type Area {
   updatedAt: DateTime
 }
 
-type Branch {
-  code: String
-  id: String
-  name: String
-  prefecture: Prefecture
-}
-
 type Employee {
   companyId: String
   "ISO-8601"
@@ -55,7 +48,6 @@ type Gender {
 }
 
 type Lead {
-  branch: Branch
   companyId: String
   "ISO-8601"
   createdAt: DateTime
@@ -65,6 +57,7 @@ type Lead {
   id: String
   "ISO-8601"
   inquiryAt: DateTime
+  location: Location
   locationId: String
   "ISO-8601"
   lostAt: DateTime
@@ -215,33 +208,29 @@ input EmployeeInviteInput {
 }
 
 input LeadFilterInput {
-  branchId: String
-  channel: String
-  guardianName: String
   "ISO-8601"
   inquiryAtFrom: DateTime
   "ISO-8601"
   inquiryAtTo: DateTime
-  schoolName: String
+  locationId: String
+  name: String
+  source: String
   status: String
-  studentName: String
 }
 
 input LeadInput {
-  branchId: String!
-  channel: String
   email: String
-  gradeName: String
-  guardianKana: String
-  guardianName: String
   "ISO-8601"
-  inquiryAt: DateTime!
+  inquiryAt: DateTime
+  locationId: String
+  "ISO-8601"
+  lostAt: DateTime
+  lostReason: String
+  name: String!
   note: String
   phone: String
-  schoolName: String
+  source: String
   status: String!
-  studentKana: String
-  studentName: String!
 }
 
 input LocationFilterInput {
