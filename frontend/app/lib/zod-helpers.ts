@@ -38,7 +38,9 @@ export function zipCode() {
     .string("郵便番号を入力してください")
     .trim()
     .min(1, { message: "郵便番号を入力してください" })
-    .regex(/^\d{3}-?\d{4}$/, { message: "郵便番号は xxx-xxxx または xxxxxxx の形式で入力してください" });
+    .regex(/^\d{3}-?\d{4}$/, {
+      message: "郵便番号は xxx-xxxx または xxxxxxx の形式で入力してください",
+    });
 }
 
 /**
@@ -93,21 +95,27 @@ export function optionalLocalDateTimeWithSystemTime() {
  * - yyyy-MM-ddTHH:mm -> yyyy-MM-ddTHH:mm:00
  */
 export function requiredLocalDateTimeWithSystemTime(fieldLabel: string) {
-  return z.preprocess((value) => {
-    if (typeof value !== "string") return value;
-    const trimmed = value.trim();
-    if (!trimmed) return trimmed;
-    if (trimmed.length === 10) {
-      const now = new Date();
-      const pad2 = (n: number) => String(n).padStart(2, "0");
-      const time = `${pad2(now.getHours())}:${pad2(now.getMinutes())}:${pad2(now.getSeconds())}`;
-      return `${trimmed}T${time}`;
-    }
-    if (trimmed.length === 16) {
-      return `${trimmed}:00`;
-    }
-    return trimmed;
-  }, z.string().trim().min(1, { message: `${fieldLabel}を入力してください` }));
+  return z.preprocess(
+    (value) => {
+      if (typeof value !== "string") return value;
+      const trimmed = value.trim();
+      if (!trimmed) return trimmed;
+      if (trimmed.length === 10) {
+        const now = new Date();
+        const pad2 = (n: number) => String(n).padStart(2, "0");
+        const time = `${pad2(now.getHours())}:${pad2(now.getMinutes())}:${pad2(now.getSeconds())}`;
+        return `${trimmed}T${time}`;
+      }
+      if (trimmed.length === 16) {
+        return `${trimmed}:00`;
+      }
+      return trimmed;
+    },
+    z
+      .string()
+      .trim()
+      .min(1, { message: `${fieldLabel}を入力してください` }),
+  );
 }
 
 /**
@@ -122,9 +130,5 @@ export function requiredPassword(
   const required = emptyMessage ?? `${fieldLabel}を入力してください`;
   const min8 = minLengthMessage ?? `${fieldLabel}は8文字以上で入力してください`;
 
-  return z
-    .string(required)
-    .trim()
-    .min(1, { message: required })
-    .min(8, { message: min8 });
+  return z.string(required).trim().min(1, { message: required }).min(8, { message: min8 });
 }

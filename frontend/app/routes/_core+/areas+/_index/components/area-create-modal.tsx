@@ -1,14 +1,11 @@
-import { Button, Modal } from "@heroui/react";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { Button, Group, Modal, Stack, Text, ThemeIcon, Title } from "@mantine/core";
+import { schemaResolver, useForm } from "@mantine/form";
 import { MapPinPlus } from "lucide-react";
 import { useEffect } from "react";
-import type { SubmitHandler } from "react-hook-form";
-import { useForm } from "react-hook-form";
 import { useRevalidator } from "react-router";
-
-import { AreaFormFields } from "~/routes/_core+/areas+/_index/components/area-form-fields";
 import type { AreaForm } from "~/routes/_core+/areas+/_index/area-form-schema";
 import { areaFormSchema, emptyAreaForm } from "~/routes/_core+/areas+/_index/area-form-schema";
+import { AreaFormFields } from "~/routes/_core+/areas+/_index/components/area-form-fields";
 import { useAreaCreate } from "~/routes/_core+/areas+/_index/hooks/useAreaCreate";
 
 interface Props {
@@ -19,15 +16,15 @@ interface Props {
 // エリア作成モーダル。フォームと保存処理を内包する。
 export function AreaCreateModal({ isOpen, onOpenChange }: Props) {
   const form = useForm<AreaForm>({
-    resolver: zodResolver(areaFormSchema),
-    mode: "onSubmit",
-    defaultValues: emptyAreaForm,
+    mode: "uncontrolled",
+    initialValues: emptyAreaForm,
+    validate: schemaResolver(areaFormSchema, { sync: true }),
   });
 
   // オープン時は初期値を反映する。
   useEffect(() => {
-    if (isOpen) form.reset(emptyAreaForm);
-  }, [form, isOpen]);
+    if (isOpen) form.setValues(emptyAreaForm);
+  }, [form.setValues, isOpen]);
 
   const revalidator = useRevalidator();
   const createMutation = useAreaCreate(() => {
@@ -35,50 +32,46 @@ export function AreaCreateModal({ isOpen, onOpenChange }: Props) {
     onOpenChange(false);
   });
 
-  // 検証後に action hook へ送信する。
-  const onValid: SubmitHandler<AreaForm> = (data) => {
+  const handleSubmit = form.onSubmit((data) => {
     createMutation.submit(data);
-  };
+  });
 
   return (
-    <Modal.Backdrop
-      isOpen={isOpen}
-      onOpenChange={(open) => {
-        onOpenChange(open);
-        if (!open) form.reset(emptyAreaForm);
+    <Modal
+      centered
+      opened={isOpen}
+      size="lg"
+      title={
+        <Group gap="sm">
+          <ThemeIcon color="brand" radius="sm" variant="light">
+            <MapPinPlus size={18} />
+          </ThemeIcon>
+          <Title order={3} size="h4">
+            エリアを作成
+          </Title>
+        </Group>
+      }
+      onClose={() => {
+        onOpenChange(false);
+        form.setValues(emptyAreaForm);
       }}
     >
-      <Modal.Container className="max-w-xl">
-        <Modal.Dialog>
-          <Modal.CloseTrigger />
-          <Modal.Header>
-            <Modal.Heading className="flex items-center gap-2.5 text-xl">
-              <span className="inline-flex size-10 items-center justify-center rounded-full bg-gray-200/70">
-                <MapPinPlus className="size-5 text-gray-700" />
-              </span>
-              <span>エリアを作成</span>
-            </Modal.Heading>
-          </Modal.Header>
-          <Modal.Body>
-            <p className="text-muted-foreground mb-3 text-sm">必要な情報を入力して作成します。</p>
-            <AreaFormFields form={form} />
-          </Modal.Body>
-          <Modal.Footer>
-            <Button className="border-border text-foreground hover:bg-default-100" slot="close" variant="outline">
+      <form noValidate onSubmit={handleSubmit}>
+        <Stack gap="md">
+          <Text c="dimmed" size="sm">
+            必要な情報を入力して作成します。
+          </Text>
+          <AreaFormFields form={form} />
+          <Group justify="flex-end" mt="sm">
+            <Button variant="default" onClick={() => onOpenChange(false)}>
               キャンセル
             </Button>
-            <Button
-              className="app-primary-button"
-              isPending={createMutation.state !== "idle"}
-              onPress={() => {
-                void form.handleSubmit(onValid)();
-              }}
-            >
+            <Button loading={createMutation.state !== "idle"} type="submit">
               保存
             </Button>
-          </Modal.Footer>
-        </Modal.Dialog>
-      </Modal.Container>
-    </Modal.Backdrop>
+          </Group>
+        </Stack>
+      </form>
+    </Modal>
   );
 }

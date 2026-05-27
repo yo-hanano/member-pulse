@@ -1,4 +1,4 @@
-import { type ActionFunctionArgs } from "react-router";
+import type { ActionFunctionArgs } from "react-router";
 import { getSdk } from "~/generated/graphql";
 import { getGraphQLClient } from "~/services/graphql-client";
 

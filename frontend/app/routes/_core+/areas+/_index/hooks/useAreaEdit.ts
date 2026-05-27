@@ -1,5 +1,5 @@
-import { invalidateMasterAreas } from "~/hooks/useMasterData";
 import { useActionFetcher } from "~/hooks/useActionFetcher";
+import { invalidateMasterAreas } from "~/hooks/useMasterData";
 import type { clientAction as EditAreaAction } from "~/routes/_core+/areas+/$areaId.edit/route";
 
 type EditAreaActionData = Awaited<ReturnType<typeof EditAreaAction>>;

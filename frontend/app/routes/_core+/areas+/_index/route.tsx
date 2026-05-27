@@ -1,8 +1,9 @@
-import { Breadcrumbs, Button } from "@heroui/react";
+import { Anchor, Breadcrumbs, Button, Group, Stack, Text, Title } from "@mantine/core";
 import { Plus } from "lucide-react";
 import { useQueryStates } from "nuqs";
 import { useEffect, useMemo, useState } from "react";
 import {
+  Link,
   type LoaderFunctionArgs,
   useLoaderData,
   useNavigation,
@@ -149,31 +150,35 @@ export default function AreasIndexRoute() {
   };
 
   return (
-    <section className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <Breadcrumbs className="mb-3 text-sm text-muted-foreground">
-            <Breadcrumbs.Item href="/">ホーム</Breadcrumbs.Item>
-            <Breadcrumbs.Item className="text-foreground">エリア</Breadcrumbs.Item>
+    <Stack gap="lg">
+      <Group align="flex-end" justify="space-between">
+        <Stack gap={4}>
+          <Breadcrumbs>
+            <Anchor component={Link} c="dimmed" size="sm" to="/">
+              ホーム
+            </Anchor>
+            <Text c="dimmed" size="sm">
+              エリア
+            </Text>
           </Breadcrumbs>
-          <h1 className="text-xl font-semibold tracking-tight">エリア一覧</h1>
-          <p className="text-muted-foreground mt-1 text-xs">エリア情報と表示順を管理します。</p>
-        </div>
-        <div className="flex items-center gap-2">
+          <Title order={2}>エリア一覧</Title>
+          <Text c="dimmed" size="sm">
+            エリア情報と表示順を管理します。
+          </Text>
+        </Stack>
+        <Group gap="sm">
           <Button
-            className="border-border text-foreground hover:bg-default-100"
-            isDisabled={!hasOrderChanges || isProcessing}
-            variant="outline"
-            onPress={submitOrder}
+            disabled={!hasOrderChanges || isProcessing}
+            variant="default"
+            onClick={submitOrder}
           >
             {orderMutation.state !== "idle" ? "保存中..." : "並び順を保存"}
           </Button>
-          <Button className="app-primary-button" onPress={() => setIsCreateOpen(true)}>
-            <Plus className="size-4" />
-            新規追加
+          <Button leftSection={<Plus size={18} />} onClick={() => setIsCreateOpen(true)}>
+            エリアを追加
           </Button>
-        </div>
-      </div>
+        </Group>
+      </Group>
 
       <AreaFiltersPanel name={nameFilter} onFilterChange={updateParams} />
 
@@ -207,6 +212,6 @@ export default function AreasIndexRoute() {
           if (!open) setDeleteAreaId(null);
         }}
       />
-    </section>
+    </Stack>
   );
 }

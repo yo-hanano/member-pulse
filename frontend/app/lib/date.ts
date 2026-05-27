@@ -1,5 +1,6 @@
 const DATE_SEPARATOR_PATTERN = /^(\d{4})[-/](\d{1,2})[-/](\d{1,2})(?:[T\s].*)?$/;
-const DATETIME_SEPARATOR_PATTERN = /^(\d{4})[-/](\d{1,2})[-/](\d{1,2})[T\s](\d{1,2}):(\d{2})(?::(\d{2}))?/;
+const DATETIME_SEPARATOR_PATTERN =
+  /^(\d{4})[-/](\d{1,2})[-/](\d{1,2})[T\s](\d{1,2}):(\d{2})(?::(\d{2}))?/;
 
 // 日付文字列を yyyy/MM/dd に正規化して表示する。
 export function formatDateYmd(value: string | Date | null | undefined) {
@@ -36,11 +37,14 @@ export function formatDateTimeYmdHm(value: string | Date | null | undefined) {
   }
 
   if (value instanceof Date) {
-    return [
-      value.getFullYear(),
-      String(value.getMonth() + 1).padStart(2, "0"),
-      String(value.getDate()).padStart(2, "0"),
-    ].join("/") + ` ${String(value.getHours()).padStart(2, "0")}:${String(value.getMinutes()).padStart(2, "0")}`;
+    return (
+      [
+        value.getFullYear(),
+        String(value.getMonth() + 1).padStart(2, "0"),
+        String(value.getDate()).padStart(2, "0"),
+      ].join("/") +
+      ` ${String(value.getHours()).padStart(2, "0")}:${String(value.getMinutes()).padStart(2, "0")}`
+    );
   }
 
   const trimmed = value.trim();

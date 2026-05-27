@@ -268,11 +268,7 @@ export function LocationListTable({
         </Group>
       </Paper>
 
-      <LocationEditModal
-        isOpen={isEditOpen}
-        locationId={editLocationId}
-        onOpenChange={closeEdit}
-      />
+      <LocationEditModal isOpen={isEditOpen} locationId={editLocationId} onOpenChange={closeEdit} />
 
       <LocationDeleteDialog
         isOpen={isDeleteDialogOpen}

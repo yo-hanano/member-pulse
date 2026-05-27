@@ -1,8 +1,8 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Button, Input, Link } from "@heroui/react";
+import { Alert, Anchor, Button, PasswordInput, Stack, Text, Title } from "@mantine/core";
+import { schemaResolver, useForm } from "@mantine/form";
 import { useEffect, useRef } from "react";
-import { useForm } from "react-hook-form";
 import {
+  Link,
   Form as RouterForm,
   useActionData,
   useLoaderData,
@@ -11,12 +11,16 @@ import {
   useSubmit,
 } from "react-router";
 import { z } from "zod";
+
 import { requiredPassword } from "~/lib/zod-helpers";
-import { cn } from "~/lib/utils";
 
 const formSchema = z
   .object({
-    password: requiredPassword("パスワード", "パスワードを入力してください", "パスワードは8文字以上で入力してください"),
+    password: requiredPassword(
+      "パスワード",
+      "パスワードを入力してください",
+      "パスワードは8文字以上で入力してください",
+    ),
     confirmPassword: requiredPassword(
       "確認用パスワード",
       "確認用パスワードを入力してください",
@@ -103,27 +107,14 @@ export default function PasswordResetRoute() {
   const submitLockRef = useRef(false);
 
   const form = useForm<FormSchema>({
-    resolver: zodResolver(formSchema),
-    mode: "onSubmit",
-    defaultValues: {
+    mode: "uncontrolled",
+    initialValues: {
       password: "",
       confirmPassword: "",
       token: loaderData.token ?? "",
     },
+    validate: schemaResolver(formSchema, { sync: true }),
   });
-
-  const {
-    register,
-    handleSubmit,
-    setFocus,
-    formState: { errors },
-  } = form;
-
-  // 入力エラーの先頭フィールドへフォーカスする
-  useEffect(() => {
-    if (errors.password) setFocus("password");
-    else if (errors.confirmPassword) setFocus("confirmPassword");
-  }, [errors, setFocus]);
 
   // 送信状態が戻ったら再送信ロックを解除する
   useEffect(() => {
@@ -137,8 +128,7 @@ export default function PasswordResetRoute() {
     }
   }, [actionData?.message, navigate]);
 
-  // バリデーション済みデータのみ action へ送信する
-  const onValid = (data: FormSchema) => {
+  const handleSubmit = form.onSubmit((data) => {
     if (submitLockRef.current) return;
     submitLockRef.current = true;
 
@@ -151,79 +141,65 @@ export default function PasswordResetRoute() {
       method: "post",
       encType: "application/x-www-form-urlencoded",
     });
-  };
+  });
 
   return (
-    <div className="min-h-svh bg-default-50 px-4 py-10">
-      <div className="mx-auto w-full max-w-md rounded-2xl border border-border bg-background p-6 shadow-surface">
-        <div className="mb-6 text-center">
-          <h1 className="text-2xl font-bold">パスワード再設定</h1>
-          <p className="text-muted-foreground text-sm">新しいパスワードを設定してください</p>
-        </div>
+    <Stack className="mx-auto w-full max-w-md px-4 py-10" gap="lg">
+      <Stack gap={6} ta="center">
+        <Title order={1} size="h2">
+          パスワード再設定
+        </Title>
+        <Text c="dimmed" size="sm">
+          新しいパスワードを設定してください
+        </Text>
+      </Stack>
 
-        {loaderData.error ? (
-          <div className="rounded-xl border border-danger/30 bg-danger-soft px-3 py-2 text-sm text-danger">
-            {loaderData.error}
-          </div>
-        ) : (
-          <RouterForm
-            className={cn("flex flex-col gap-6")}
-            method="post"
-            noValidate
-            onSubmit={handleSubmit(onValid)}
-          >
+      {loaderData.error ? (
+        <Alert color="red" variant="light">
+          {loaderData.error}
+        </Alert>
+      ) : (
+        <RouterForm method="post" noValidate onSubmit={handleSubmit}>
+          <Stack gap="md">
             <input type="hidden" name="token" value={loaderData.token ?? ""} />
 
-            <div className="grid gap-4">
-              <label className="grid gap-3">
-                <span className="text-sm font-medium">パスワード</span>
-                <Input
-                   {...register("password")}
-                  autoComplete="new-password"
-                  aria-label="パスワード"
-                  placeholder="••••••••"
-                  type="password"
-                  variant="secondary"
-                />
-                {errors.password ? <span className="text-sm text-danger">{errors.password.message}</span> : null}
-              </label>
-
-              <label className="grid gap-3">
-                <span className="text-sm font-medium">パスワード（確認）</span>
-                <Input
-                   {...register("confirmPassword")}
-                  autoComplete="new-password"
-                  aria-label="パスワード（確認）"
-                  placeholder="••••••••"
-                  type="password"
-                  variant="secondary"
-                />
-                {errors.confirmPassword ? (
-                  <span className="text-sm text-danger">{errors.confirmPassword.message}</span>
-                ) : null}
-              </label>
-            </div>
+            <PasswordInput
+              key={form.key("password")}
+              {...form.getInputProps("password")}
+              autoComplete="new-password"
+              label="パスワード"
+              placeholder="パスワード"
+            />
+            <PasswordInput
+              key={form.key("confirmPassword")}
+              {...form.getInputProps("confirmPassword")}
+              autoComplete="new-password"
+              label="パスワード（確認）"
+              placeholder="パスワード（確認）"
+            />
 
             {actionData?.error?.length ? (
-              <div className="rounded-xl border border-danger/30 bg-danger-soft px-3 py-2 text-sm text-danger">
-                {actionData.error.map((msg, index) => (
-                  <p key={index}>{msg}</p>
+              <Alert color="red" variant="light">
+                {actionData.error.map((msg) => (
+                  <Text key={msg} size="sm">
+                    {msg}
+                  </Text>
                 ))}
-              </div>
+              </Alert>
             ) : null}
 
-            <Button fullWidth isPending={isSubmitting} type="submit">
-              {isSubmitting ? "処理中..." : "パスワードを設定する"}
+            <Button fullWidth loading={isSubmitting} type="submit">
+              パスワードを設定する
             </Button>
 
-            <div className="text-center text-sm">
-              <Link className="underline underline-offset-4" href="/login">
+            <Text size="sm" ta="center">
+              <Anchor component={Link} to="/login">
                 ログイン画面へ
-              </Link>
-            </div>
-          </RouterForm>
-        )}
-      </div>
-    </div>
+              </Anchor>
+            </Text>
+          </Stack>
+        </RouterForm>
+      )}
+    </Stack>
   );
 }

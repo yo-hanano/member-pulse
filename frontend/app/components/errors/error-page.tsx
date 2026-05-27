@@ -1,4 +1,4 @@
-import { Button, Card, Surface } from "@heroui/react";
+import { Button, Group, Paper, Stack, Text, Title } from "@mantine/core";
 
 type ErrorPageAction = {
   label: string;
@@ -16,29 +16,33 @@ type ErrorPageProps = {
 export function ErrorPage({ code, title, description, actions = [] }: ErrorPageProps) {
   // ステータスコード別エラーページの共通レイアウトを提供する。
   return (
-    <div className="grid min-h-svh place-items-center bg-default-50 p-4 sm:p-6">
-      <Surface className="w-full max-w-2xl rounded-2xl border border-border/60 bg-white p-2 shadow-sm" variant="default">
-        <Card className="border-none shadow-none" variant="default">
-          <Card.Content className="flex flex-col items-center gap-3 px-6 py-10 text-center sm:px-10 sm:py-14">
-            <h1 className="text-[5.5rem] leading-none font-bold sm:text-[7rem]">{code}</h1>
-            <p className="text-lg font-semibold">{title}</p>
-            <div className="text-muted-foreground text-sm leading-relaxed sm:text-base">{description}</div>
-            {actions.length > 0 ? (
-              <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
-                {actions.map((action) => (
-                  <Button
-                    key={action.label}
-                    onPress={action.onPress}
-                    variant={action.variant === "outline" ? "outline" : undefined}
-                  >
-                    {action.label}
-                  </Button>
-                ))}
-              </div>
-            ) : null}
-          </Card.Content>
-        </Card>
-      </Surface>
+    <div className="grid min-h-svh place-items-center p-4 sm:p-6">
+      <Paper maw={672} p={{ base: "xl", sm: 48 }} radius="sm" shadow="xs" ta="center" withBorder>
+        <Stack align="center" gap="md">
+          <Title order={1} size="5.5rem">
+            {code}
+          </Title>
+          <Text fw={700} size="lg">
+            {title}
+          </Text>
+          <Text c="dimmed" size="sm">
+            {description}
+          </Text>
+          {actions.length > 0 ? (
+            <Group justify="center" mt="sm">
+              {actions.map((action) => (
+                <Button
+                  key={action.label}
+                  variant={action.variant === "outline" ? "default" : "filled"}
+                  onClick={action.onPress}
+                >
+                  {action.label}
+                </Button>
+              ))}
+            </Group>
+          ) : null}
+        </Stack>
+      </Paper>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useFetcher } from "react-router";
 
-import { useActionResultEffect, type ActionResult } from "~/hooks/useActionResultEffect";
+import { type ActionResult, useActionResultEffect } from "~/hooks/useActionResultEffect";
 
 type Method = "post";
 

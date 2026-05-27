@@ -32,7 +32,7 @@ const MASTER_CACHE_KEYS = {
   prefectures: "allPrefectures",
 } as const;
 
-const isFresh = <T,>(entry?: CacheEntry<T>) => {
+const isFresh = <T>(entry?: CacheEntry<T>) => {
   if (!entry?.fetchedAt) return false;
   return Date.now() - entry.fetchedAt < CACHE_TTL_MS;
 };
@@ -49,17 +49,20 @@ export const invalidateMasterData = (...keys: string[]) => {
 export const invalidateMasterAreas = () => invalidateMasterData(MASTER_CACHE_KEYS.areas);
 export const invalidateMasterLocations = () => invalidateMasterData(MASTER_CACHE_KEYS.locations);
 export const invalidateMasterGenders = () => invalidateMasterData(MASTER_CACHE_KEYS.genders);
-export const invalidateMasterPrefectures = () => invalidateMasterData(MASTER_CACHE_KEYS.prefectures);
+export const invalidateMasterPrefectures = () =>
+  invalidateMasterData(MASTER_CACHE_KEYS.prefectures);
 
 // 取得済み master を再利用しつつ、必要なら GraphQL から再読込する共通 hook。
-const useCachedMaster = <T,>(key: string, fetcher: () => Promise<T>) => {
-  const [state, setState] = useState<{ data: T | undefined; loading: boolean; error: unknown }>(() => {
-    const entry = cache.get(key) as CacheEntry<T> | undefined;
-    if (entry?.data && isFresh(entry)) {
-      return { data: entry.data, loading: false, error: entry.error };
-    }
-    return { data: entry?.data, loading: !entry?.data, error: entry?.error };
-  });
+const useCachedMaster = <T>(key: string, fetcher: () => Promise<T>) => {
+  const [state, setState] = useState<{ data: T | undefined; loading: boolean; error: unknown }>(
+    () => {
+      const entry = cache.get(key) as CacheEntry<T> | undefined;
+      if (entry?.data && isFresh(entry)) {
+        return { data: entry.data, loading: false, error: entry.error };
+      }
+      return { data: entry?.data, loading: !entry?.data, error: entry?.error };
+    },
+  );
 
   useEffect(() => {
     let active = true;
@@ -132,7 +135,9 @@ export const useMasterPrefectures = () => {
     const client = getGraphQLClient();
     const sdk = getSdk(client);
     const { allPrefectures } = await sdk.allPrefectures();
-    return (allPrefectures ?? []).filter((prefecture): prefecture is PrefectureMaster => Boolean(prefecture));
+    return (allPrefectures ?? []).filter((prefecture): prefecture is PrefectureMaster =>
+      Boolean(prefecture),
+    );
   }, []);
   return useCachedMaster(MASTER_CACHE_KEYS.prefectures, fetcher);
 };

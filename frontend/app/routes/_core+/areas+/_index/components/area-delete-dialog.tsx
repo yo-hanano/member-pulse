@@ -1,4 +1,5 @@
-import { AlertDialog, Button } from "@heroui/react";
+import { Button, Group, Modal, Stack, Text, ThemeIcon, Title } from "@mantine/core";
+import { AlertTriangle } from "lucide-react";
 
 interface Props {
   isOpen: boolean;
@@ -10,25 +11,32 @@ interface Props {
 // エリア削除の確認ダイアログ（警告表示と削除実行操作を担当）
 export function AreaDeleteDialog({ isOpen, onOpenChange, isPending, onConfirm }: Props) {
   return (
-    <AlertDialog.Backdrop isOpen={isOpen} onOpenChange={onOpenChange}>
-      <AlertDialog.Container>
-        <AlertDialog.Dialog>
-          <AlertDialog.CloseTrigger />
-          <AlertDialog.Header className="flex flex-row items-center gap-3">
-            <AlertDialog.Icon status="danger" />
-            <AlertDialog.Heading>エリアを削除しますか？</AlertDialog.Heading>
-          </AlertDialog.Header>
-          <AlertDialog.Body>この操作は元に戻せません。問題なければ削除を実行してください。</AlertDialog.Body>
-          <AlertDialog.Footer>
-            <Button className="border-border text-foreground hover:bg-default-100" slot="close" variant="outline">
-              キャンセル
-            </Button>
-            <Button className="app-primary-button" isPending={isPending} onPress={onConfirm}>
-              削除する
-            </Button>
-          </AlertDialog.Footer>
-        </AlertDialog.Dialog>
-      </AlertDialog.Container>
-    </AlertDialog.Backdrop>
+    <Modal
+      centered
+      opened={isOpen}
+      size="md"
+      withCloseButton={false}
+      onClose={() => onOpenChange(false)}
+    >
+      <Stack gap="md">
+        <Group gap="sm">
+          <ThemeIcon color="red" radius="sm" variant="light">
+            <AlertTriangle size={18} />
+          </ThemeIcon>
+          <Title order={3} size="h4">
+            エリアを削除しますか？
+          </Title>
+        </Group>
+        <Text size="sm">この操作は元に戻せません。問題なければ削除を実行してください。</Text>
+        <Group justify="flex-end">
+          <Button disabled={isPending} variant="default" onClick={() => onOpenChange(false)}>
+            キャンセル
+          </Button>
+          <Button color="red" loading={isPending} onClick={onConfirm}>
+            削除する
+          </Button>
+        </Group>
+      </Stack>
+    </Modal>
   );
 }

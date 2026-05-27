@@ -1,11 +1,16 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Button, Input, Surface } from "@heroui/react";
+import { Alert, Button, Paper, PasswordInput, Stack, Text, TextInput, Title } from "@mantine/core";
+import { schemaResolver, useForm } from "@mantine/form";
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { Form as RouterForm, redirect, useActionData, useLoaderData, useNavigation, useSubmit } from "react-router";
+import {
+  Form as RouterForm,
+  redirect,
+  useActionData,
+  useLoaderData,
+  useNavigation,
+  useSubmit,
+} from "react-router";
 import { z } from "zod";
 
-import { FieldErrorText } from "~/components/form/field-error-text";
 import { getSdk } from "~/generated/graphql";
 import { requiredEmail } from "~/lib/zod-helpers";
 import { getGraphQLClient } from "~/services/graphql-client";
@@ -107,7 +112,9 @@ export const clientAction = async ({ request }: { request: Request }) => {
 
     if (!verifyRes.ok) {
       const fallbackMessage =
-        verifyRes.status === 401 ? "現在のパスワードが正しくありません" : "パスワード検証に失敗しました";
+        verifyRes.status === 401
+          ? "現在のパスワードが正しくありません"
+          : "パスワード検証に失敗しました";
       return {
         message: "ng",
         error: [verifyPayload?.error ?? fallbackMessage],
@@ -178,46 +185,27 @@ export default function AccountSettingsRoute() {
   const [savedProfile, setSavedProfile] = useState<LoaderData>({ name, email });
 
   const form = useForm<FormSchema>({
-    resolver: zodResolver(formSchema),
-    mode: "onSubmit",
-    defaultValues: {
+    mode: "uncontrolled",
+    initialValues: {
       name,
       email,
       currentPassword: "",
       newPassword: "",
       confirmNewPassword: "",
     },
+    validate: schemaResolver(formSchema, { sync: true }),
   });
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    setFocus,
-    formState: { errors },
-  } = form;
-
-  const watchedName = form.watch("name");
-  const watchedCurrentPassword = form.watch("currentPassword");
-  const watchedNewPassword = form.watch("newPassword");
-  const watchedConfirmNewPassword = form.watch("confirmNewPassword");
+  const values = form.getValues();
   const normalizedSavedName = savedProfile.name.trim();
-  const normalizedCurrentName = watchedName.trim();
+  const normalizedCurrentName = values.name.trim();
 
   // 名前変更かパスワード変更意図がある場合のみ保存を許可する。
   const hasProfileChanges = normalizedCurrentName !== normalizedSavedName;
   const hasPasswordChangeIntent =
-    watchedNewPassword.trim().length > 0 || watchedConfirmNewPassword.trim().length > 0;
+    values.newPassword.trim().length > 0 || values.confirmNewPassword.trim().length > 0;
   const hasAnyChanges = hasProfileChanges || hasPasswordChangeIntent;
-  const canSubmit = hasAnyChanges && watchedCurrentPassword.trim().length > 0;
-
-  // 最初にエラーになった入力へフォーカスする。
-  useEffect(() => {
-    if (errors.name) setFocus("name");
-    else if (errors.currentPassword) setFocus("currentPassword");
-    else if (errors.newPassword) setFocus("newPassword");
-    else if (errors.confirmNewPassword) setFocus("confirmNewPassword");
-  }, [errors, setFocus]);
+  const canSubmit = hasAnyChanges && values.currentPassword.trim().length > 0;
 
   // action 結果に応じてフォーム値と保存済みプロフィールを同期する。
   useEffect(() => {
@@ -226,7 +214,7 @@ export default function AccountSettingsRoute() {
       const nextName = actionData.user?.name ?? name;
       const nextEmail = actionData.user?.email ?? email;
       setSavedProfile({ name: nextName, email: nextEmail });
-      reset({
+      form.setValues({
         name: nextName,
         email: nextEmail,
         currentPassword: "",
@@ -237,24 +225,29 @@ export default function AccountSettingsRoute() {
     }
 
     if (actionData.values) {
-      reset({
+      form.setValues({
         name: typeof actionData.values.name === "string" ? actionData.values.name : name,
         email: typeof actionData.values.email === "string" ? actionData.values.email : email,
-        currentPassword: typeof actionData.values.currentPassword === "string" ? actionData.values.currentPassword : "",
-        newPassword: typeof actionData.values.newPassword === "string" ? actionData.values.newPassword : "",
+        currentPassword:
+          typeof actionData.values.currentPassword === "string"
+            ? actionData.values.currentPassword
+            : "",
+        newPassword:
+          typeof actionData.values.newPassword === "string" ? actionData.values.newPassword : "",
         confirmNewPassword:
-          typeof actionData.values.confirmNewPassword === "string" ? actionData.values.confirmNewPassword : "",
+          typeof actionData.values.confirmNewPassword === "string"
+            ? actionData.values.confirmNewPassword
+            : "",
       });
     }
-  }, [actionData, email, name, reset]);
+  }, [actionData, email, form.setValues, name]);
 
   // loader の最新プロフィールを保存済み値として同期する。
   useEffect(() => {
     setSavedProfile({ name, email });
   }, [email, name]);
 
-  // RHF で検証済みの値を Router action へ送信する。
-  const onValid = (data: FormSchema) => {
+  const handleSubmit = form.onSubmit((data) => {
     const fd = new FormData();
     fd.set("name", data.name);
     fd.set("email", data.email);
@@ -262,121 +255,116 @@ export default function AccountSettingsRoute() {
     fd.set("newPassword", data.newPassword);
     fd.set("confirmNewPassword", data.confirmNewPassword);
     submit(fd, { method: "post", encType: "application/x-www-form-urlencoded" });
-  };
+  });
 
   return (
-    <div className="mx-auto w-full max-w-4xl space-y-6">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-semibold tracking-tight">アカウント設定</h1>
-        <p className="text-muted-foreground max-w-2xl text-sm leading-relaxed">名前とパスワードを更新できます。変更内容を保存するには現在のパスワードが必要です。</p>
-      </div>
+    <Stack maw={860} gap="lg">
+      <Stack gap={4}>
+        <Title order={1}>アカウント設定</Title>
+        <Text c="dimmed" size="sm">
+          名前とパスワードを更新できます。変更内容を保存するには現在のパスワードが必要です。
+        </Text>
+      </Stack>
 
-      <RouterForm className="space-y-6" method="post" noValidate onSubmit={handleSubmit(onValid)}>
-        <Surface className="space-y-5 rounded-2xl border border-border/60 bg-surface text-surface-foreground p-6 shadow-sm">
-          <div className="space-y-1">
-            <h2 className="text-lg font-semibold tracking-tight">基本情報</h2>
-            <p className="text-muted-foreground text-sm leading-relaxed">表示名を編集できます。メールアドレス（ログインID）は変更できません。</p>
-          </div>
-
-          <div className="grid gap-y-2 sm:grid-cols-[220px_minmax(0,420px)] sm:items-center sm:gap-x-8">
-            <label className="text-sm font-medium text-foreground/88" htmlFor="name">
-              名前
-            </label>
-            <div className="space-y-1">
-              <Input className="w-full sm:w-[360px]" id="name" autoComplete="name" variant="secondary" {...register("name")} />
-              <FieldErrorText message={errors.name?.message} />
-            </div>
-          </div>
-
-          <div className="grid gap-y-2 sm:grid-cols-[220px_minmax(0,420px)] sm:items-center sm:gap-x-8">
-            <label className="text-sm font-medium text-foreground/88" htmlFor="email">
-              メールアドレス
-            </label>
-            <div className="space-y-1">
-              <Input className="w-full sm:w-[360px]" id="email" autoComplete="email" disabled readOnly type="email" variant="secondary" {...register("email")} />
-              <FieldErrorText message={errors.email?.message} />
-            </div>
-          </div>
-        </Surface>
-
-        <Surface className="space-y-5 rounded-2xl border border-border/60 bg-surface text-surface-foreground p-6 shadow-sm">
-          <div className="space-y-1">
-            <h2 className="text-lg font-semibold tracking-tight">パスワード</h2>
-            <p className="text-muted-foreground text-sm leading-relaxed">パスワードを変更する場合のみ、新しいパスワードを入力してください。</p>
-          </div>
-
-          <div className="grid gap-y-2 sm:grid-cols-[220px_minmax(0,420px)] sm:items-center sm:gap-x-8">
-            <label className="text-sm font-medium text-foreground/88" htmlFor="newPassword">
-              新しいパスワード
-            </label>
-            <div className="space-y-1">
-              <Input className="w-full sm:w-[360px]" id="newPassword" autoComplete="new-password" type="password" variant="secondary" {...register("newPassword")} />
-              <FieldErrorText message={errors.newPassword?.message} />
-            </div>
-          </div>
-
-          <div className="grid gap-y-2 sm:grid-cols-[220px_minmax(0,420px)] sm:items-center sm:gap-x-8">
-            <label className="text-sm font-medium text-foreground/88" htmlFor="confirmNewPassword">
-              新しいパスワード（確認）
-            </label>
-            <div className="space-y-1">
-              <Input
-                className="w-full sm:w-[360px]"
-                id="confirmNewPassword"
-                autoComplete="new-password"
-                type="password"
-                variant="secondary"
-                {...register("confirmNewPassword")}
+      <RouterForm method="post" noValidate onSubmit={handleSubmit}>
+        <Stack gap="lg">
+          <Paper p="lg" radius="sm" shadow="xs" withBorder>
+            <Stack gap="md">
+              <Stack gap={4}>
+                <Title order={2} size="h4">
+                  基本情報
+                </Title>
+                <Text c="dimmed" size="sm">
+                  表示名を編集できます。メールアドレス（ログインID）は変更できません。
+                </Text>
+              </Stack>
+              <TextInput
+                key={form.key("name")}
+                {...form.getInputProps("name")}
+                autoComplete="name"
+                label="名前"
+                maw={420}
               />
-              <FieldErrorText message={errors.confirmNewPassword?.message} />
-            </div>
-          </div>
-        </Surface>
+              <TextInput
+                key={form.key("email")}
+                {...form.getInputProps("email")}
+                autoComplete="email"
+                disabled
+                label="メールアドレス"
+                maw={420}
+                readOnly
+                type="email"
+              />
+            </Stack>
+          </Paper>
 
-        {actionData?.error?.length ? (
-          <Surface className="rounded-xl border border-danger/30 bg-danger-soft px-4 py-3 text-sm text-danger">
-            {actionData.error.map((msg, index) => (
-              <p key={index}>{msg}</p>
-            ))}
-          </Surface>
-        ) : null}
+          <Paper p="lg" radius="sm" shadow="xs" withBorder>
+            <Stack gap="md">
+              <Stack gap={4}>
+                <Title order={2} size="h4">
+                  パスワード
+                </Title>
+                <Text c="dimmed" size="sm">
+                  パスワードを変更する場合のみ、新しいパスワードを入力してください。
+                </Text>
+              </Stack>
+              <PasswordInput
+                key={form.key("newPassword")}
+                {...form.getInputProps("newPassword")}
+                autoComplete="new-password"
+                label="新しいパスワード"
+                maw={420}
+              />
+              <PasswordInput
+                key={form.key("confirmNewPassword")}
+                {...form.getInputProps("confirmNewPassword")}
+                autoComplete="new-password"
+                label="新しいパスワード（確認）"
+                maw={420}
+              />
+            </Stack>
+          </Paper>
 
-        {actionData?.message === "ok" ? (
-          <Surface className="rounded-xl border border-success/30 bg-success-soft px-4 py-3 text-sm text-success">
-            アカウント情報を更新しました。
-          </Surface>
-        ) : null}
+          {actionData?.error?.length ? (
+            <Alert color="red" variant="light">
+              {actionData.error.map((msg) => (
+                <Text key={msg} size="sm">
+                  {msg}
+                </Text>
+              ))}
+            </Alert>
+          ) : null}
 
-        <Surface className="space-y-4 rounded-2xl border border-border/60 bg-surface p-6 shadow-sm">
-          {hasAnyChanges ? (
-            <div className="grid gap-y-2 sm:grid-cols-[260px_minmax(0,420px)] sm:items-center sm:gap-x-8">
-              <label className="text-sm font-medium text-foreground/88" htmlFor="currentPassword">
-                保存のため現在のパスワードを入力
-              </label>
-              <div className="space-y-1">
-                <Input
-                  className="w-full sm:w-[360px]"
-                  id="currentPassword"
+          {actionData?.message === "ok" ? (
+            <Alert color="teal" variant="light">
+              アカウント情報を更新しました。
+            </Alert>
+          ) : null}
+
+          <Paper p="lg" radius="sm" shadow="xs" withBorder>
+            <Stack gap="md">
+              {hasAnyChanges ? (
+                <PasswordInput
+                  key={form.key("currentPassword")}
+                  {...form.getInputProps("currentPassword")}
                   autoComplete="current-password"
+                  label="保存のため現在のパスワードを入力"
+                  maw={420}
                   placeholder="現在のパスワード"
-                  type="password"
-                  variant="secondary"
-                  {...register("currentPassword")}
                 />
-                <FieldErrorText message={errors.currentPassword?.message} />
-              </div>
-            </div>
-          ) : (
-            <p className="text-muted-foreground text-sm leading-relaxed">名前または新しいパスワードを変更すると保存できます。</p>
-          )}
+              ) : (
+                <Text c="dimmed" size="sm">
+                  名前または新しいパスワードを変更すると保存できます。
+                </Text>
+              )}
 
-          <div className="flex justify-end">
-            <Button className="app-primary-button" isDisabled={!canSubmit} isPending={isSubmitting} type="submit">
-              {isSubmitting ? "保存中..." : "保存"}
-            </Button>
-          </div>
-        </Surface>
+              <Button disabled={!canSubmit} loading={isSubmitting} ml="auto" type="submit">
+                保存
+              </Button>
+            </Stack>
+          </Paper>
+        </Stack>
       </RouterForm>
-    </div>
+    </Stack>
   );
 }

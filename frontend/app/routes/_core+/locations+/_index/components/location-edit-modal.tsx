@@ -5,12 +5,12 @@ import { useEffect, useRef } from "react";
 import { useFetcher, useRevalidator } from "react-router";
 
 import { LocationFormFields } from "~/routes/_core+/locations+/_index/components/location-form-fields";
+import { useLocationEdit } from "~/routes/_core+/locations+/_index/hooks/useLocationEdit";
 import type { LocationForm } from "~/routes/_core+/locations+/_index/location-form-schema";
 import {
   emptyLocationForm,
   locationFormSchema,
 } from "~/routes/_core+/locations+/_index/location-form-schema";
-import { useLocationEdit } from "~/routes/_core+/locations+/_index/hooks/useLocationEdit";
 import type { clientLoader as locationEditLoader } from "~/routes/_core+/locations+/$locationId.edit/route";
 
 interface Props {

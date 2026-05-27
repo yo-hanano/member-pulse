@@ -1,8 +1,7 @@
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Alert, Anchor, Button, PasswordInput, Stack, Text, TextInput, Title } from "@mantine/core";
+import { schemaResolver, useForm } from "@mantine/form";
 import { AlertCircle, LogIn } from "lucide-react";
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
 import { Link, Form as RouterForm, useActionData, useNavigation, useSubmit } from "react-router";
 import type { clientAction } from "../route";
 import { type LoginSchema, loginSchema } from "./schema";
@@ -18,41 +17,26 @@ export function LoginForm({ className }: LoginFormProps) {
   const actionData = useActionData<typeof clientAction>();
 
   const form = useForm<LoginSchema>({
-    resolver: zodResolver(loginSchema),
-    mode: "onSubmit",
-    defaultValues: {
+    mode: "uncontrolled",
+    initialValues: {
       companyCode: "",
       email: "",
       password: "",
     },
+    validate: schemaResolver(loginSchema, { sync: true }),
   });
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    setFocus,
-    formState: { errors },
-  } = form;
 
   useEffect(() => {
     // 認証失敗後も入力内容を復元し、再入力の負担を減らす。
     if (!actionData?.values) return;
-    reset({
+    form.setValues({
       companyCode: actionData.values.companyCode ? String(actionData.values.companyCode) : "",
       email: actionData.values.email ? String(actionData.values.email) : "",
       password: actionData.values.password ? String(actionData.values.password) : "",
     });
-  }, [actionData?.values, reset]);
+  }, [actionData?.values, form.setValues]);
 
-  useEffect(() => {
-    // バリデーションエラー時は先頭の不備へフォーカスする。
-    if (errors.companyCode) setFocus("companyCode");
-    else if (errors.email) setFocus("email");
-    else if (errors.password) setFocus("password");
-  }, [errors, setFocus]);
-
-  const onValid = (data: LoginSchema) => {
+  const handleSubmit = form.onSubmit((data) => {
     // React Router の action に寄せ、BFF の /auth/login 呼び出しを route 側へ集約する。
     const fd = new FormData();
     fd.set("companyCode", data.companyCode);
@@ -62,10 +46,10 @@ export function LoginForm({ className }: LoginFormProps) {
       method: "post",
       encType: "application/x-www-form-urlencoded",
     });
-  };
+  });
 
   return (
-    <RouterForm className={className} method="post" noValidate onSubmit={handleSubmit(onValid)}>
+    <RouterForm className={className} method="post" noValidate onSubmit={handleSubmit}>
       <Stack gap="lg">
         <Stack gap={6} ta="center">
           <Title order={1} size="h2">
@@ -78,18 +62,18 @@ export function LoginForm({ className }: LoginFormProps) {
 
         <Stack gap="md">
           <TextInput
-            {...register("companyCode")}
+            key={form.key("companyCode")}
+            {...form.getInputProps("companyCode")}
             autoComplete="organization"
-            error={errors.companyCode?.message}
             label="企業コード"
             placeholder="例: dev"
             radius="sm"
             size="md"
           />
           <TextInput
-            {...register("email")}
+            key={form.key("email")}
+            {...form.getInputProps("email")}
             autoComplete="email"
-            error={errors.email?.message}
             label="メールアドレス"
             placeholder="name@example.com"
             radius="sm"
@@ -97,9 +81,9 @@ export function LoginForm({ className }: LoginFormProps) {
             type="email"
           />
           <PasswordInput
-            {...register("password")}
+            key={form.key("password")}
+            {...form.getInputProps("password")}
             autoComplete="current-password"
-            error={errors.password?.message}
             label="パスワード"
             placeholder="パスワードを入力"
             radius="sm"

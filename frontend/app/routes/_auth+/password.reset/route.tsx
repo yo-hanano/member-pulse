@@ -1,11 +1,9 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Button, Input, Link, Surface } from "@heroui/react";
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { Form as RouterForm, useActionData, useNavigation, useSubmit } from "react-router";
+import { Alert, Anchor, Button, Stack, Text, TextInput, Title } from "@mantine/core";
+import { schemaResolver, useForm } from "@mantine/form";
+import { Link, Form as RouterForm, useActionData, useNavigation, useSubmit } from "react-router";
 import { z } from "zod";
+
 import { requiredEmail, requiredString } from "~/lib/zod-helpers";
-import { cn } from "~/lib/utils";
 
 const formSchema = z.object({
   companyCode: requiredString("企業コード"),
@@ -26,7 +24,10 @@ export const clientAction = async ({ request }: { request: Request }) => {
   const parsed = formSchema.safeParse(values);
 
   if (!parsed.success) {
-    return { message: "ng", error: parsed.error.issues.map((issue) => issue.message) } satisfies ActionData;
+    return {
+      message: "ng",
+      error: parsed.error.issues.map((issue) => issue.message),
+    } satisfies ActionData;
   }
 
   const { companyCode, email } = parsed.data;
@@ -60,29 +61,15 @@ export default function PasswordResetRequestRoute() {
   const isSubmitting = navigation.state === "submitting";
 
   const form = useForm<FormSchema>({
-    resolver: zodResolver(formSchema),
-    mode: "onSubmit",
-    defaultValues: {
+    mode: "uncontrolled",
+    initialValues: {
       companyCode: "",
       email: "",
     },
+    validate: schemaResolver(formSchema, { sync: true }),
   });
 
-  const {
-    register,
-    handleSubmit,
-    setFocus,
-    formState: { errors },
-  } = form;
-
-  // 最初のエラーフィールドへフォーカスする
-  useEffect(() => {
-    if (errors.companyCode) setFocus("companyCode");
-    else if (errors.email) setFocus("email");
-  }, [errors, setFocus]);
-
-  // バリデーション済みの値だけ action に送る
-  const onValid = (data: FormSchema) => {
+  const handleSubmit = form.onSubmit((data) => {
     const fd = new FormData();
     fd.set("companyCode", data.companyCode);
     fd.set("email", data.email);
@@ -90,72 +77,64 @@ export default function PasswordResetRequestRoute() {
       method: "post",
       encType: "application/x-www-form-urlencoded",
     });
-  };
+  });
 
   return (
-    <RouterForm
-      className={cn("flex flex-col gap-6")}
-      method="post"
-      noValidate
-      onSubmit={handleSubmit(onValid)}
-    >
-      <div className="flex flex-col items-center gap-2 text-center">
-        <h1 className="text-2xl font-bold">パスワード再設定</h1>
-        <p className="text-muted-foreground text-sm text-balance">
-          登録済みのメールアドレスに再設定用リンクを送信します
-        </p>
-      </div>
+    <RouterForm method="post" noValidate onSubmit={handleSubmit}>
+      <Stack gap="lg">
+        <Stack gap={6} ta="center">
+          <Title order={1} size="h2">
+            パスワード再設定
+          </Title>
+          <Text c="dimmed" size="sm">
+            登録済みのメールアドレスに再設定用リンクを送信します
+          </Text>
+        </Stack>
 
-      <div className="grid gap-6">
-        <label className="grid gap-3">
-          <span className="text-sm font-medium">企業コード</span>
-          <Input
-            {...register("companyCode")}
+        <Stack gap="md">
+          <TextInput
+            key={form.key("companyCode")}
+            {...form.getInputProps("companyCode")}
             autoComplete="organization"
-            aria-label="企業コード"
+            label="企業コード"
             placeholder="company-code"
-            variant="secondary"
           />
-          {errors.companyCode ? <span className="text-sm text-danger">{errors.companyCode.message}</span> : null}
-        </label>
-
-        <label className="grid gap-3">
-          <span className="text-sm font-medium">メールアドレス</span>
-          <Input
-            {...register("email")}
+          <TextInput
+            key={form.key("email")}
+            {...form.getInputProps("email")}
             autoComplete="email"
-            aria-label="メールアドレス"
+            label="メールアドレス"
             placeholder="m@example.com"
             type="email"
-            variant="secondary"
           />
-          {errors.email ? <span className="text-sm text-danger">{errors.email.message}</span> : null}
-        </label>
 
-        {actionData?.error?.length ? (
-          <Surface className="rounded-xl px-3 py-2 text-sm text-danger" variant="secondary">
-            {actionData.error.map((msg, index) => (
-              <p key={index}>{msg}</p>
-            ))}
-          </Surface>
-        ) : null}
+          {actionData?.error?.length ? (
+            <Alert color="red" variant="light">
+              {actionData.error.map((msg) => (
+                <Text key={msg} size="sm">
+                  {msg}
+                </Text>
+              ))}
+            </Alert>
+          ) : null}
 
-        {actionData?.message === "ok" ? (
-          <Surface className="rounded-xl px-4 py-3 text-[13px] leading-relaxed text-foreground" variant="secondary">
-            再設定メールを送信しました。メール内のリンクからパスワードを再設定してください。
-          </Surface>
-        ) : null}
+          {actionData?.message === "ok" ? (
+            <Alert color="teal" variant="light">
+              再設定メールを送信しました。メール内のリンクからパスワードを再設定してください。
+            </Alert>
+          ) : null}
 
-        <Button fullWidth isPending={isSubmitting} type="submit">
-          {isSubmitting ? "送信中..." : "再設定リンクを送信"}
-        </Button>
-      </div>
+          <Button fullWidth loading={isSubmitting} type="submit">
+            再設定リンクを送信
+          </Button>
+        </Stack>
 
-      <div className="text-center text-sm">
-        <Link className="underline underline-offset-4" href="/login">
-          ログイン画面へ
-        </Link>
-      </div>
+        <Text size="sm" ta="center">
+          <Anchor component={Link} to="/login">
+            ログイン画面へ
+          </Anchor>
+        </Text>
+      </Stack>
     </RouterForm>
   );
 }

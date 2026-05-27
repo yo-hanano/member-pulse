@@ -3,7 +3,7 @@ import { MapPinPlus } from "lucide-react";
 import { useState } from "react";
 import { Link, type LoaderFunctionArgs, useLoaderData, useNavigation } from "react-router";
 
-import { type LocationListItemFragment, getSdk } from "~/generated/graphql";
+import { getSdk, type LocationListItemFragment } from "~/generated/graphql";
 import { usePageData } from "~/hooks/usePageData";
 import { LocationCreateModal } from "~/routes/_core+/locations+/_index/components/location-create-modal";
 import { LocationFiltersPanel } from "~/routes/_core+/locations+/_index/components/location-filters-panel";

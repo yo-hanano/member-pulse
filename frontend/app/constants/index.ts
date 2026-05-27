@@ -5,7 +5,7 @@ export const EMPLOYEE_STATUS = {
   Suspended: { value: "suspended", label: "一時停止" },
 } as const;
 
-export type EmployeeStatus = typeof EMPLOYEE_STATUS[keyof typeof EMPLOYEE_STATUS]["value"];
+export type EmployeeStatus = (typeof EMPLOYEE_STATUS)[keyof typeof EMPLOYEE_STATUS]["value"];
 
 export const EMPLOYEE_STATUS_OPTIONS = Object.values(EMPLOYEE_STATUS);
 
@@ -30,7 +30,7 @@ export const CUSTOMER_REGISTRATION_STATUS = {
 } as const;
 
 export type CustomerRegistrationStatus =
-  typeof CUSTOMER_REGISTRATION_STATUS[keyof typeof CUSTOMER_REGISTRATION_STATUS]["value"];
+  (typeof CUSTOMER_REGISTRATION_STATUS)[keyof typeof CUSTOMER_REGISTRATION_STATUS]["value"];
 
 export const CUSTOMER_REGISTRATION_STATUS_OPTIONS = Object.values(CUSTOMER_REGISTRATION_STATUS);
 
@@ -55,7 +55,7 @@ export const CUSTOMER_PREFERRED_CONTACT = {
 } as const;
 
 export type CustomerPreferredContact =
-  typeof CUSTOMER_PREFERRED_CONTACT[keyof typeof CUSTOMER_PREFERRED_CONTACT]["value"];
+  (typeof CUSTOMER_PREFERRED_CONTACT)[keyof typeof CUSTOMER_PREFERRED_CONTACT]["value"];
 
 export const CUSTOMER_PREFERRED_CONTACT_OPTIONS = Object.values(CUSTOMER_PREFERRED_CONTACT);
 
@@ -72,7 +72,7 @@ export const CUSTOMER_REGISTERED_VIA = {
 } as const;
 
 export type CustomerRegisteredVia =
-  typeof CUSTOMER_REGISTERED_VIA[keyof typeof CUSTOMER_REGISTERED_VIA]["value"];
+  (typeof CUSTOMER_REGISTERED_VIA)[keyof typeof CUSTOMER_REGISTERED_VIA]["value"];
 
 export const CUSTOMER_REGISTERED_VIA_OPTIONS = Object.values(CUSTOMER_REGISTERED_VIA);
 
@@ -90,7 +90,7 @@ export const CAR_FUEL_TYPE = {
   Other: { value: "other", label: "その他" },
 } as const;
 
-export type CarFuelType = typeof CAR_FUEL_TYPE[keyof typeof CAR_FUEL_TYPE]["value"];
+export type CarFuelType = (typeof CAR_FUEL_TYPE)[keyof typeof CAR_FUEL_TYPE]["value"];
 
 export const CAR_FUEL_TYPE_OPTIONS = Object.values(CAR_FUEL_TYPE);
 

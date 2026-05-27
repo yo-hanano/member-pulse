@@ -1,5 +1,5 @@
-import { invalidateMasterAreas } from "~/hooks/useMasterData";
 import { useActionFetcher } from "~/hooks/useActionFetcher";
+import { invalidateMasterAreas } from "~/hooks/useMasterData";
 import type { clientAction as CreateAreaAction } from "~/routes/_core+/areas+/create/route";
 
 type CreateAreaActionData = Awaited<ReturnType<typeof CreateAreaAction>>;

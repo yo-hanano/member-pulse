@@ -1,5 +1,5 @@
-import { invalidateMasterAreas } from "~/hooks/useMasterData";
 import { useActionFetcher } from "~/hooks/useActionFetcher";
+import { invalidateMasterAreas } from "~/hooks/useMasterData";
 import type { clientAction as UpdateAreaOrderAction } from "~/routes/_core+/areas+/order/route";
 
 type UpdateAreaOrderActionData = Awaited<ReturnType<typeof UpdateAreaOrderAction>>;

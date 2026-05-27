@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "@heroui/styles";
 
 :root {
   --app-bg: #ffffff;
@@ -39,10 +38,10 @@ html.dark,
   color-scheme: dark;
 }
 
-/* Global subtle focus ring (HeroUI + native focus-visible) */
+/* Global subtle focus ring */
 :where(:focus-visible, [data-focus-visible="true"]) {
-  outline: none !important;
-  box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-foreground, #111827) 28%, transparent) !important;
+  outline: none;
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-foreground, #111827) 28%, transparent);
 }
 
 .app-primary-button {
@@ -50,7 +49,10 @@ html.dark,
   background: #000;
   color: #fff;
   box-shadow: var(--shadow-sm);
-  transition: background-color 160ms ease, border-color 160ms ease, opacity 160ms ease;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    opacity 160ms ease;
 }
 
 .app-primary-button:hover {
@@ -125,31 +127,46 @@ html.dark,
 .app-filter-field {
   width: 180px;
   min-height: 2.25rem;
-  transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease;
 }
 
 .app-filter-field-xs {
   width: 120px;
   min-height: 2.25rem;
-  transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease;
 }
 
 .app-filter-field-sm {
   width: 140px;
   min-height: 2.25rem;
-  transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease;
 }
 
 .app-filter-field-md {
   width: 160px;
   min-height: 2.25rem;
-  transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease;
 }
 
 .app-filter-field-lg {
   width: 220px;
   min-height: 2.25rem;
-  transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease;
 }
 
 @media (min-width: 1024px) {

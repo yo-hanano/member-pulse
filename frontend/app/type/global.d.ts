@@ -5,5 +5,3 @@ declare global {
     __runtimeConfig?: RuntimeConfig;
   }
 }
-
-export {};

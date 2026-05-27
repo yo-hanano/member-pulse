@@ -10,9 +10,7 @@ type PostalCodeLookupResponse = {
 } & Partial<PostalCodeAddress>;
 
 // BFF 経由で郵便番号から住所情報を取得する。
-export async function lookupPostalCodeAddress(
-  zipcode: string,
-): Promise<PostalCodeAddress | null> {
+export async function lookupPostalCodeAddress(zipcode: string): Promise<PostalCodeAddress | null> {
   const normalized = zipcode.replace(/\D/g, "");
   if (normalized.length !== 7) {
     return null;

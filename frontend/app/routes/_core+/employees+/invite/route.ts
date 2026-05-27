@@ -5,7 +5,10 @@ import { getSdk } from "~/generated/graphql";
 import { getGraphQLClient } from "~/services/graphql-client";
 
 const InviteInputSchema = z.object({
-  email: z.email({ message: "有効なメールアドレスを入力してください" }).trim().min(1, "メールアドレスを入力してください"),
+  email: z
+    .email({ message: "有効なメールアドレスを入力してください" })
+    .trim()
+    .min(1, "メールアドレスを入力してください"),
 });
 
 export const clientAction = async ({ request }: ActionFunctionArgs) => {

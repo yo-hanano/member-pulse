@@ -3,7 +3,12 @@ import { z } from "zod";
 import { requiredString } from "~/lib/zod-helpers";
 
 const optionalText = (max: number, label: string) =>
-  z.string().trim().max(max, { message: `${label}は${max}文字以内で入力してください` }).optional().or(z.literal(""));
+  z
+    .string()
+    .trim()
+    .max(max, { message: `${label}は${max}文字以内で入力してください` })
+    .optional()
+    .or(z.literal(""));
 
 // 拠点作成・編集フォームの共通バリデーション。
 export const locationFormSchema = z.object({
