@@ -1,35 +1,42 @@
-import { Toast } from "@heroui/react";
+import { ColorSchemeScript, createTheme, MantineProvider } from "@mantine/core";
+import "@mantine/core/styles.css";
+import { Notifications } from "@mantine/notifications";
+import "@mantine/notifications/styles.css";
 import { NuqsAdapter } from "nuqs/adapters/react-router/v7";
-import { isRouteErrorResponse, Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
+import {
+  isRouteErrorResponse,
+  Links,
+  Meta,
+  Outlet,
+  Scripts,
+  ScrollRestoration,
+} from "react-router";
 
 import type { Route } from "./+types/root";
 import "./app.css";
-import { CommandMenu } from "./components/composed/command-menu";
 import { BadRequestError } from "./components/errors/bad-request-error";
 import { ForbiddenError } from "./components/errors/forbidden";
 import { GeneralError } from "./components/errors/general-error";
 import { NotFoundError } from "./components/errors/not-found-error";
 import { UnauthorisedError } from "./components/errors/unauthorized-error";
-import { SearchProvider } from "./context/search-context";
-import { ThemeProvider } from "./context/theme-context";
 
-const themeScript = `
-(() => {
-  try {
-    const storageKey = "frontend-theme";
-    const storedTheme = localStorage.getItem(storageKey) || "system";
-    const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-    const resolvedTheme = storedTheme === "system" ? systemTheme : storedTheme;
-    const root = document.documentElement;
-    root.classList.remove("light", "dark");
-    root.classList.add(resolvedTheme);
-    root.dataset.theme = resolvedTheme;
-  } catch (_) {}
-})();
-`;
+const mantineTheme = createTheme({
+  primaryColor: "teal",
+  fontFamily:
+    'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+  headings: {
+    fontFamily:
+      'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+    fontWeight: "700",
+  },
+  defaultRadius: "sm",
+});
 
 export const meta = (_: Route.MetaArgs) => {
-  return [{ title: "Frontend" }, { name: "description", content: "Web frontend" }];
+  return [
+    { title: "MemberPulse" },
+    { name: "description", content: "月謝制スタジオ向け月次レビュー SaaS" },
+  ];
 };
 
 export const links: Route.LinksFunction = () => [
@@ -44,9 +51,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <ColorSchemeScript defaultColorScheme="auto" />
       </head>
-      <body className="bg-background text-foreground">
+      <body>
         {children}
         <ScrollRestoration />
         <Scripts />
@@ -58,13 +65,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <NuqsAdapter>
-      <ThemeProvider>
-        <SearchProvider>
-          <Outlet />
-          <CommandMenu />
-          <Toast.Provider placement="top" />
-        </SearchProvider>
-      </ThemeProvider>
+      <MantineProvider defaultColorScheme="auto" theme={mantineTheme}>
+        <Outlet />
+        <Notifications position="top-right" />
+      </MantineProvider>
     </NuqsAdapter>
   );
 }

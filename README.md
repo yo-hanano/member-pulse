@@ -1,7 +1,6 @@
 # MemberPulse 開発環境セットアップ
 
 月謝制スタジオ向けの月次経営レビュー SaaS です。
-このリポジトリは `juku-ops` を参考骨格として作成した新プロジェクトですが、業務ドメインは `member` / `lead` / `trial_session` / `monthly_review` を中心に置き換えています。
 
 ## 1. プロジェクト構成と概要
 
@@ -101,7 +100,7 @@ Dev Container の起動を前提にします。コンテナ起動時に `post-st
 DB 名は `member_pulse_dev` です。Dev Container 外で作業する場合は手動で作成してください。
 
 ```sh
-createdb member_pulse_dev
+psql -h postgres -p 5432 -U postgres -d postgres -c "CREATE DATABASE member_pulse_dev;"
 ```
 
 ### 3. 環境変数、認証鍵の登録

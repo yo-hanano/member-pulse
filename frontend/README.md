@@ -1,6 +1,6 @@
 # frontend
 
-React Router v7 + HeroUI ベースの正規Webフロントエンドです。認証状態は `/auth` 系エンドポイント、業務データは `/graphql` を通じて扱います。
+React Router v7 + Mantine V9 ベースの正規Webフロントエンドです。認証状態は `/auth` 系エンドポイント、業務データは `/graphql` を通じて扱います。
 
 ---
 
@@ -80,54 +80,29 @@ React Router v7 では、`route.ts` / `route.tsx` のみがルートモジュー
 
 ---
 
-## HeroUI の運用
+## Mantine V9 の運用
 
-このプロジェクトの標準 UI ライブラリは `@heroui/react` です。共通テーマや Toast は `app/root.tsx` を起点に組み込まれています。
+このプロジェクトの標準 UI ライブラリは `@mantine/core` です。共通テーマ、ColorSchemeScript、通知は `app/root.tsx` を起点に組み込んでいます。
 
-### CLI の利用
+### 依存パッケージ
 
-`heroui-cli` は `frontend` の `devDependencies` に導入しています。実行名は `heroui` なので、ローカル実行は `pnpm exec heroui ...` を使います。
-
-```bash
-pnpm exec heroui --help
-pnpm exec heroui list
-pnpm exec heroui doctor
-```
-
-### アップデート方針
-
-- HeroUI 関連依存の更新は `package.json` / `pnpm-lock.yaml` を通して管理する
-- CLI が必要な作業は `pnpm exec heroui ...` で実行する
-
-### 実際の更新コマンド例
-
-```bash
-# 現在の導入状態を確認
-pnpm exec heroui list
-
-# プロジェクトの問題を事前確認
-pnpm exec heroui doctor
-
-# HeroUI 本体を最新化
-pnpm exec heroui upgrade
-
-# 依存更新後に型・ビルド確認
-pnpm run typecheck
-pnpm run build
-```
+- `@mantine/core`
+- `@mantine/hooks`
+- `@mantine/notifications`
 
 ### コンポーネント配置ルール
 
 - `app/components/form`
 - フォーム向けの入力補助、エラー表示、日付入力などを置く
 - `app/components/composed`
-- HeroUI や既存部品を組み合わせたアプリ固有の再利用 UI を置く
+- Mantine や既存部品を組み合わせたアプリ固有の再利用 UI を置く
 - `app/components/table`
 - 一覧やテーブル周辺の共通ロジックを置く
 
 ### フォーム実装メモ
 
-- フォームは `@heroui/react` の入力 UI と `react-hook-form` + `zod`、`react-router` の `<Form>` / `useSubmit` を組み合わせる
+- フォームは `@mantine/core` の入力 UI と `react-hook-form` + `zod`、`react-router` の `<Form>` / `useSubmit` を組み合わせる
+- 旧 HeroUI 実装が残っている画面は段階的に Mantine へ移行する
 
 ---
 
