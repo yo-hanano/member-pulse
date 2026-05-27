@@ -1,4 +1,5 @@
 import { Button, Group, Paper, Select, TextInput } from "@mantine/core";
+import { DatePickerInput } from "@mantine/dates";
 import { X } from "lucide-react";
 import { useQueryStates } from "nuqs";
 
@@ -6,6 +7,8 @@ import { useMasterLocations } from "~/hooks/useMasterData";
 import { buildChangedQueryPatch } from "~/lib/query-state";
 import { leadStatusOptions } from "~/routes/_core+/leads+/_index/lead-status";
 import { leadQueryParsers, leadQueryUrlKeys } from "~/routes/_core+/leads+/_index/query-state";
+
+type DateRangeValue = [string | null, string | null];
 
 // リード一覧のフィルタ入力UIを表示し、変更内容を URL に反映する。
 export function LeadFiltersPanel() {
@@ -28,6 +31,8 @@ export function LeadFiltersPanel() {
     value: String(location.id),
     label: location.name ?? String(location.id),
   }));
+
+  const inquiryDateRange: DateRangeValue = [inquiryAtFromFilter || null, inquiryAtToFilter || null];
 
   // フィルタ変更時は 1 ページ目へ戻す。
   const updateFilters = (updates: {
@@ -52,24 +57,28 @@ export function LeadFiltersPanel() {
     );
   };
 
+  const updateInquiryDateRange = (nextRange: DateRangeValue) => {
+    const [from, to] = nextRange;
+    updateFilters({
+      inquiryAtFromFilter: from || null,
+      inquiryAtToFilter: to || null,
+    });
+  };
+
   return (
     <Paper p="md" radius="sm" shadow="xs" withBorder>
       <Group align="flex-end" gap="sm">
-        <TextInput
-          label="問合せ日From"
-          type="date"
-          value={inquiryAtFromFilter ?? ""}
-          onChange={(event) =>
-            updateFilters({ inquiryAtFromFilter: event.currentTarget.value || null })
-          }
-        />
-        <TextInput
-          label="問合せ日To"
-          type="date"
-          value={inquiryAtToFilter ?? ""}
-          onChange={(event) =>
-            updateFilters({ inquiryAtToFilter: event.currentTarget.value || null })
-          }
+        <DatePickerInput
+          clearable
+          allowSingleDateInRange
+          label="問合せ日"
+          labelSeparator=" - "
+          placeholder="期間を選択"
+          type="range"
+          value={inquiryDateRange}
+          valueFormat="YYYY/MM/DD"
+          w={{ base: "100%", sm: 280 }}
+          onChange={updateInquiryDateRange}
         />
         <TextInput
           label="氏名"

@@ -11,6 +11,9 @@ importers:
       '@mantine/core':
         specifier: ^9.2.1
         version: 9.2.1(@mantine/hooks@9.2.1(react@19.2.6))(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+      '@mantine/dates':
+        specifier: ^9.2.1
+        version: 9.2.1(@mantine/core@9.2.1(@mantine/hooks@9.2.1(react@19.2.6))(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(@mantine/hooks@9.2.1(react@19.2.6))(dayjs@1.11.21)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       '@mantine/form':
         specifier: ^9.2.1
         version: 9.2.1(react@19.2.6)
@@ -950,6 +953,15 @@ packages:
       react: ^19.2.0
       react-dom: ^19.2.0
 
+  '@mantine/dates@9.2.1':
+    resolution: {integrity: sha512-cyRC8bnZ6W+SzQf/RM+/eDeWhZTZF148z+OcgqiERdkAujh0q88Ddybv/Hshv1EOf0rCe6oiHSZWxIxmUf7KAg==}
+    peerDependencies:
+      '@mantine/core': 9.2.1
+      '@mantine/hooks': 9.2.1
+      dayjs: '>=1.0.0'
+      react: ^19.2.0
+      react-dom: ^19.2.0
+
   '@mantine/form@9.2.1':
     resolution: {integrity: sha512-PV0dcbmsKhZkn3Ryztqp8Kb1N16v2nWXO71p4utTmN7E/lHWHO1ccj7Y72sIteWJo1YeNHzzkssaYRSnxgOvYA==}
     peerDependencies:
@@ -1601,6 +1613,9 @@ packages:
 
   dataloader@2.2.3:
     resolution: {integrity: sha512-y2krtASINtPFS1rSDjacrFgn1dcUuoREVabwlOGOe4SdxenREqwjwjElAdwvbGM7kgZz9a3KVicWR7vcz8rnzA==}
+
+  dayjs@1.11.21:
+    resolution: {integrity: sha512-98IT+HOahAisibz/yjKbzuOBwYcjJ7BCLPzARyHiyEBmRz4fatF+KPJszEHXsGYjUG234aH/cOjW1wwTbKUZlA==}
 
   debounce@3.0.0:
     resolution: {integrity: sha512-64byRbF0/AirwbuHqB3/ZpMG9/nckDa6ZA0yd6UnaQNwbbemCOwvz2sL5sjXLHhZHADyiwLm0M5qMhltUUx+TA==}
@@ -3672,6 +3687,15 @@ snapshots:
     transitivePeerDependencies:
       - '@types/react'
 
+  '@mantine/dates@9.2.1(@mantine/core@9.2.1(@mantine/hooks@9.2.1(react@19.2.6))(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(@mantine/hooks@9.2.1(react@19.2.6))(dayjs@1.11.21)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)':
+    dependencies:
+      '@mantine/core': 9.2.1(@mantine/hooks@9.2.1(react@19.2.6))(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+      '@mantine/hooks': 9.2.1(react@19.2.6)
+      clsx: 2.1.1
+      dayjs: 1.11.21
+      react: 19.2.6
+      react-dom: 19.2.6(react@19.2.6)
+
   '@mantine/form@9.2.1(react@19.2.6)':
     dependencies:
       '@standard-schema/spec': 1.1.0
@@ -4213,6 +4237,8 @@ snapshots:
   data-uri-to-buffer@4.0.1: {}
 
   dataloader@2.2.3: {}
+
+  dayjs@1.11.21: {}
 
   debounce@3.0.0: {}
 

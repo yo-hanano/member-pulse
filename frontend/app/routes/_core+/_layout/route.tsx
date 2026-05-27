@@ -2,7 +2,6 @@ import {
   AppShell,
   Avatar,
   Burger,
-  Button,
   Divider,
   Group,
   NavLink as MantineNavLink,
@@ -15,12 +14,19 @@ import {
 } from "@mantine/core";
 import {
   Activity,
+  BadgeJapaneseYen,
   BarChart3,
-  Building2,
+  ClipboardList,
+  CreditCard,
   LogOut,
+  Map as MapIcon,
   MapPin,
+  Megaphone,
   MessageSquare,
+  NotebookTabs,
   Settings,
+  Tags,
+  UserRound,
   Users,
 } from "lucide-react";
 import { useState } from "react";
@@ -35,17 +41,49 @@ type AuthMeResponse = {
 
 type NavigationItem = {
   label: string;
-  to: string;
+  to?: string;
   icon: React.ComponentType<{ size?: number }>;
   end?: boolean;
+  disabled?: boolean;
 };
 
-const navigationItems: NavigationItem[] = [
-  { label: "ホーム", to: "/", icon: BarChart3, end: true },
-  { label: "拠点", to: "/locations", icon: MapPin },
-  { label: "見込み客", to: "/leads", icon: MessageSquare },
-  { label: "チーム", to: "/employees", icon: Users },
-  { label: "アカウント設定", to: "/settings/account", icon: Settings },
+type NavigationGroup = {
+  label: string;
+  items: NavigationItem[];
+};
+
+const navigationGroups: NavigationGroup[] = [
+  {
+    label: "CRM",
+    items: [
+      { label: "リード", to: "/leads", icon: MessageSquare },
+      { label: "体験セッション", icon: ClipboardList, disabled: true },
+      { label: "会員", icon: UserRound, disabled: true },
+    ],
+  },
+  {
+    label: "Review",
+    items: [
+      { label: "広告費", icon: Megaphone, disabled: true },
+      { label: "費用", icon: BadgeJapaneseYen, disabled: true },
+    ],
+  },
+  {
+    label: "Master",
+    items: [
+      { label: "拠点", to: "/locations", icon: MapPin },
+      { label: "エリア", to: "/areas", icon: MapIcon },
+      { label: "会員プラン", icon: CreditCard, disabled: true },
+      { label: "費用マスタ", icon: Tags, disabled: true },
+    ],
+  },
+  {
+    label: "Admin",
+    items: [
+      { label: "従業員", to: "/employees", icon: Users },
+      { label: "アカウント設定", to: "/settings/account", icon: Settings },
+    ],
+  },
 ];
 
 export async function clientLoader() {
@@ -78,6 +116,11 @@ export default function CoreLayout() {
   const handleLogout = () => {
     // ログアウトは既存の /logout action に集約し、BFF セッション削除を再利用する。
     submit(null, { action: "/logout", method: "post" });
+  };
+
+  const isItemActive = (item: NavigationItem) => {
+    if (!item.to) return false;
+    return item.end ? location.pathname === item.to : location.pathname.startsWith(item.to);
   };
 
   return (
@@ -148,41 +191,82 @@ export default function CoreLayout() {
 
       <AppShell.Navbar p="md">
         <Stack h="100%" gap="md">
-          <Stack gap={4}>
-            <Text c="dimmed" fw={700} size="xs" tt="uppercase">
-              Navigation
-            </Text>
-            {navigationItems.map((item) => {
-              const isActive = item.end
-                ? location.pathname === item.to
-                : location.pathname.startsWith(item.to);
-              return (
-                <MantineNavLink
-                  active={isActive}
-                  component={NavLink}
-                  key={item.to}
-                  label={item.label}
-                  leftSection={<item.icon size={18} />}
-                  onClick={() => setMobileOpened(false)}
-                  to={item.to}
-                  variant="light"
-                />
-              );
-            })}
-          </Stack>
+          <MantineNavLink
+            active={location.pathname === "/"}
+            component={NavLink}
+            label="ダッシュボード"
+            leftSection={<BarChart3 size={18} />}
+            onClick={() => setMobileOpened(false)}
+            to="/"
+            variant="light"
+          />
+
+          <MantineNavLink
+            active={location.pathname.startsWith("/monthly-reviews")}
+            component={NavLink}
+            label="月次レビュー"
+            leftSection={<NotebookTabs size={18} />}
+            onClick={() => setMobileOpened(false)}
+            to="/monthly-reviews"
+            variant="light"
+          />
 
           <Divider />
 
-          <ScrollArea flex={1}>
-            <Stack gap="xs">
-              <Text c="dimmed" fw={700} size="xs" tt="uppercase">
-                Current focus
-              </Text>
-              <Button justify="flex-start" leftSection={<Building2 size={16} />} variant="subtle">
-                月次レビュー
-              </Button>
+          <ScrollArea flex={1} type="auto">
+            <Stack gap="lg" pr="xs">
+              {navigationGroups.map((group) => (
+                <Stack gap={4} key={group.label}>
+                  <Text c="dimmed" fw={700} size="xs" tt="uppercase">
+                    {group.label}
+                  </Text>
+                  {group.items.map((item) => {
+                    const Icon = item.icon;
+                    const active = isItemActive(item);
+                    const commonProps = {
+                      active,
+                      disabled: item.disabled,
+                      label: item.label,
+                      leftSection: <Icon size={18} />,
+                      variant: "light" as const,
+                    };
+
+                    if (!item.to || item.disabled) {
+                      return (
+                        <MantineNavLink key={`${group.label}-${item.label}`} {...commonProps} />
+                      );
+                    }
+
+                    return (
+                      <MantineNavLink
+                        key={`${group.label}-${item.label}`}
+                        {...commonProps}
+                        component={NavLink}
+                        onClick={() => setMobileOpened(false)}
+                        to={item.to}
+                      />
+                    );
+                  })}
+                </Stack>
+              ))}
             </Stack>
           </ScrollArea>
+
+          <Divider />
+
+          <Group gap="sm">
+            <Avatar color="teal" radius="xl" size="sm">
+              {initials}
+            </Avatar>
+            <Stack gap={0} className="min-w-0">
+              <Text fw={600} size="sm" truncate>
+                {user.name}
+              </Text>
+              <Text c="dimmed" size="xs" truncate>
+                {user.email}
+              </Text>
+            </Stack>
+          </Group>
         </Stack>
       </AppShell.Navbar>
 
