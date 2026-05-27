@@ -1,16 +1,16 @@
-import { Button, Modal } from "@heroui/react";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { Button, Group, Loader, Modal, Stack, Text, ThemeIcon, Title } from "@mantine/core";
+import { schemaResolver, useForm } from "@mantine/form";
 import { PencilLine } from "lucide-react";
 import { useEffect, useRef } from "react";
-import type { SubmitHandler } from "react-hook-form";
-import { useForm } from "react-hook-form";
 import { useFetcher, useRevalidator } from "react-router";
-
-import type { clientLoader as employeeEditLoader } from "~/routes/_core+/employees+/$employeeId.edit/route";
 import { EmployeeFormFields } from "~/routes/_core+/employees+/_index/components/employee-form-fields";
 import type { EmployeeForm } from "~/routes/_core+/employees+/_index/employee-form-schema";
-import { employeeFormSchema, emptyEmployeeForm } from "~/routes/_core+/employees+/_index/employee-form-schema";
+import {
+  employeeFormSchema,
+  emptyEmployeeForm,
+} from "~/routes/_core+/employees+/_index/employee-form-schema";
 import { useEmployeeEdit } from "~/routes/_core+/employees+/_index/hooks/useEmployeeEdit";
+import type { clientLoader as employeeEditLoader } from "~/routes/_core+/employees+/$employeeId.edit/route";
 
 interface Props {
   employeeId: string | null;
@@ -22,17 +22,19 @@ interface Props {
 export function EmployeeEditModal({ employeeId, isOpen, onOpenChange }: Props) {
   const fetcher = useFetcher<typeof employeeEditLoader>();
   const lastLoadedIdRef = useRef<string | null>(null);
+  const lastAppliedIdRef = useRef<string | null>(null);
   const isLoading = fetcher.state !== "idle";
 
   const form = useForm<EmployeeForm>({
-    resolver: zodResolver(employeeFormSchema),
-    mode: "onSubmit",
-    defaultValues: emptyEmployeeForm,
+    mode: "uncontrolled",
+    initialValues: emptyEmployeeForm,
+    validate: schemaResolver(employeeFormSchema, { sync: true }),
   });
 
   useEffect(() => {
     if (!isOpen || !employeeId) {
       lastLoadedIdRef.current = null;
+      lastAppliedIdRef.current = null;
       return;
     }
     if (lastLoadedIdRef.current === employeeId) return;
@@ -43,15 +45,19 @@ export function EmployeeEditModal({ employeeId, isOpen, onOpenChange }: Props) {
 
   useEffect(() => {
     const employee = fetcher.data?.employee;
-    if (isOpen && employee) {
-      form.reset({
-        name: employee.name ?? "",
-        email: employee.email ?? "",
-        genderCode: employee.genderCode ?? "not_specified",
-        isAdmin: employee.isAdmin ?? false,
-      });
-    }
-  }, [fetcher.data, form, isOpen]);
+    const loadedEmployeeId = employee?.id ? String(employee.id) : null;
+    if (!isOpen || !employee || !loadedEmployeeId) return;
+    if (lastAppliedIdRef.current === loadedEmployeeId) return;
+
+    // 取得した従業員が変わった時だけフォームへ反映し、setValues の再レンダーループを避ける。
+    lastAppliedIdRef.current = loadedEmployeeId;
+    form.setValues({
+      name: employee.name ?? "",
+      email: employee.email ?? "",
+      genderCode: employee.genderCode ?? "not_specified",
+      isAdmin: employee.isAdmin ?? false,
+    });
+  }, [fetcher.data?.employee, form.setValues, isOpen]);
 
   const revalidator = useRevalidator();
   const editMutation = useEmployeeEdit(() => {
@@ -60,46 +66,53 @@ export function EmployeeEditModal({ employeeId, isOpen, onOpenChange }: Props) {
   });
   const isPending = editMutation.submitting || isLoading;
 
-  const onValid: SubmitHandler<EmployeeForm> = (data) => {
+  const handleSubmit = form.onSubmit((data) => {
     if (!employeeId) return;
     editMutation.submit(data, [{ employeeId }]);
-  };
+  });
 
   return (
-    <Modal.Backdrop
-      isOpen={isOpen}
-      onOpenChange={(open) => {
-        onOpenChange(open);
-        if (!open) form.reset(emptyEmployeeForm);
+    <Modal
+      centered
+      opened={isOpen}
+      size="lg"
+      title={
+        <Group gap="sm">
+          <ThemeIcon color="brand" radius="sm" variant="light">
+            <PencilLine size={18} />
+          </ThemeIcon>
+          <Title order={3} size="h4">
+            従業員を編集
+          </Title>
+        </Group>
+      }
+      onClose={() => {
+        onOpenChange(false);
+        form.setValues(emptyEmployeeForm);
       }}
     >
-      <Modal.Container className="max-w-6xl" size="cover">
-        <Modal.Dialog>
-          <Modal.CloseTrigger />
-          <Modal.Header>
-            <Modal.Heading className="flex items-center gap-2.5 text-xl">
-              <span className="inline-flex size-10 items-center justify-center rounded-full bg-gray-200/70">
-                <PencilLine className="size-5 text-gray-700" />
-              </span>
-              <span>従業員を編集</span>
-            </Modal.Heading>
-          </Modal.Header>
-          <Modal.Body>
-            <p className="text-muted-foreground mb-3 text-sm">
-              必要な情報を入力して編集します。完了したら更新をクリックしてください。
-            </p>
+      <form noValidate onSubmit={handleSubmit}>
+        <Stack gap="md">
+          <Text c="dimmed" size="sm">
+            必要な情報を入力して編集します。完了したら保存をクリックしてください。
+          </Text>
+          {isLoading && !fetcher.data?.employee ? (
+            <Group justify="center" py="xl">
+              <Loader size="sm" />
+            </Group>
+          ) : (
             <EmployeeFormFields form={form} />
-          </Modal.Body>
-          <Modal.Footer>
-            <Button className="border-border text-foreground hover:bg-default-100" slot="close" variant="outline">
+          )}
+          <Group justify="flex-end" mt="sm">
+            <Button variant="default" onClick={() => onOpenChange(false)}>
               キャンセル
             </Button>
-            <Button className="app-primary-button" isPending={isPending} onPress={() => { void form.handleSubmit(onValid)(); }}>
+            <Button loading={isPending} type="submit">
               保存
             </Button>
-          </Modal.Footer>
-        </Modal.Dialog>
-      </Modal.Container>
-    </Modal.Backdrop>
+          </Group>
+        </Stack>
+      </form>
+    </Modal>
   );
 }

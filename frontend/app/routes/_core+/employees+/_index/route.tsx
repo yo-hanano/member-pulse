@@ -1,7 +1,7 @@
-import { Breadcrumbs, Button } from "@heroui/react";
+import { Anchor, Breadcrumbs, Button, Group, Stack, Text, Title } from "@mantine/core";
 import { UserPlus2 } from "lucide-react";
 import { useState } from "react";
-import { type LoaderFunctionArgs, useLoaderData, useNavigation } from "react-router";
+import { Link, type LoaderFunctionArgs, useLoaderData, useNavigation } from "react-router";
 
 import { type EmployeeListItemFragment, getSdk } from "~/generated/graphql";
 import { usePageData } from "~/hooks/usePageData";
@@ -11,7 +11,7 @@ import { EmployeeListTable } from "~/routes/_core+/employees+/_index/components/
 import { getGraphQLClient } from "~/services/graphql-client";
 
 export function meta() {
-  return [{ title: "Employees | Alcos" }, { name: "description", content: "従業員管理画面" }];
+  return [{ title: "Employees | MemberPulse" }, { name: "description", content: "従業員管理画面" }];
 }
 
 // 一覧取得に必要な URL クエリだけを読み取り、ページデータを返す。
@@ -52,31 +52,49 @@ export default function EmployeesIndexRoute() {
   const { employeePage } = useLoaderData<typeof clientLoader>();
   const navigation = useNavigation();
   const isLoading = navigation.state !== "idle";
-  const { contents: employees, totalPages, totalCount } = usePageData<EmployeeListItemFragment>(employeePage);
+  const {
+    contents: employees,
+    totalPages,
+    totalCount,
+  } = usePageData<EmployeeListItemFragment>(employeePage);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   return (
-    <section className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <Breadcrumbs className="mb-3 text-sm text-muted-foreground">
-            <Breadcrumbs.Item href="/">ホーム</Breadcrumbs.Item>
-            <Breadcrumbs.Item className="text-foreground">従業員</Breadcrumbs.Item>
+    <Stack gap="lg">
+      <Group align="flex-end" justify="space-between">
+        <Stack gap={4}>
+          <Breadcrumbs>
+            <Anchor component={Link} c="dimmed" size="sm" to="/">
+              ホーム
+            </Anchor>
+            <Text c="dimmed" size="sm">
+              従業員
+            </Text>
           </Breadcrumbs>
-          <h1 className="text-xl font-semibold tracking-tight">従業員一覧</h1>
-          <p className="text-muted-foreground mt-1 text-xs">従業員アカウントを管理します。</p>
-        </div>
-        <Button className="app-primary-button" isDisabled={isLoading} onPress={() => setIsCreateOpen(true)}>
-          <UserPlus2 className="size-4" />
+          <Title order={2}>従業員一覧</Title>
+          <Text c="dimmed" size="sm">
+            従業員アカウントと権限を管理します。
+          </Text>
+        </Stack>
+        <Button
+          leftSection={<UserPlus2 size={18} />}
+          loading={isLoading}
+          onClick={() => setIsCreateOpen(true)}
+        >
           従業員を追加
         </Button>
-      </div>
+      </Group>
 
       <EmployeeFiltersPanel />
 
-      <EmployeeListTable data={employees} isProcessing={isLoading} totalCount={totalCount} totalPages={totalPages} />
+      <EmployeeListTable
+        data={employees}
+        isProcessing={isLoading}
+        totalCount={totalCount}
+        totalPages={totalPages}
+      />
 
       <EmployeeCreateModal isOpen={isCreateOpen} onOpenChange={setIsCreateOpen} />
-    </section>
+    </Stack>
   );
 }

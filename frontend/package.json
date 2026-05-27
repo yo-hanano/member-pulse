@@ -24,6 +24,7 @@
     "@hookform/resolvers": "^5.2.2",
     "@internationalized/date": "^3.12.1",
     "@mantine/core": "^9.2.1",
+    "@mantine/form": "^9.2.1",
     "@mantine/hooks": "^9.2.1",
     "@mantine/notifications": "^9.2.1",
     "@react-router/fs-routes": "^7.15.1",

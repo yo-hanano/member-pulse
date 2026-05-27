@@ -21,7 +21,22 @@ import { NotFoundError } from "./components/errors/not-found-error";
 import { UnauthorisedError } from "./components/errors/unauthorized-error";
 
 const mantineTheme = createTheme({
-  primaryColor: "teal",
+  primaryColor: "brand",
+  colors: {
+    brand: [
+      "#e7faff",
+      "#c8f1f8",
+      "#9fe4ef",
+      "#6fd5e5",
+      "#45c6da",
+      "#27b6cc",
+      "#159fb5",
+      "#0f8398",
+      "#0c6b7d",
+      "#085766",
+    ],
+  },
+  primaryShade: { light: 6, dark: 5 },
   fontFamily:
     'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
   headings: {

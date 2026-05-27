@@ -88,6 +88,7 @@ React Router v7 では、`route.ts` / `route.tsx` のみがルートモジュー
 
 - `@mantine/core`
 - `@mantine/hooks`
+- `@mantine/form`
 - `@mantine/notifications`
 
 ### コンポーネント配置ルール
@@ -101,7 +102,12 @@ React Router v7 では、`route.ts` / `route.tsx` のみがルートモジュー
 
 ### フォーム実装メモ
 
-- フォームは `@mantine/core` の入力 UI と `react-hook-form` + `zod`、`react-router` の `<Form>` / `useSubmit` を組み合わせる
+- 新規フォームと Mantine 移行対象のフォームは `@mantine/form` を標準にする
+- 入力 UI は `@mantine/core`、フォーム状態は `@mantine/form`、バリデーションは `zod` + `schemaResolver` を組み合わせる
+- 基本は `mode: "uncontrolled"` を使う。入力中の値で即時に UI を変える必要がある箇所のみ `controlled` を検討する。各入力では `key={form.key("fieldName")}` と `form.getInputProps("fieldName")` を使う
+- 送信処理は `react-router` の `<Form>` / `useSubmit` / route action の既存境界に合わせる
+- React Compiler 導入を見据え、`react-hook-form` は新規実装では増やさない
+- 既存の `react-hook-form` 実装は、該当画面を Mantine 化するタイミングで `@mantine/form` へ段階移行する
 - 旧 HeroUI 実装が残っている画面は段階的に Mantine へ移行する
 
 ---

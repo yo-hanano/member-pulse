@@ -1,4 +1,5 @@
-import { AlertDialog, Button } from "@heroui/react";
+import { Button, Group, Modal, Stack, Text, ThemeIcon, Title } from "@mantine/core";
+import { Mail } from "lucide-react";
 
 interface Props {
   isOpen: boolean;
@@ -11,28 +12,37 @@ interface Props {
 // パスワード設定リンク送信の確認ダイアログ。
 export function EmployeeInviteDialog({ isOpen, onOpenChange, email, isPending, onConfirm }: Props) {
   return (
-    <AlertDialog.Backdrop isOpen={isOpen} onOpenChange={onOpenChange}>
-      <AlertDialog.Container>
-        <AlertDialog.Dialog>
-          <AlertDialog.CloseTrigger />
-          <AlertDialog.Header className="flex flex-row items-center gap-3">
-            <AlertDialog.Icon status="warning" />
-            <AlertDialog.Heading>招待メールを送信しますか？</AlertDialog.Heading>
-          </AlertDialog.Header>
-          <AlertDialog.Body>
-            <p className="text-sm">対象: {email ?? "-"}</p>
-            <p className="text-muted-foreground mt-2 text-sm">パスワード設定用のリンクを再送します。</p>
-          </AlertDialog.Body>
-          <AlertDialog.Footer>
-            <Button className="border-border text-foreground hover:bg-default-100" slot="close" variant="outline">
-              キャンセル
-            </Button>
-            <Button className="app-primary-button" isPending={isPending} onPress={onConfirm}>
-              送信する
-            </Button>
-          </AlertDialog.Footer>
-        </AlertDialog.Dialog>
-      </AlertDialog.Container>
-    </AlertDialog.Backdrop>
+    <Modal
+      centered
+      opened={isOpen}
+      size="md"
+      withCloseButton={false}
+      onClose={() => onOpenChange(false)}
+    >
+      <Stack gap="md">
+        <Group gap="sm">
+          <ThemeIcon color="yellow" radius="sm" variant="light">
+            <Mail size={18} />
+          </ThemeIcon>
+          <Title order={3} size="h4">
+            招待メールを送信しますか？
+          </Title>
+        </Group>
+        <Stack gap={4}>
+          <Text size="sm">対象: {email ?? "-"}</Text>
+          <Text c="dimmed" size="sm">
+            パスワード設定用のリンクを再送します。
+          </Text>
+        </Stack>
+        <Group justify="flex-end">
+          <Button disabled={isPending} variant="default" onClick={() => onOpenChange(false)}>
+            キャンセル
+          </Button>
+          <Button loading={isPending} onClick={onConfirm}>
+            送信する
+          </Button>
+        </Group>
+      </Stack>
+    </Modal>
   );
 }

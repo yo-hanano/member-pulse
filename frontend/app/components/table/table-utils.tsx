@@ -1,5 +1,9 @@
-import type { SortDescriptor } from "@heroui/react";
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
+
+export type SortDescriptor = {
+  column: string | number;
+  direction: "ascending" | "descending";
+};
 
 export type TableSortingState = Array<{ id: string; desc: boolean }>;
 
@@ -15,14 +19,22 @@ export const getPageNumbers = (page: number, totalPages: number): Array<number |
     return pages;
   }
   if (page >= totalPages - 3) {
-    pages.push(1, "ellipsis", totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
+    pages.push(
+      1,
+      "ellipsis",
+      totalPages - 4,
+      totalPages - 3,
+      totalPages - 2,
+      totalPages - 1,
+      totalPages,
+    );
     return pages;
   }
   pages.push(1, "ellipsis", page - 1, page, page + 1, "ellipsis", totalPages);
   return pages;
 };
 
-// クエリ文字列で保持するソート状態とHeroUIのSortDescriptorを相互変換する。
+// クエリ文字列で保持するソート状態とテーブル表示用のSortDescriptorを相互変換する。
 export const toSortDescriptor = (sorting: TableSortingState): SortDescriptor | undefined => {
   const current = sorting[0];
   if (!current) return undefined;
@@ -32,7 +44,7 @@ export const toSortDescriptor = (sorting: TableSortingState): SortDescriptor | u
   };
 };
 
-// HeroUIのソートイベントをURL同期しやすい配列形式へ変換する。
+// テーブルのソートイベントをURL同期しやすい配列形式へ変換する。
 export const toSortingState = (descriptor: SortDescriptor): TableSortingState => {
   return [{ id: String(descriptor.column), desc: descriptor.direction === "descending" }];
 };
@@ -40,10 +52,10 @@ export const toSortingState = (descriptor: SortDescriptor): TableSortingState =>
 // ヘッダーのソート向きを統一アイコンで表示する。
 export const renderSortIcon = (sortDirection?: "ascending" | "descending") => {
   if (sortDirection === "ascending") {
-    return <ArrowUp className="text-muted-foreground size-3.5" />;
+    return <ArrowUp size={14} />;
   }
   if (sortDirection === "descending") {
-    return <ArrowDown className="text-muted-foreground size-3.5" />;
+    return <ArrowDown size={14} />;
   }
-  return <ArrowUpDown className="text-muted-foreground/70 size-3.5" />;
+  return <ArrowUpDown size={14} />;
 };

@@ -1,4 +1,4 @@
-import { toast } from "@heroui/react";
+import { notifications } from "@mantine/notifications";
 import { useEffect, useRef } from "react";
 
 type NotifyPosition =
@@ -26,6 +26,13 @@ interface UseActionResultEffectParams<T extends ActionResult> {
   onSuccess?: (data: T) => void;
 }
 
+const notifyColor = (type?: string) => {
+  if (type === "success") return "teal";
+  if (type === "error") return "red";
+  if (type === "info") return "blue";
+  return "gray";
+};
+
 // action 結果の通知表示と成功後処理を共通化する低レイヤー hook。
 export function useActionResultEffect<T extends ActionResult>({
   data,
@@ -41,9 +48,13 @@ export function useActionResultEffect<T extends ActionResult>({
     if (processedResultsRef.current.has(data as object)) return;
     processedResultsRef.current.add(data as object);
 
-    if (data.notify?.type === "success") toast.success(data.notify.message);
-    if (data.notify?.type === "error") toast.danger(data.notify.message);
-    if (data.notify?.type === "info") toast(data.notify.message);
+    if (data.notify?.message) {
+      notifications.show({
+        color: notifyColor(data.notify.type),
+        message: data.notify.message,
+        position: data.notify.position,
+      });
+    }
 
     if (data.message === successMessage) onSuccess?.(data);
   }, [data, onSuccess, successMessage]);
