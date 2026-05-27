@@ -127,6 +127,31 @@ export function LeadListTable({
   const start = totalCount ? (pageNo - 1) * limitNo + 1 : 0;
   const end = Math.min(pageNo * limitNo, totalCount ?? 0);
   const safeTotalPages = Math.max(totalPages, 1);
+  const currentPage = Math.min(pageNo, safeTotalPages);
+  const paginationControls = (
+    <Group justify="space-between" p="md">
+      <Text fw={600} size="sm">
+        {(totalCount ?? 0) === 0 ? "0件" : `${start} - ${end} / ${totalCount ?? 0}件`}
+      </Text>
+      <Group gap="sm" justify="flex-end">
+        <Select
+          aria-label="1ページあたりの表示件数"
+          data={pageSizeOptions.map((size) => ({
+            value: String(size),
+            label: `${String(size)}件`,
+          }))}
+          value={String(limitNo)}
+          w={96}
+          onChange={(value) => setPage(1, Number(value ?? 10))}
+        />
+        <Pagination
+          total={safeTotalPages}
+          value={currentPage}
+          onChange={(page) => setPage(page, limitNo)}
+        />
+      </Group>
+    </Group>
+  );
 
   const toggleSort = (columnId: string) => {
     const current = sorting[0];
@@ -150,18 +175,7 @@ export function LeadListTable({
   return (
     <Paper pos="relative" radius="sm" shadow="xs" withBorder>
       <LoadingOverlay visible={Boolean(isProcessing)} />
-      <Group justify="space-between" p="md">
-        <Text fw={600} size="sm">
-          {(totalCount ?? 0) === 0 ? "0件" : `${start} - ${end} / ${totalCount ?? 0}件`}
-        </Text>
-        <Select
-          aria-label="1ページあたりの表示件数"
-          data={pageSizeOptions.map((size) => ({ value: String(size), label: `${size}件` }))}
-          value={String(limitNo)}
-          w={96}
-          onChange={(value) => setPage(1, Number(value ?? 10))}
-        />
-      </Group>
+      {paginationControls}
 
       <Box className="overflow-x-auto">
         <Table highlightOnHover miw={980} verticalSpacing="sm">
@@ -230,13 +244,7 @@ export function LeadListTable({
         </Table>
       </Box>
 
-      <Group justify="flex-end" p="md">
-        <Pagination
-          total={safeTotalPages}
-          value={Math.min(pageNo, safeTotalPages)}
-          onChange={(page) => setPage(page, limitNo)}
-        />
-      </Group>
+      {paginationControls}
     </Paper>
   );
 }

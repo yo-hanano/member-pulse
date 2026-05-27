@@ -87,8 +87,8 @@ public class LeadResolver extends AbstractResolver {
       Set<String> locationIds = leads.stream().map(Lead::getLocationId).filter(Objects::nonNull)
           .collect(Collectors.toSet());
       List<Location> locationList = locationService.findByIds(locationIds);
-      Map<String, Location> locationMap = locationList.stream()
-          .collect(Collectors.toMap(Location::getId, location -> location));
+      Map<String, Location> locationMap =
+          locationList.stream().collect(Collectors.toMap(Location::getId, location -> location));
       return leads.stream().map(lead -> locationMap.get(lead.getLocationId())).toList();
     });
   }

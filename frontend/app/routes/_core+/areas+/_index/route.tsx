@@ -29,7 +29,7 @@ export const clientLoader = async ({ request }: LoaderFunctionArgs) => {
   const name = url.searchParams.get("name") || undefined;
   const page = Number(url.searchParams.get("page")) || 1;
   const limit = Number(url.searchParams.get("limit")) || 10;
-  const orderBy = url.searchParams.get("orderBy") || "disp_order";
+  const orderBy = url.searchParams.get("orderBy") || "display_order";
   const orderDirection = url.searchParams.get("orderDirection") || "asc";
 
   const client = getGraphQLClient();

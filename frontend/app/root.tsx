@@ -3,7 +3,14 @@ import "@mantine/core/styles.css";
 import "@mantine/dates/styles.css";
 import { Notifications } from "@mantine/notifications";
 import "@mantine/notifications/styles.css";
+import {
+  completeNavigationProgress,
+  NavigationProgress,
+  startNavigationProgress,
+} from "@mantine/nprogress";
+import "@mantine/nprogress/styles.css";
 import { NuqsAdapter } from "nuqs/adapters/react-router/v7";
+import { useEffect } from "react";
 import {
   isRouteErrorResponse,
   Links,
@@ -11,6 +18,7 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useNavigation,
 } from "react-router";
 
 import type { Route } from "./+types/root";
@@ -79,9 +87,21 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    if (navigation.state === "idle") {
+      completeNavigationProgress();
+      return;
+    }
+
+    startNavigationProgress();
+  }, [navigation.state]);
+
   return (
     <NuqsAdapter>
       <MantineProvider defaultColorScheme="auto" theme={mantineTheme}>
+        <NavigationProgress color="brand" size={4} stepInterval={100} />
         <Outlet />
         <Notifications position="top-right" />
       </MantineProvider>
