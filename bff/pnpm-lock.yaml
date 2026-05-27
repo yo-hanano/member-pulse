@@ -36,8 +36,8 @@ importers:
         specifier: ^10.3.1
         version: 10.3.1
       pnpm:
-        specifier: ^11.0.9
-        version: 11.0.9
+        specifier: ^11.3.0
+        version: 11.3.0
       postgres:
         specifier: ^3.4.9
         version: 3.4.9
@@ -344,8 +344,8 @@ packages:
     resolution: {integrity: sha512-r34yH/GlQpKZbU1BvFFqOjhISRo1MNx1tWYsYvmj6KIRHSPMT2+yHOEb1SG6NMvRoHRF0a07kCOox/9yakl1vg==}
     hasBin: true
 
-  pnpm@11.0.9:
-    resolution: {integrity: sha512-NM6C5ngCM8+crYaFApqPgdLgYZbFqbrZiHn3QklAxoF8TkUk+304uFU87tSLl1i4668avTYAwjLEyM9zZghvOA==}
+  pnpm@11.3.0:
+    resolution: {integrity: sha512-LEA9ZZRScodnKx9wVjQ6H3w2NANqZ/+r/MKz11ldhDdo+HhxSNG1fPeVbJBga70ZKFfDY68Z6W0tDsnsV0HSFQ==}
     engines: {node: '>=22.13'}
     hasBin: true
 
@@ -639,7 +639,7 @@ snapshots:
       sonic-boom: 4.2.0
       thread-stream: 4.0.0
 
-  pnpm@11.0.9: {}
+  pnpm@11.3.0: {}
 
   postgres@3.4.9: {}
 

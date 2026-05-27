@@ -2,7 +2,7 @@
   "name": "member-pulse-frontend",
   "private": true,
   "type": "module",
-  "packageManager": "pnpm@11.0.9",
+  "packageManager": "pnpm@11.3.0",
   "engines": {
     "node": ">=24"
   },
@@ -36,7 +36,7 @@
     "isbot": "^5.1.40",
     "lucide-react": "^1.16.0",
     "nuqs": "^2.8.9",
-    "pnpm": "^11.0.9",
+    "pnpm": "^11.3.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-hook-form": "^7.76.0",

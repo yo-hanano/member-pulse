@@ -4,12 +4,12 @@ import { MapPinPlus } from "lucide-react";
 import { useRevalidator } from "react-router";
 
 import { LocationFormFields } from "~/routes/_core+/locations+/_index/components/location-form-fields";
+import { useLocationCreate } from "~/routes/_core+/locations+/_index/hooks/useLocationCreate";
 import type { LocationForm } from "~/routes/_core+/locations+/_index/location-form-schema";
 import {
   emptyLocationForm,
   locationFormSchema,
 } from "~/routes/_core+/locations+/_index/location-form-schema";
-import { useLocationCreate } from "~/routes/_core+/locations+/_index/hooks/useLocationCreate";
 
 interface Props {
   isOpen: boolean;
@@ -40,7 +40,7 @@ export function LocationCreateModal({ isOpen, onOpenChange }: Props) {
     <Modal
       centered
       opened={isOpen}
-      size="lg"
+      size="xl"
       title={
         <Group gap="sm">
           <ThemeIcon color="brand" radius="sm" variant="light">

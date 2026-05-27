@@ -40,7 +40,7 @@ export function EmployeeCreateModal({ isOpen, onOpenChange }: Props) {
     <Modal
       centered
       opened={isOpen}
-      size="lg"
+      size="xl"
       title={
         <Group gap="sm">
           <ThemeIcon color="brand" radius="sm" variant="light">
