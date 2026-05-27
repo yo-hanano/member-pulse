@@ -42,7 +42,7 @@ type NavigationItem = {
 
 const navigationItems: NavigationItem[] = [
   { label: "ホーム", to: "/", icon: BarChart3, end: true },
-  { label: "拠点", to: "/areas", icon: MapPin },
+  { label: "拠点", to: "/locations", icon: MapPin },
   { label: "見込み客", to: "/leads", icon: MessageSquare },
   { label: "チーム", to: "/employees", icon: Users },
   { label: "アカウント設定", to: "/settings/account", icon: Settings },

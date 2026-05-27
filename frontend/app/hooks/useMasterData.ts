@@ -1,17 +1,17 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import type {
   AllAreasQuery,
-  AllBranchesQuery,
   AllGendersQuery,
+  AllLocationsQuery,
   AllPrefecturesQuery,
 } from "~/generated/graphql";
 import { getSdk } from "~/generated/graphql";
 import { getGraphQLClient } from "~/services/graphql-client";
 
 type AreaMaster = NonNullable<NonNullable<AllAreasQuery["allAreas"]>[number]>;
-type BranchMaster = NonNullable<NonNullable<AllBranchesQuery["allBranches"]>[number]>;
 type GenderMaster = NonNullable<NonNullable<AllGendersQuery["allGenders"]>[number]>;
+type LocationMaster = NonNullable<NonNullable<AllLocationsQuery["allLocations"]>[number]>;
 type PrefectureMaster = NonNullable<NonNullable<AllPrefecturesQuery["allPrefectures"]>[number]>;
 
 type CacheEntry<T> = {
@@ -27,7 +27,7 @@ const CACHE_TTL_MS = 5 * 60 * 1000;
 
 const MASTER_CACHE_KEYS = {
   areas: "allAreas",
-  branches: "allBranches",
+  locations: "allLocations",
   genders: "allGenders",
   prefectures: "allPrefectures",
 } as const;
@@ -47,7 +47,7 @@ export const invalidateMasterData = (...keys: string[]) => {
 };
 
 export const invalidateMasterAreas = () => invalidateMasterData(MASTER_CACHE_KEYS.areas);
-export const invalidateMasterBranches = () => invalidateMasterData(MASTER_CACHE_KEYS.branches);
+export const invalidateMasterLocations = () => invalidateMasterData(MASTER_CACHE_KEYS.locations);
 export const invalidateMasterGenders = () => invalidateMasterData(MASTER_CACHE_KEYS.genders);
 export const invalidateMasterPrefectures = () => invalidateMasterData(MASTER_CACHE_KEYS.prefectures);
 
@@ -104,15 +104,15 @@ export const useMasterAreas = () => {
   return useCachedMaster(MASTER_CACHE_KEYS.areas, fetcher);
 };
 
-// 支店 master を取得する薄い wrapper。
-export const useMasterBranches = () => {
+// 拠点 master を取得する薄い wrapper。
+export const useMasterLocations = () => {
   const fetcher = useCallback(async () => {
     const client = getGraphQLClient();
     const sdk = getSdk(client);
-    const { allBranches } = await sdk.allBranches();
-    return (allBranches ?? []).filter((branch): branch is BranchMaster => Boolean(branch));
+    const { allLocations } = await sdk.allLocations();
+    return (allLocations ?? []).filter((location): location is LocationMaster => Boolean(location));
   }, []);
-  return useCachedMaster(MASTER_CACHE_KEYS.branches, fetcher);
+  return useCachedMaster(MASTER_CACHE_KEYS.locations, fetcher);
 };
 
 // 性別 master を取得する薄い wrapper。

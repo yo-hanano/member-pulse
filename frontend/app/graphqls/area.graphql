@@ -1,7 +1,7 @@
 fragment AreaListItem on Area {
   id
   name
-  dispOrder
+  dispOrder: displayOrder
 }
 
 query allAreas {

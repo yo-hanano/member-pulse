@@ -1,0 +1,69 @@
+fragment LocationFormInitial on Location {
+  id
+  areaId
+  name
+  zipCode
+  prefectureCode
+  address
+  isDefault
+  displayOrder
+}
+
+fragment LocationListItem on Location {
+  id
+  areaId
+  name
+  zipCode
+  prefectureCode
+  address
+  isDefault
+  displayOrder
+  area {
+    id
+    name
+  }
+  prefecture {
+    code
+    name
+  }
+}
+
+query allLocations {
+  allLocations {
+    ...LocationFormInitial
+  }
+}
+
+query locationById($locationId: String!) {
+  locationById(locationId: $locationId) {
+    ...LocationFormInitial
+  }
+}
+
+query locationPage($pagination: Pagination!, $filter: LocationFilterInput) {
+  locationPagination(pagination: $pagination, filter: $filter) {
+    contents {
+      ...LocationListItem
+    }
+    totalCount
+    totalPages
+    limit
+    offset
+  }
+}
+
+mutation createLocation($input: LocationInput!) {
+  createLocation(input: $input) {
+    id
+  }
+}
+
+mutation updateLocation($locationId: String!, $input: LocationInput!) {
+  updateLocation(locationId: $locationId, input: $input) {
+    id
+  }
+}
+
+mutation deleteLocation($locationId: String!) {
+  deleteLocation(locationId: $locationId)
+}

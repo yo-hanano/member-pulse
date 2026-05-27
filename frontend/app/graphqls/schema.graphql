@@ -4,175 +4,18 @@ type Area {
   createdAt: DateTime
   "ISO-8601"
   deletedAt: DateTime
-  dispOrder: Int
+  displayOrder: Int
   id: String
-  isDeleted: Boolean
   name: String
-  "ISO-8601"
-  updatedAt: DateTime
-}
-
-type BillingContact {
-  address: String
-  billingMethod: String
-  companyId: String
-  "ISO-8601"
-  createdAt: DateTime
-  "ISO-8601"
-  deletedAt: DateTime
-  email: String
-  id: String
-  isDeleted: Boolean
-  kana: String
-  name: String
-  note: String
-  phone: String
-  postalCode: String
-  prefectureCode: String
   "ISO-8601"
   updatedAt: DateTime
 }
 
 type Branch {
-  address: String
-  area: Area
-  areaId: String
   code: String
-  companyId: String
-  "ISO-8601"
-  createdAt: DateTime
-  "ISO-8601"
-  deletedAt: DateTime
   id: String
-  isDeleted: Boolean
   name: String
   prefecture: Prefecture
-  prefectureCode: String
-  "ISO-8601"
-  updatedAt: DateTime
-  zipCode: String
-}
-
-type BranchLabel {
-  name: String
-  primary: Boolean
-}
-
-type BranchLessonPeriodTime {
-  "ISO-8601"
-  endTime: Time
-  id: String
-  lessonPeriodId: String
-  "ISO-8601"
-  startTime: Time
-}
-
-type BranchLessonPeriodTimeSet {
-  branchId: String
-  companyId: String
-  "ISO-8601"
-  createdAt: DateTime
-  "ISO-8601"
-  deletedAt: DateTime
-  id: String
-  isDeleted: Boolean
-  name: String
-  note: String
-  "ISO-8601"
-  updatedAt: DateTime
-}
-
-type BranchLessonPeriodTimeSetDetail {
-  branchId: String
-  id: String
-  name: String
-  note: String
-  times: [BranchLessonPeriodTime]
-}
-
-type BranchOpeningSchedule {
-  branchId: String
-  companyId: String
-  "ISO-8601"
-  createdAt: DateTime
-  "ISO-8601"
-  deletedAt: DateTime
-  "ISO-8601"
-  effectiveFrom: Date
-  "ISO-8601"
-  effectiveTo: Date
-  id: String
-  isDeleted: Boolean
-  note: String
-  timeSetId: String
-  "ISO-8601"
-  updatedAt: DateTime
-}
-
-type BranchOpeningScheduleDetail {
-  branchId: String
-  days: [OpeningScheduleDay]
-  "ISO-8601"
-  effectiveFrom: Date
-  "ISO-8601"
-  effectiveTo: Date
-  id: String
-  note: String
-  timeSetId: String
-}
-
-type BranchOpeningScheduleTemplate {
-  companyId: String
-  "ISO-8601"
-  createdAt: DateTime
-  "ISO-8601"
-  deletedAt: DateTime
-  id: String
-  isDeleted: Boolean
-  name: String
-  note: String
-  "ISO-8601"
-  updatedAt: DateTime
-}
-
-type BranchOpeningScheduleTemplateDetail {
-  days: [OpeningScheduleDay]
-  id: String
-  name: String
-  note: String
-}
-
-type Contract {
-  billingCycle: String
-  companyId: String
-  "ISO-8601"
-  contractEndDate: Date
-  "ISO-8601"
-  contractStartDate: Date
-  coursePlanName: String
-  courseType: String
-  "ISO-8601"
-  createdAt: DateTime
-  "ISO-8601"
-  deletedAt: DateTime
-  discountAmount: BigInteger
-  guardianId: String
-  id: String
-  isDeleted: Boolean
-  monthlyFee: BigInteger
-  note: String
-  "ISO-8601"
-  preferredEndTime: Time
-  "ISO-8601"
-  preferredStartTime: Time
-  preferredWeekday: Int
-  seatGenerationEligible: Boolean
-  status: String
-  studentId: String
-  subjectId: String
-  "ISO-8601"
-  updatedAt: DateTime
-  weeklyLessons: Int
 }
 
 type Employee {
@@ -211,146 +54,71 @@ type Gender {
   sortOrder: Int
 }
 
-type Guardian {
-  address: String
-  companyId: String
-  "ISO-8601"
-  createdAt: DateTime
-  "ISO-8601"
-  deletedAt: DateTime
-  email: String
-  id: String
-  isDeleted: Boolean
-  kana: String
-  name: String
-  note: String
-  phone: String
-  postalCode: String
-  prefectureCode: String
-  relationshipCode: String
-  "ISO-8601"
-  updatedAt: DateTime
-}
-
 type Lead {
   branch: Branch
-  branchId: String
-  channel: String
   companyId: String
   "ISO-8601"
   createdAt: DateTime
   "ISO-8601"
   deletedAt: DateTime
   email: String
-  "ISO-8601"
-  followUpAt: DateTime
-  gradeName: String
-  guardianKana: String
-  guardianName: String
   id: String
   "ISO-8601"
   inquiryAt: DateTime
-  isDeleted: Boolean
+  locationId: String
+  "ISO-8601"
+  lostAt: DateTime
+  lostReason: String
+  name: String
   note: String
   phone: String
-  schoolName: String
+  source: String
   status: String
-  studentKana: String
-  studentName: String
   "ISO-8601"
   updatedAt: DateTime
 }
 
-type LessonPeriod {
+type Location {
+  address: String
+  area: Area
+  areaId: String
   companyId: String
   "ISO-8601"
   createdAt: DateTime
   "ISO-8601"
   deletedAt: DateTime
-  dispOrder: Int
+  displayOrder: Int
   id: String
-  isDeleted: Boolean
+  isDefault: Boolean
   name: String
+  prefecture: Prefecture
+  prefectureCode: String
   "ISO-8601"
   updatedAt: DateTime
+  zipCode: String
 }
 
 "Mutation root"
 type Mutation {
-  cancelScheduleEvent(input: ScheduleEventStatusChangeInput, scheduleEventId: String!): ScheduleEvent
-  completeScheduleEvent(input: ScheduleEventCompleteInput, scheduleEventId: String!): ScheduleEvent
   createArea(input: AreaInput): Area
-  createBranch(input: BranchInput): Branch
-  createBranchLessonPeriodTimeSet(input: BranchLessonPeriodTimeSetInput): BranchLessonPeriodTimeSetDetail
-  createBranchOpeningSchedule(input: BranchOpeningScheduleInput): BranchOpeningScheduleDetail
-  createBranchOpeningScheduleTemplate(input: BranchOpeningScheduleTemplateInput): BranchOpeningScheduleTemplateDetail
   createEmployee(input: EmployeeInput): Employee
   createLead(input: LeadInput): Lead
-  createLessonPeriod(input: LessonPeriodInput): LessonPeriod
-  createScheduleEvent(input: ScheduleEventInput): ScheduleEvent
-  createScheduleSubject(input: ScheduleSubjectInput): ScheduleSubject
-  createStudent(input: StudentInput): Student
-  createStudentContract(input: ContractInput, studentId: String!): Contract
-  createTeacher(input: TeacherInput): Teacher
+  createLocation(input: LocationInput): Location
   deleteArea(areaId: String!): Boolean!
-  deleteBranch(branchId: String!): Boolean!
-  deleteBranchLessonPeriodTimeSet(timeSetId: String!): Boolean!
-  deleteBranchOpeningSchedule(scheduleId: String!): Boolean!
-  deleteBranchOpeningScheduleTemplate(templateId: String!): Boolean!
   deleteEmployee(employeeId: String!): Boolean!
   deleteLead(leadId: String!): Boolean!
-  deleteLessonPeriod(lessonPeriodId: String!): Boolean!
-  deleteScheduleEvent(scheduleEventId: String!): Boolean!
-  deleteScheduleSubject(scheduleSubjectId: String!): Boolean!
-  deleteStudent(studentId: String!): Boolean!
-  deleteStudentContract(contractId: String!): Boolean!
-  deleteStudentGuardian(guardianId: String!, studentId: String!): Boolean!
-  deleteTeacher(teacherId: String!): Boolean!
-  enrollLead(input: LeadEnrollmentInput, leadId: String!): Student
+  deleteLocation(locationId: String!): Boolean!
   issueEmployeeInvite(input: EmployeeInviteInput): EmployeeInviteResult
-  linkStudentBillingContact(billingContactId: String!, studentId: String!): StudentBillingContactInfo
-  recordScheduleEventOutcome(input: ScheduleEventOutcomeInput, scheduleEventId: String!): ScheduleEvent
-  rescheduleScheduleEvent(input: ScheduleEventRescheduleInput, scheduleEventId: String!): ScheduleEvent
-  saveStudentBillingContact(input: BillingContactInput, studentId: String!): StudentBillingContactInfo
-  saveStudentGuardian(input: GuardianInput, studentId: String!): StudentGuardianInfo
-  setPrimaryStudentGuardian(guardianId: String!, studentId: String!): StudentGuardianInfo
   updateArea(areaId: String!, input: AreaInput): Area
   updateAreaOrders(inputs: [AreaOrderInput]): Boolean!
-  updateBranch(branchId: String!, input: BranchInput): Branch
-  updateBranchLessonPeriodTimeSet(input: BranchLessonPeriodTimeSetInput, timeSetId: String!): BranchLessonPeriodTimeSetDetail
-  updateBranchOpeningSchedule(input: BranchOpeningScheduleInput, scheduleId: String!): BranchOpeningScheduleDetail
-  updateBranchOpeningScheduleTemplate(input: BranchOpeningScheduleTemplateInput, templateId: String!): BranchOpeningScheduleTemplateDetail
   updateEmployee(employeeId: String!, input: EmployeeInput): Employee
   updateLead(input: LeadInput, leadId: String!): Lead
-  updateLessonPeriod(input: LessonPeriodInput, lessonPeriodId: String!): LessonPeriod
+  updateLocation(input: LocationInput, locationId: String!): Location
   updateOwnAccount(input: OwnAccountUpdateInput): Employee
-  updateScheduleEvent(input: ScheduleEventInput, scheduleEventId: String!): ScheduleEvent
-  updateScheduleSubject(input: ScheduleSubjectInput, scheduleSubjectId: String!): ScheduleSubject
-  updateStudent(input: StudentInput, studentId: String!): Student
-  updateStudentContract(contractId: String!, input: ContractInput): Contract
-  updateTeacher(input: TeacherInput, teacherId: String!): Teacher
-}
-
-type OpeningScheduleDay {
-  isOpen: Boolean
-  periods: [OpeningSchedulePeriod]
-  weekday: Int
-}
-
-type OpeningSchedulePeriod {
-  lessonPeriodId: String
 }
 
 type Page_Area {
   contents: [Area]
-  limit: Int!
-  offset: Int!
-  totalCount: BigInteger!
-  totalPages: Int!
-}
-
-type Page_Branch {
-  contents: [Branch]
   limit: Int!
   offset: Int!
   totalCount: BigInteger!
@@ -373,40 +141,8 @@ type Page_Lead {
   totalPages: Int!
 }
 
-type Page_ScheduleEvent {
-  contents: [ScheduleEvent]
-  limit: Int!
-  offset: Int!
-  totalCount: BigInteger!
-  totalPages: Int!
-}
-
-type Page_ScheduleSubject {
-  contents: [ScheduleSubject]
-  limit: Int!
-  offset: Int!
-  totalCount: BigInteger!
-  totalPages: Int!
-}
-
-type Page_School {
-  contents: [School]
-  limit: Int!
-  offset: Int!
-  totalCount: BigInteger!
-  totalPages: Int!
-}
-
-type Page_Student {
-  contents: [Student]
-  limit: Int!
-  offset: Int!
-  totalCount: BigInteger!
-  totalPages: Int!
-}
-
-type Page_Teacher {
-  contents: [Teacher]
+type Page_Location {
+  contents: [Location]
   limit: Int!
   offset: Int!
   totalCount: BigInteger!
@@ -422,246 +158,19 @@ type Prefecture {
 "Query root"
 type Query {
   allAreas: [Area]
-  allBranchOpeningScheduleTemplates: [BranchOpeningScheduleTemplate]
-  allBranches: [Branch]
   allEmployees: [Employee]
   allGenders: [Gender]
   allLeads: [Lead]
-  allLessonPeriods: [LessonPeriod]
+  allLocations: [Location]
   allPrefectures: [Prefecture]
-  allRelationships: [Relationship]
-  allScheduleEventStatuses: [ScheduleEventStatus]
-  allScheduleEventTypes: [ScheduleEventType]
-  allScheduleEvents: [ScheduleEvent]
-  allScheduleSubjects: [ScheduleSubject]
-  allSchoolGrades: [SchoolGrade]
-  allSchoolTypes: [SchoolType]
-  allStudents: [Student]
-  allTeachers: [Teacher]
   areaById(areaId: String!): Area
   areaPagination(filter: AreaFilterInput, pagination: Pagination): Page_Area
-  billingContactOptions(searchText: String): [BillingContact]
-  branchById(branchId: String!): Branch
-  branchLessonPeriodTimeSetById(timeSetId: String!): BranchLessonPeriodTimeSetDetail
-  branchLessonPeriodTimeSets(branchId: String!): [BranchLessonPeriodTimeSet]
-  branchOpeningScheduleById(scheduleId: String!): BranchOpeningScheduleDetail
-  branchOpeningScheduleTemplateById(templateId: String!): BranchOpeningScheduleTemplateDetail
-  branchOpeningSchedules(branchId: String!): [BranchOpeningSchedule]
-  branchPagination(filter: BranchFilterInput, pagination: Pagination): Page_Branch
-  contractsByStudentId(studentId: String!): [Contract]
   employeeById(employeeId: String!): Employee
   employeePagination(filter: EmployeeFilterInput, pagination: Pagination): Page_Employee
   leadById(leadId: String!): Lead
   leadPagination(filter: LeadFilterInput, pagination: Pagination): Page_Lead
-  lessonPeriodById(lessonPeriodId: String!): LessonPeriod
-  scheduleEventById(scheduleEventId: String!): ScheduleEvent
-  scheduleEventPagination(filter: ScheduleEventFilterInput, pagination: Pagination): Page_ScheduleEvent
-  scheduleSubjectById(scheduleSubjectId: String!): ScheduleSubject
-  scheduleSubjectPagination(filter: ScheduleSubjectFilterInput, pagination: Pagination): Page_ScheduleSubject
-  schoolByCode(schoolCode: String!): School
-  schoolPagination(filter: SchoolFilterInput, pagination: Pagination): Page_School
-  studentById(studentId: String!): Student
-  studentPagination(filter: StudentFilterInput, pagination: Pagination): Page_Student
-  subjectOptions: [Subject]
-  teacherById(teacherId: String!): Teacher
-  teacherPagination(filter: TeacherFilterInput, pagination: Pagination): Page_Teacher
-}
-
-type Relationship {
-  code: String
-  name: String
-  sortOrder: Int
-}
-
-type ScheduleEvent {
-  branchId: String
-  companyId: String
-  "ISO-8601"
-  createdAt: DateTime
-  "ISO-8601"
-  deletedAt: DateTime
-  id: String
-  isDeleted: Boolean
-  note: String
-  reason: String
-  scheduleSubjectId: String
-  scheduleType: String
-  "ISO-8601"
-  scheduledAt: DateTime
-  status: String
-  subject: ScheduleSubject
-  "ISO-8601"
-  updatedAt: DateTime
-}
-
-type ScheduleEventStatus {
-  code: String
-  name: String
-  sortOrder: Int
-}
-
-type ScheduleEventType {
-  code: String
-  name: String
-  sortOrder: Int
-}
-
-type ScheduleSubject {
-  companyId: String
-  "ISO-8601"
-  createdAt: DateTime
-  "ISO-8601"
-  deletedAt: DateTime
-  guardian: Guardian
-  guardianId: String
-  id: String
-  isDeleted: Boolean
-  lead: Lead
-  leadId: String
-  student: Student
-  studentId: String
-  teacher: Teacher
-  teacherId: String
-  "ISO-8601"
-  updatedAt: DateTime
-}
-
-type School {
-  address: String
-  code: String
-  "ISO-8601"
-  createdAt: DateTime
-  "ISO-8601"
-  deletedAt: DateTime
-  establishmentKbn: Int
-  "ISO-8601"
-  haishiDate: Date
-  honBunKo: Int
-  ikoCode: String
-  isDeleted: Boolean
-  name: String
-  oldChosaNo: String
-  prefectureCode: String
-  schoolTypeCode: String
-  "ISO-8601"
-  setteiDate: Date
-  "ISO-8601"
-  updatedAt: DateTime
-  zipCode: String
-}
-
-type SchoolGrade {
-  code: String
-  name: String
-  sortOrder: Int
-}
-
-type SchoolType {
-  code: String
-  name: String
-  sortOrder: Int
-}
-
-type Student {
-  billingContacts: [StudentBillingContactInfo]
-  "ISO-8601"
-  birthday: Date
-  branchId: String
-  branchLabels: [BranchLabel]
-  code: String
-  companyId: String
-  "ISO-8601"
-  createdAt: DateTime
-  "ISO-8601"
-  deletedAt: DateTime
-  "ISO-8601"
-  enrollmentDate: Date
-  genderCode: String
-  guardians: [StudentGuardianInfo]
-  id: String
-  isDeleted: Boolean
-  kana: String
-  leadId: String
-  name: String
-  note: String
-  primaryGuardian: Guardian
-  schoolCode: String
-  schoolGradeCode: String
-  schoolGradeName: String
-  schoolName: String
-  schoolTypeName: String
-  status: String
-  "ISO-8601"
-  updatedAt: DateTime
-}
-
-type StudentBillingContactInfo {
-  address: String
-  email: String
-  id: String
-  kana: String
-  name: String
-  note: String
-  phone: String
-  postalCode: String
-  prefectureCode: String
-  primary: Boolean
-}
-
-type StudentGuardianInfo {
-  address: String
-  email: String
-  id: String
-  kana: String
-  name: String
-  note: String
-  phone: String
-  postalCode: String
-  prefectureCode: String
-  primaryContact: Boolean
-  relationshipCode: String
-  relationshipName: String
-}
-
-type Subject {
-  code: String
-  companyId: String
-  "ISO-8601"
-  createdAt: DateTime
-  "ISO-8601"
-  deletedAt: DateTime
-  id: String
-  isActive: Boolean
-  isDeleted: Boolean
-  name: String
-  schoolCategory: String
-  "ISO-8601"
-  updatedAt: DateTime
-}
-
-type Teacher {
-  "ISO-8601"
-  birthday: Date
-  code: String
-  companyId: String
-  "ISO-8601"
-  createdAt: DateTime
-  "ISO-8601"
-  deletedAt: DateTime
-  email: String
-  genderCode: String
-  id: String
-  isDeleted: Boolean
-  kana: String
-  name: String
-  note: String
-  phone: String
-  schoolCode: String
-  schoolGradeCode: String
-  schoolName: String
-  status: String
-  "ISO-8601"
-  updatedAt: DateTime
+  locationById(locationId: String!): Location
+  locationPagination(filter: LocationFilterInput, pagination: Pagination): Page_Location
 }
 
 "Scalar for BigDecimal"
@@ -670,14 +179,8 @@ scalar BigDecimal
 "Scalar for BigInteger"
 scalar BigInteger
 
-"Scalar for Date"
-scalar Date
-
 "Scalar for DateTime"
 scalar DateTime
-
-"Scalar for Time"
-scalar Time
 
 input AreaFilterInput {
   name: String
@@ -691,85 +194,6 @@ input AreaInput {
 input AreaOrderInput {
   dispOrder: Int
   id: String!
-}
-
-input BillingContactInput {
-  address: String!
-  email: String!
-  id: String
-  kana: String!
-  name: String!
-  note: String
-  phone: String!
-  postalCode: String!
-  prefectureCode: String!
-}
-
-input BranchFilterInput {
-  areaId: String
-  code: String
-  name: String
-}
-
-input BranchInput {
-  address: String!
-  areaId: String!
-  code: String!
-  name: String!
-  prefectureCode: String!
-  zipCode: String!
-}
-
-input BranchLessonPeriodTimeInput {
-  "ISO-8601"
-  endTime: Time!
-  lessonPeriodId: String!
-  "ISO-8601"
-  startTime: Time!
-}
-
-input BranchLessonPeriodTimeSetInput {
-  branchId: String!
-  name: String!
-  note: String
-  times: [BranchLessonPeriodTimeInput]
-}
-
-input BranchOpeningScheduleInput {
-  branchId: String!
-  days: [OpeningScheduleDayInput]
-  "ISO-8601"
-  effectiveFrom: Date!
-  "ISO-8601"
-  effectiveTo: Date
-  note: String
-  timeSetId: String
-}
-
-input BranchOpeningScheduleTemplateInput {
-  days: [OpeningScheduleDayInput]
-  name: String!
-  note: String
-}
-
-input ContractInput {
-  "ISO-8601"
-  contractEndDate: Date
-  "ISO-8601"
-  contractStartDate: Date!
-  coursePlanName: String
-  courseType: String!
-  discountAmount: BigInteger!
-  monthlyFee: BigInteger!
-  note: String
-  "ISO-8601"
-  preferredEndTime: Time
-  "ISO-8601"
-  preferredStartTime: Time
-  preferredWeekday: Int
-  seatGenerationEligible: Boolean!
-  subjectId: String!
-  weeklyLessons: Int!
 }
 
 input EmployeeFilterInput {
@@ -788,41 +212,6 @@ input EmployeeInput {
 
 input EmployeeInviteInput {
   email: String!
-}
-
-input GuardianInput {
-  address: String!
-  email: String
-  id: String
-  kana: String!
-  name: String!
-  note: String
-  phone: String!
-  postalCode: String!
-  prefectureCode: String!
-  relationshipCode: String!
-}
-
-input LeadEnrollmentInput {
-  billingContact: BillingContactInput!
-  "ISO-8601"
-  enrollmentDate: Date!
-  guardian: GuardianInput!
-  student: LeadEnrollmentStudentInput!
-}
-
-input LeadEnrollmentStudentInput {
-  "ISO-8601"
-  birthday: Date!
-  branchId: String!
-  code: String!
-  genderCode: String!
-  kana: String!
-  name: String!
-  note: String
-  schoolCode: String!
-  schoolGradeCode: String!
-  status: String!
 }
 
 input LeadFilterInput {
@@ -855,19 +244,20 @@ input LeadInput {
   studentName: String!
 }
 
-input LessonPeriodInput {
-  dispOrder: Int!
+input LocationFilterInput {
+  areaId: String
+  name: String
+  prefectureCode: String
+}
+
+input LocationInput {
+  address: String
+  areaId: String
+  displayOrder: Int
+  isDefault: Boolean
   name: String!
-}
-
-input OpeningScheduleDayInput {
-  isOpen: Boolean!
-  periods: [OpeningSchedulePeriodInput]
-  weekday: Int!
-}
-
-input OpeningSchedulePeriodInput {
-  lessonPeriodId: String!
+  prefectureCode: String
+  zipCode: String
 }
 
 input OwnAccountUpdateInput {
@@ -881,119 +271,4 @@ input Pagination {
   offset: Int
   orderBy: String
   orderDirection: String
-}
-
-input ScheduleEventCompleteInput {
-  note: String
-}
-
-input ScheduleEventFilterInput {
-  note: String
-  reason: String
-  scheduleSubjectId: String
-  scheduleType: String
-  status: String
-}
-
-input ScheduleEventInput {
-  note: String
-  reason: String
-  scheduleSubjectId: String!
-  scheduleType: String!
-  "ISO-8601"
-  scheduledAt: DateTime!
-  status: String!
-}
-
-input ScheduleEventOutcomeInput {
-  leadStatus: String!
-  note: String
-}
-
-input ScheduleEventRescheduleInput {
-  note: String
-  reason: String!
-  scheduleType: String!
-  "ISO-8601"
-  scheduledAt: DateTime!
-}
-
-input ScheduleEventStatusChangeInput {
-  note: String
-  reason: String!
-}
-
-input ScheduleSubjectFilterInput {
-  guardianId: String
-  leadId: String
-  studentId: String
-  teacherId: String
-}
-
-input ScheduleSubjectInput {
-  guardianId: String
-  leadId: String
-  studentId: String
-  teacherId: String
-}
-
-input SchoolFilterInput {
-  code: String
-  establishmentKbn: Int
-  name: String
-  prefectureCode: String
-  schoolTypeCode: String
-}
-
-input StudentFilterInput {
-  branchId: String
-  code: String
-  kana: String
-  name: String
-  schoolGradeCode: String
-  schoolName: String
-  schoolTypeCode: String
-  status: String
-}
-
-input StudentInput {
-  "ISO-8601"
-  birthday: Date!
-  branchId: String!
-  code: String!
-  genderCode: String!
-  guardian: GuardianInput
-  kana: String!
-  name: String!
-  note: String
-  schoolCode: String!
-  schoolGradeCode: String!
-  status: String!
-}
-
-input TeacherFilterInput {
-  code: String
-  email: String
-  genderCode: String
-  kana: String
-  name: String
-  phone: String
-  schoolGradeCode: String
-  schoolName: String
-  status: String
-}
-
-input TeacherInput {
-  "ISO-8601"
-  birthday: Date
-  code: String!
-  email: String
-  genderCode: String!
-  kana: String!
-  name: String!
-  note: String
-  phone: String
-  schoolCode: String!
-  schoolGradeCode: String!
-  status: String!
 }

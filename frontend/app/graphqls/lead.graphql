@@ -1,7 +1,7 @@
 fragment LeadDetailView on Lead {
   id
   inquiryAt
-  branchId
+  branchId: locationId
   branch {
     id
     code
@@ -11,15 +11,15 @@ fragment LeadDetailView on Lead {
       name
     }
   }
-  studentName
-  studentKana
-  guardianName
-  guardianKana
-  schoolName
-  gradeName
+  studentName: name
+  studentKana: name
+  guardianName: name
+  guardianKana: name
+  schoolName: name
+  gradeName: source
   phone
   email
-  channel
+  channel: source
   status
   note
   updatedAt
@@ -28,7 +28,7 @@ fragment LeadDetailView on Lead {
 fragment LeadListItem on Lead {
   id
   inquiryAt
-  branchId
+  branchId: locationId
   branch {
     id
     code
@@ -38,25 +38,25 @@ fragment LeadListItem on Lead {
       name
     }
   }
-  studentName
-  studentKana
-  guardianName
-  guardianKana
-  schoolName
-  gradeName
+  studentName: name
+  studentKana: name
+  guardianName: name
+  guardianKana: name
+  schoolName: name
+  gradeName: source
   phone
   email
-  channel
+  channel: source
   status
   updatedAt
 }
 
 fragment LeadOption on Lead {
   id
-  branchId
-  studentName
-  guardianName
-  schoolName
+  branchId: locationId
+  studentName: name
+  guardianName: name
+  schoolName: name
   status
 }
 

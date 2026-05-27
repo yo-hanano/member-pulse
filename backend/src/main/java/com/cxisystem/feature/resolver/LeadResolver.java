@@ -1,11 +1,11 @@
 package com.cxisystem.feature.resolver;
 
 import com.cxisystem.feature.dto.Page;
-import com.cxisystem.feature.type.Branch;
 import com.cxisystem.feature.input.LeadFilterInput;
 import com.cxisystem.feature.input.LeadInput;
 import com.cxisystem.feature.input.Pagination;
 import com.cxisystem.feature.service.LeadService;
+import com.cxisystem.feature.type.Branch;
 import com.cxisystem.feature.type.Lead;
 import io.smallrye.common.annotation.RunOnVirtualThread;
 import jakarta.annotation.security.RolesAllowed;
