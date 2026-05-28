@@ -91,22 +91,56 @@ type Location {
   zipCode: String
 }
 
+type Member {
+  address: String
+  "ISO-8601"
+  birthDate: Date
+  companyId: String
+  "ISO-8601"
+  createdAt: DateTime
+  "ISO-8601"
+  deletedAt: DateTime
+  email: String
+  id: String
+  "ISO-8601"
+  joinedAt: Date
+  lead: Lead
+  leadId: String
+  lineDisplayName: String
+  location: Location
+  locationId: String
+  name: String
+  note: String
+  phone: String
+  resignationNote: String
+  resignationReasonCode: String
+  "ISO-8601"
+  resignedAt: Date
+  source: String
+  status: String
+  "ISO-8601"
+  updatedAt: DateTime
+}
+
 "Mutation root"
 type Mutation {
   createArea(input: AreaInput): Area
   createEmployee(input: EmployeeInput): Employee
   createLead(input: LeadInput): Lead
   createLocation(input: LocationInput): Location
+  createMember(input: MemberInput): Member
   deleteArea(areaId: String!): Boolean!
   deleteEmployee(employeeId: String!): Boolean!
   deleteLead(leadId: String!): Boolean!
   deleteLocation(locationId: String!): Boolean!
+  deleteMember(memberId: String!): Boolean!
   issueEmployeeInvite(input: EmployeeInviteInput): EmployeeInviteResult
   updateArea(areaId: String!, input: AreaInput): Area
   updateAreaOrders(inputs: [AreaOrderInput]): Boolean!
   updateEmployee(employeeId: String!, input: EmployeeInput): Employee
   updateLead(input: LeadInput, leadId: String!): Lead
   updateLocation(input: LocationInput, locationId: String!): Location
+  updateMember(input: MemberInput, memberId: String!): Member
   updateOwnAccount(input: OwnAccountUpdateInput): Employee
 }
 
@@ -142,6 +176,14 @@ type Page_Location {
   totalPages: Int!
 }
 
+type Page_Member {
+  contents: [Member]
+  limit: Int!
+  offset: Int!
+  totalCount: BigInteger!
+  totalPages: Int!
+}
+
 type Prefecture {
   code: String
   name: String
@@ -155,6 +197,7 @@ type Query {
   allGenders: [Gender]
   allLeads: [Lead]
   allLocations: [Location]
+  allMembers: [Member]
   allPrefectures: [Prefecture]
   areaById(areaId: String!): Area
   areaPagination(filter: AreaFilterInput, pagination: Pagination): Page_Area
@@ -164,6 +207,8 @@ type Query {
   leadPagination(filter: LeadFilterInput, pagination: Pagination): Page_Lead
   locationById(locationId: String!): Location
   locationPagination(filter: LocationFilterInput, pagination: Pagination): Page_Location
+  memberById(memberId: String!): Member
+  memberPagination(filter: MemberFilterInput, pagination: Pagination): Page_Member
 }
 
 "Scalar for BigDecimal"
@@ -171,6 +216,9 @@ scalar BigDecimal
 
 "Scalar for BigInteger"
 scalar BigInteger
+
+"Scalar for Date"
+scalar Date
 
 "Scalar for DateTime"
 scalar DateTime
@@ -247,6 +295,38 @@ input LocationInput {
   name: String!
   prefectureCode: String
   zipCode: String
+}
+
+input MemberFilterInput {
+  "ISO-8601"
+  joinedAtFrom: Date
+  "ISO-8601"
+  joinedAtTo: Date
+  locationId: String
+  name: String
+  source: String
+  status: String
+}
+
+input MemberInput {
+  address: String
+  "ISO-8601"
+  birthDate: Date
+  email: String
+  "ISO-8601"
+  joinedAt: Date!
+  leadId: String
+  lineDisplayName: String
+  locationId: String!
+  name: String!
+  note: String
+  phone: String
+  resignationNote: String
+  resignationReasonCode: String
+  "ISO-8601"
+  resignedAt: Date
+  source: String
+  status: String!
 }
 
 input OwnAccountUpdateInput {

@@ -58,7 +58,7 @@ const navigationGroups: NavigationGroup[] = [
     items: [
       { label: "リード", to: "/leads", icon: MessageSquare },
       { label: "体験セッション", icon: ClipboardList, disabled: true },
-      { label: "会員", icon: UserRound, disabled: true },
+      { label: "会員", to: "/members", icon: UserRound },
     ],
   },
   {

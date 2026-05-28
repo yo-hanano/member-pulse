@@ -1,14 +1,10 @@
 /** Internal type. DO NOT USE DIRECTLY. */
 type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
 /** Internal type. DO NOT USE DIRECTLY. */
-export type Incremental<T> =
-  | T
-  | { [P in keyof T]?: P extends " $fragmentName" | "__typename" ? T[P] : never };
-
-import type { GraphQLClient, RequestOptions } from "graphql-request";
-import gql from "graphql-tag";
-
-type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
+export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
+import { GraphQLClient, RequestOptions } from 'graphql-request';
+import gql from 'graphql-tag';
+type GraphQLClientRequestHeaders = RequestOptions['requestHeaders'];
 export type AreaFilterInput = {
   name?: string | null | undefined;
 };
@@ -83,6 +79,38 @@ export type LocationInput = {
   zipCode?: string | null | undefined;
 };
 
+export type MemberFilterInput = {
+  /** ISO-8601 */
+  joinedAtFrom?: string | null | undefined;
+  /** ISO-8601 */
+  joinedAtTo?: string | null | undefined;
+  locationId?: string | null | undefined;
+  name?: string | null | undefined;
+  source?: string | null | undefined;
+  status?: string | null | undefined;
+};
+
+export type MemberInput = {
+  address?: string | null | undefined;
+  /** ISO-8601 */
+  birthDate?: string | null | undefined;
+  email?: string | null | undefined;
+  /** ISO-8601 */
+  joinedAt: string;
+  leadId?: string | null | undefined;
+  lineDisplayName?: string | null | undefined;
+  locationId: string;
+  name: string;
+  note?: string | null | undefined;
+  phone?: string | null | undefined;
+  resignationNote?: string | null | undefined;
+  resignationReasonCode?: string | null | undefined;
+  /** ISO-8601 */
+  resignedAt?: string | null | undefined;
+  source?: string | null | undefined;
+  status: string;
+};
+
 export type OwnAccountUpdateInput = {
   currentPassword: string;
   name: string;
@@ -96,93 +124,47 @@ export type Pagination = {
   orderDirection?: string | null | undefined;
 };
 
-export type AreaListItemFragment = {
-  id: string | undefined | null;
-  name: string | undefined | null;
-  dispOrder: number | undefined | null;
-};
+export type AreaListItemFragment = { id: string | undefined | null, name: string | undefined | null, dispOrder: number | undefined | null };
 
-export type AllAreasQueryVariables = Exact<{ [key: string]: never }>;
+export type AllAreasQueryVariables = Exact<{ [key: string]: never; }>;
 
-export type AllAreasQuery = {
-  allAreas:
-    | Array<
-        | {
-            id: string | undefined | null;
-            name: string | undefined | null;
-            dispOrder: number | undefined | null;
-          }
-        | undefined
-        | null
-      >
-    | undefined
-    | null;
-};
+
+export type AllAreasQuery = { allAreas: Array<{ id: string | undefined | null, name: string | undefined | null, dispOrder: number | undefined | null } | undefined | null> | undefined | null };
 
 export type AreaByIdQueryVariables = Exact<{
   areaId: string;
 }>;
 
-export type AreaByIdQuery = {
-  areaById:
-    | {
-        id: string | undefined | null;
-        name: string | undefined | null;
-        dispOrder: number | undefined | null;
-      }
-    | undefined
-    | null;
-};
+
+export type AreaByIdQuery = { areaById: { id: string | undefined | null, name: string | undefined | null, dispOrder: number | undefined | null } | undefined | null };
 
 export type AreaPageQueryVariables = Exact<{
   pagination: Pagination;
   filter?: AreaFilterInput | null | undefined;
 }>;
 
-export type AreaPageQuery = {
-  areaPagination:
-    | {
-        totalCount: number;
-        totalPages: number;
-        limit: number;
-        offset: number;
-        contents:
-          | Array<
-              | {
-                  id: string | undefined | null;
-                  name: string | undefined | null;
-                  dispOrder: number | undefined | null;
-                }
-              | undefined
-              | null
-            >
-          | undefined
-          | null;
-      }
-    | undefined
-    | null;
-};
+
+export type AreaPageQuery = { areaPagination: { totalCount: number, totalPages: number, limit: number, offset: number, contents: Array<{ id: string | undefined | null, name: string | undefined | null, dispOrder: number | undefined | null } | undefined | null> | undefined | null } | undefined | null };
 
 export type CreateAreaMutationVariables = Exact<{
   input: AreaInput;
 }>;
 
-export type CreateAreaMutation = {
-  createArea: { id: string | undefined | null } | undefined | null;
-};
+
+export type CreateAreaMutation = { createArea: { id: string | undefined | null } | undefined | null };
 
 export type UpdateAreaMutationVariables = Exact<{
   areaId: string;
   input: AreaInput;
 }>;
 
-export type UpdateAreaMutation = {
-  updateArea: { id: string | undefined | null } | undefined | null;
-};
+
+export type UpdateAreaMutation = { updateArea: { id: string | undefined | null } | undefined | null };
 
 export type DeleteAreaMutationVariables = Exact<{
   areaId: string;
 }>;
+
 
 export type DeleteAreaMutation = { deleteArea: boolean };
 
@@ -190,113 +172,52 @@ export type UpdateAreaOrdersMutationVariables = Exact<{
   inputs: Array<AreaOrderInput> | AreaOrderInput;
 }>;
 
+
 export type UpdateAreaOrdersMutation = { updateAreaOrders: boolean };
 
-export type EmployeeFormInitialFragment = {
-  id: string | undefined | null;
-  name: string | undefined | null;
-  email: string | undefined | null;
-  genderCode: string | undefined | null;
-  isAdmin: boolean | undefined | null;
-};
+export type EmployeeFormInitialFragment = { id: string | undefined | null, name: string | undefined | null, email: string | undefined | null, genderCode: string | undefined | null, isAdmin: boolean | undefined | null };
 
-export type EmployeeListItemFragment = {
-  id: string | undefined | null;
-  name: string | undefined | null;
-  email: string | undefined | null;
-  genderCode: string | undefined | null;
-  isAdmin: boolean | undefined | null;
-  status: string | undefined | null;
-};
+export type EmployeeListItemFragment = { id: string | undefined | null, name: string | undefined | null, email: string | undefined | null, genderCode: string | undefined | null, isAdmin: boolean | undefined | null, status: string | undefined | null };
 
-export type AllEmployeesQueryVariables = Exact<{ [key: string]: never }>;
+export type AllEmployeesQueryVariables = Exact<{ [key: string]: never; }>;
 
-export type AllEmployeesQuery = {
-  allEmployees:
-    | Array<
-        | {
-            id: string | undefined | null;
-            name: string | undefined | null;
-            email: string | undefined | null;
-            genderCode: string | undefined | null;
-            isAdmin: boolean | undefined | null;
-          }
-        | undefined
-        | null
-      >
-    | undefined
-    | null;
-};
+
+export type AllEmployeesQuery = { allEmployees: Array<{ id: string | undefined | null, name: string | undefined | null, email: string | undefined | null, genderCode: string | undefined | null, isAdmin: boolean | undefined | null } | undefined | null> | undefined | null };
 
 export type EmployeeByIdQueryVariables = Exact<{
   employeeId: string;
 }>;
 
-export type EmployeeByIdQuery = {
-  employeeById:
-    | {
-        id: string | undefined | null;
-        name: string | undefined | null;
-        email: string | undefined | null;
-        genderCode: string | undefined | null;
-        isAdmin: boolean | undefined | null;
-      }
-    | undefined
-    | null;
-};
+
+export type EmployeeByIdQuery = { employeeById: { id: string | undefined | null, name: string | undefined | null, email: string | undefined | null, genderCode: string | undefined | null, isAdmin: boolean | undefined | null } | undefined | null };
 
 export type EmployeePageQueryVariables = Exact<{
   pagination: Pagination;
   filter?: EmployeeFilterInput | null | undefined;
 }>;
 
-export type EmployeePageQuery = {
-  employeePagination:
-    | {
-        totalCount: number;
-        totalPages: number;
-        limit: number;
-        offset: number;
-        contents:
-          | Array<
-              | {
-                  id: string | undefined | null;
-                  name: string | undefined | null;
-                  email: string | undefined | null;
-                  genderCode: string | undefined | null;
-                  isAdmin: boolean | undefined | null;
-                  status: string | undefined | null;
-                }
-              | undefined
-              | null
-            >
-          | undefined
-          | null;
-      }
-    | undefined
-    | null;
-};
+
+export type EmployeePageQuery = { employeePagination: { totalCount: number, totalPages: number, limit: number, offset: number, contents: Array<{ id: string | undefined | null, name: string | undefined | null, email: string | undefined | null, genderCode: string | undefined | null, isAdmin: boolean | undefined | null, status: string | undefined | null } | undefined | null> | undefined | null } | undefined | null };
 
 export type CreateEmployeeMutationVariables = Exact<{
   input: EmployeeInput;
 }>;
 
-export type CreateEmployeeMutation = {
-  createEmployee: { id: string | undefined | null } | undefined | null;
-};
+
+export type CreateEmployeeMutation = { createEmployee: { id: string | undefined | null } | undefined | null };
 
 export type UpdateEmployeeMutationVariables = Exact<{
   employeeId: string;
   input: EmployeeInput;
 }>;
 
-export type UpdateEmployeeMutation = {
-  updateEmployee: { id: string | undefined | null } | undefined | null;
-};
+
+export type UpdateEmployeeMutation = { updateEmployee: { id: string | undefined | null } | undefined | null };
 
 export type DeleteEmployeeMutationVariables = Exact<{
   employeeId: string;
 }>;
+
 
 export type DeleteEmployeeMutation = { deleteEmployee: boolean };
 
@@ -304,386 +225,169 @@ export type UpdateOwnAccountMutationVariables = Exact<{
   input: OwnAccountUpdateInput;
 }>;
 
-export type UpdateOwnAccountMutation = {
-  updateOwnAccount:
-    | {
-        id: string | undefined | null;
-        name: string | undefined | null;
-        email: string | undefined | null;
-      }
-    | undefined
-    | null;
-};
 
-export type AllGendersQueryVariables = Exact<{ [key: string]: never }>;
+export type UpdateOwnAccountMutation = { updateOwnAccount: { id: string | undefined | null, name: string | undefined | null, email: string | undefined | null } | undefined | null };
 
-export type AllGendersQuery = {
-  allGenders:
-    | Array<
-        | {
-            code: string | undefined | null;
-            name: string | undefined | null;
-            sortOrder: number | undefined | null;
-          }
-        | undefined
-        | null
-      >
-    | undefined
-    | null;
-};
+export type AllGendersQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type AllGendersQuery = { allGenders: Array<{ code: string | undefined | null, name: string | undefined | null, sortOrder: number | undefined | null } | undefined | null> | undefined | null };
 
 export type IssueEmployeeInviteMutationVariables = Exact<{
   input: EmployeeInviteInput;
 }>;
 
-export type IssueEmployeeInviteMutation = {
-  issueEmployeeInvite:
-    | {
-        employeeId: string | undefined | null;
-        email: string | undefined | null;
-        inviteUrl: string | undefined | null;
-        expiresAt: string | undefined | null;
-      }
-    | undefined
-    | null;
-};
 
-export type LeadDetailViewFragment = {
-  id: string | undefined | null;
-  locationId: string | undefined | null;
-  name: string | undefined | null;
-  phone: string | undefined | null;
-  email: string | undefined | null;
-  source: string | undefined | null;
-  status: string | undefined | null;
-  inquiryAt: string | undefined | null;
-  lostAt: string | undefined | null;
-  lostReason: string | undefined | null;
-  note: string | undefined | null;
-  location: { id: string | undefined | null; name: string | undefined | null } | undefined | null;
-};
+export type IssueEmployeeInviteMutation = { issueEmployeeInvite: { employeeId: string | undefined | null, email: string | undefined | null, inviteUrl: string | undefined | null, expiresAt: string | undefined | null } | undefined | null };
 
-export type LeadListItemFragment = {
-  id: string | undefined | null;
-  locationId: string | undefined | null;
-  name: string | undefined | null;
-  phone: string | undefined | null;
-  email: string | undefined | null;
-  source: string | undefined | null;
-  status: string | undefined | null;
-  inquiryAt: string | undefined | null;
-  lostAt: string | undefined | null;
-  location: { id: string | undefined | null; name: string | undefined | null } | undefined | null;
-};
+export type LeadDetailViewFragment = { id: string | undefined | null, locationId: string | undefined | null, name: string | undefined | null, phone: string | undefined | null, email: string | undefined | null, source: string | undefined | null, status: string | undefined | null, inquiryAt: string | undefined | null, lostAt: string | undefined | null, lostReason: string | undefined | null, note: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null };
 
-export type LeadOptionFragment = {
-  id: string | undefined | null;
-  locationId: string | undefined | null;
-  name: string | undefined | null;
-  status: string | undefined | null;
-};
+export type LeadListItemFragment = { id: string | undefined | null, locationId: string | undefined | null, name: string | undefined | null, phone: string | undefined | null, email: string | undefined | null, source: string | undefined | null, status: string | undefined | null, inquiryAt: string | undefined | null, lostAt: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null };
+
+export type LeadOptionFragment = { id: string | undefined | null, locationId: string | undefined | null, name: string | undefined | null, status: string | undefined | null };
 
 export type LeadByIdQueryVariables = Exact<{
   leadId: string;
 }>;
 
-export type LeadByIdQuery = {
-  leadById:
-    | {
-        id: string | undefined | null;
-        locationId: string | undefined | null;
-        name: string | undefined | null;
-        phone: string | undefined | null;
-        email: string | undefined | null;
-        source: string | undefined | null;
-        status: string | undefined | null;
-        inquiryAt: string | undefined | null;
-        lostAt: string | undefined | null;
-        lostReason: string | undefined | null;
-        note: string | undefined | null;
-        location:
-          | { id: string | undefined | null; name: string | undefined | null }
-          | undefined
-          | null;
-      }
-    | undefined
-    | null;
-};
+
+export type LeadByIdQuery = { leadById: { id: string | undefined | null, locationId: string | undefined | null, name: string | undefined | null, phone: string | undefined | null, email: string | undefined | null, source: string | undefined | null, status: string | undefined | null, inquiryAt: string | undefined | null, lostAt: string | undefined | null, lostReason: string | undefined | null, note: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null };
 
 export type LeadPageQueryVariables = Exact<{
   pagination: Pagination;
   filter?: LeadFilterInput | null | undefined;
 }>;
 
-export type LeadPageQuery = {
-  leadPagination:
-    | {
-        offset: number;
-        limit: number;
-        totalCount: number;
-        totalPages: number;
-        contents:
-          | Array<
-              | {
-                  id: string | undefined | null;
-                  locationId: string | undefined | null;
-                  name: string | undefined | null;
-                  phone: string | undefined | null;
-                  email: string | undefined | null;
-                  source: string | undefined | null;
-                  status: string | undefined | null;
-                  inquiryAt: string | undefined | null;
-                  lostAt: string | undefined | null;
-                  location:
-                    | { id: string | undefined | null; name: string | undefined | null }
-                    | undefined
-                    | null;
-                }
-              | undefined
-              | null
-            >
-          | undefined
-          | null;
-      }
-    | undefined
-    | null;
-};
 
-export type AllLeadsQueryVariables = Exact<{ [key: string]: never }>;
+export type LeadPageQuery = { leadPagination: { offset: number, limit: number, totalCount: number, totalPages: number, contents: Array<{ id: string | undefined | null, locationId: string | undefined | null, name: string | undefined | null, phone: string | undefined | null, email: string | undefined | null, source: string | undefined | null, status: string | undefined | null, inquiryAt: string | undefined | null, lostAt: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null> | undefined | null } | undefined | null };
 
-export type AllLeadsQuery = {
-  allLeads:
-    | Array<
-        | {
-            id: string | undefined | null;
-            locationId: string | undefined | null;
-            name: string | undefined | null;
-            status: string | undefined | null;
-          }
-        | undefined
-        | null
-      >
-    | undefined
-    | null;
-};
+export type AllLeadsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type AllLeadsQuery = { allLeads: Array<{ id: string | undefined | null, locationId: string | undefined | null, name: string | undefined | null, status: string | undefined | null } | undefined | null> | undefined | null };
 
 export type CreateLeadMutationVariables = Exact<{
   input: LeadInput;
 }>;
 
-export type CreateLeadMutation = {
-  createLead:
-    | {
-        id: string | undefined | null;
-        locationId: string | undefined | null;
-        name: string | undefined | null;
-        phone: string | undefined | null;
-        email: string | undefined | null;
-        source: string | undefined | null;
-        status: string | undefined | null;
-        inquiryAt: string | undefined | null;
-        lostAt: string | undefined | null;
-        lostReason: string | undefined | null;
-        note: string | undefined | null;
-        location:
-          | { id: string | undefined | null; name: string | undefined | null }
-          | undefined
-          | null;
-      }
-    | undefined
-    | null;
-};
+
+export type CreateLeadMutation = { createLead: { id: string | undefined | null, locationId: string | undefined | null, name: string | undefined | null, phone: string | undefined | null, email: string | undefined | null, source: string | undefined | null, status: string | undefined | null, inquiryAt: string | undefined | null, lostAt: string | undefined | null, lostReason: string | undefined | null, note: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null };
 
 export type UpdateLeadMutationVariables = Exact<{
   leadId: string;
   input: LeadInput;
 }>;
 
-export type UpdateLeadMutation = {
-  updateLead:
-    | {
-        id: string | undefined | null;
-        locationId: string | undefined | null;
-        name: string | undefined | null;
-        phone: string | undefined | null;
-        email: string | undefined | null;
-        source: string | undefined | null;
-        status: string | undefined | null;
-        inquiryAt: string | undefined | null;
-        lostAt: string | undefined | null;
-        lostReason: string | undefined | null;
-        note: string | undefined | null;
-        location:
-          | { id: string | undefined | null; name: string | undefined | null }
-          | undefined
-          | null;
-      }
-    | undefined
-    | null;
-};
+
+export type UpdateLeadMutation = { updateLead: { id: string | undefined | null, locationId: string | undefined | null, name: string | undefined | null, phone: string | undefined | null, email: string | undefined | null, source: string | undefined | null, status: string | undefined | null, inquiryAt: string | undefined | null, lostAt: string | undefined | null, lostReason: string | undefined | null, note: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null };
 
 export type DeleteLeadMutationVariables = Exact<{
   leadId: string;
 }>;
 
+
 export type DeleteLeadMutation = { deleteLead: boolean };
 
-export type LocationFormInitialFragment = {
-  id: string | undefined | null;
-  areaId: string | undefined | null;
-  name: string | undefined | null;
-  zipCode: string | undefined | null;
-  prefectureCode: string | undefined | null;
-  address: string | undefined | null;
-  isDefault: boolean | undefined | null;
-  displayOrder: number | undefined | null;
-};
+export type LocationFormInitialFragment = { id: string | undefined | null, areaId: string | undefined | null, name: string | undefined | null, zipCode: string | undefined | null, prefectureCode: string | undefined | null, address: string | undefined | null, isDefault: boolean | undefined | null, displayOrder: number | undefined | null };
 
-export type LocationListItemFragment = {
-  id: string | undefined | null;
-  areaId: string | undefined | null;
-  name: string | undefined | null;
-  zipCode: string | undefined | null;
-  prefectureCode: string | undefined | null;
-  address: string | undefined | null;
-  isDefault: boolean | undefined | null;
-  displayOrder: number | undefined | null;
-  area: { id: string | undefined | null; name: string | undefined | null } | undefined | null;
-  prefecture:
-    | { code: string | undefined | null; name: string | undefined | null }
-    | undefined
-    | null;
-};
+export type LocationListItemFragment = { id: string | undefined | null, areaId: string | undefined | null, name: string | undefined | null, zipCode: string | undefined | null, prefectureCode: string | undefined | null, address: string | undefined | null, isDefault: boolean | undefined | null, displayOrder: number | undefined | null, area: { id: string | undefined | null, name: string | undefined | null } | undefined | null, prefecture: { code: string | undefined | null, name: string | undefined | null } | undefined | null };
 
-export type AllLocationsQueryVariables = Exact<{ [key: string]: never }>;
+export type AllLocationsQueryVariables = Exact<{ [key: string]: never; }>;
 
-export type AllLocationsQuery = {
-  allLocations:
-    | Array<
-        | {
-            id: string | undefined | null;
-            areaId: string | undefined | null;
-            name: string | undefined | null;
-            zipCode: string | undefined | null;
-            prefectureCode: string | undefined | null;
-            address: string | undefined | null;
-            isDefault: boolean | undefined | null;
-            displayOrder: number | undefined | null;
-          }
-        | undefined
-        | null
-      >
-    | undefined
-    | null;
-};
+
+export type AllLocationsQuery = { allLocations: Array<{ id: string | undefined | null, areaId: string | undefined | null, name: string | undefined | null, zipCode: string | undefined | null, prefectureCode: string | undefined | null, address: string | undefined | null, isDefault: boolean | undefined | null, displayOrder: number | undefined | null } | undefined | null> | undefined | null };
 
 export type LocationByIdQueryVariables = Exact<{
   locationId: string;
 }>;
 
-export type LocationByIdQuery = {
-  locationById:
-    | {
-        id: string | undefined | null;
-        areaId: string | undefined | null;
-        name: string | undefined | null;
-        zipCode: string | undefined | null;
-        prefectureCode: string | undefined | null;
-        address: string | undefined | null;
-        isDefault: boolean | undefined | null;
-        displayOrder: number | undefined | null;
-      }
-    | undefined
-    | null;
-};
+
+export type LocationByIdQuery = { locationById: { id: string | undefined | null, areaId: string | undefined | null, name: string | undefined | null, zipCode: string | undefined | null, prefectureCode: string | undefined | null, address: string | undefined | null, isDefault: boolean | undefined | null, displayOrder: number | undefined | null } | undefined | null };
 
 export type LocationPageQueryVariables = Exact<{
   pagination: Pagination;
   filter?: LocationFilterInput | null | undefined;
 }>;
 
-export type LocationPageQuery = {
-  locationPagination:
-    | {
-        totalCount: number;
-        totalPages: number;
-        limit: number;
-        offset: number;
-        contents:
-          | Array<
-              | {
-                  id: string | undefined | null;
-                  areaId: string | undefined | null;
-                  name: string | undefined | null;
-                  zipCode: string | undefined | null;
-                  prefectureCode: string | undefined | null;
-                  address: string | undefined | null;
-                  isDefault: boolean | undefined | null;
-                  displayOrder: number | undefined | null;
-                  area:
-                    | { id: string | undefined | null; name: string | undefined | null }
-                    | undefined
-                    | null;
-                  prefecture:
-                    | { code: string | undefined | null; name: string | undefined | null }
-                    | undefined
-                    | null;
-                }
-              | undefined
-              | null
-            >
-          | undefined
-          | null;
-      }
-    | undefined
-    | null;
-};
+
+export type LocationPageQuery = { locationPagination: { totalCount: number, totalPages: number, limit: number, offset: number, contents: Array<{ id: string | undefined | null, areaId: string | undefined | null, name: string | undefined | null, zipCode: string | undefined | null, prefectureCode: string | undefined | null, address: string | undefined | null, isDefault: boolean | undefined | null, displayOrder: number | undefined | null, area: { id: string | undefined | null, name: string | undefined | null } | undefined | null, prefecture: { code: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null> | undefined | null } | undefined | null };
 
 export type CreateLocationMutationVariables = Exact<{
   input: LocationInput;
 }>;
 
-export type CreateLocationMutation = {
-  createLocation: { id: string | undefined | null } | undefined | null;
-};
+
+export type CreateLocationMutation = { createLocation: { id: string | undefined | null } | undefined | null };
 
 export type UpdateLocationMutationVariables = Exact<{
   locationId: string;
   input: LocationInput;
 }>;
 
-export type UpdateLocationMutation = {
-  updateLocation: { id: string | undefined | null } | undefined | null;
-};
+
+export type UpdateLocationMutation = { updateLocation: { id: string | undefined | null } | undefined | null };
 
 export type DeleteLocationMutationVariables = Exact<{
   locationId: string;
 }>;
 
+
 export type DeleteLocationMutation = { deleteLocation: boolean };
 
-export type PrefectureOptionFragment = {
-  code: string | undefined | null;
-  name: string | undefined | null;
-  sortOrder: number | undefined | null;
-};
+export type MemberDetailViewFragment = { id: string | undefined | null, locationId: string | undefined | null, leadId: string | undefined | null, name: string | undefined | null, status: string | undefined | null, joinedAt: string | undefined | null, resignedAt: string | undefined | null, resignationReasonCode: string | undefined | null, resignationNote: string | undefined | null, phone: string | undefined | null, email: string | undefined | null, lineDisplayName: string | undefined | null, address: string | undefined | null, birthDate: string | undefined | null, source: string | undefined | null, note: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null, lead: { id: string | undefined | null, name: string | undefined | null } | undefined | null };
 
-export type AllPrefecturesQueryVariables = Exact<{ [key: string]: never }>;
+export type MemberListItemFragment = { id: string | undefined | null, locationId: string | undefined | null, name: string | undefined | null, status: string | undefined | null, joinedAt: string | undefined | null, resignedAt: string | undefined | null, phone: string | undefined | null, email: string | undefined | null, source: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null };
 
-export type AllPrefecturesQuery = {
-  allPrefectures:
-    | Array<
-        | {
-            code: string | undefined | null;
-            name: string | undefined | null;
-            sortOrder: number | undefined | null;
-          }
-        | undefined
-        | null
-      >
-    | undefined
-    | null;
-};
+export type MemberOptionFragment = { id: string | undefined | null, locationId: string | undefined | null, name: string | undefined | null, status: string | undefined | null };
+
+export type MemberByIdQueryVariables = Exact<{
+  memberId: string;
+}>;
+
+
+export type MemberByIdQuery = { memberById: { id: string | undefined | null, locationId: string | undefined | null, leadId: string | undefined | null, name: string | undefined | null, status: string | undefined | null, joinedAt: string | undefined | null, resignedAt: string | undefined | null, resignationReasonCode: string | undefined | null, resignationNote: string | undefined | null, phone: string | undefined | null, email: string | undefined | null, lineDisplayName: string | undefined | null, address: string | undefined | null, birthDate: string | undefined | null, source: string | undefined | null, note: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null, lead: { id: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null };
+
+export type MemberPageQueryVariables = Exact<{
+  pagination: Pagination;
+  filter?: MemberFilterInput | null | undefined;
+}>;
+
+
+export type MemberPageQuery = { memberPagination: { offset: number, limit: number, totalCount: number, totalPages: number, contents: Array<{ id: string | undefined | null, locationId: string | undefined | null, name: string | undefined | null, status: string | undefined | null, joinedAt: string | undefined | null, resignedAt: string | undefined | null, phone: string | undefined | null, email: string | undefined | null, source: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null> | undefined | null } | undefined | null };
+
+export type AllMembersQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type AllMembersQuery = { allMembers: Array<{ id: string | undefined | null, locationId: string | undefined | null, name: string | undefined | null, status: string | undefined | null } | undefined | null> | undefined | null };
+
+export type CreateMemberMutationVariables = Exact<{
+  input: MemberInput;
+}>;
+
+
+export type CreateMemberMutation = { createMember: { id: string | undefined | null, locationId: string | undefined | null, leadId: string | undefined | null, name: string | undefined | null, status: string | undefined | null, joinedAt: string | undefined | null, resignedAt: string | undefined | null, resignationReasonCode: string | undefined | null, resignationNote: string | undefined | null, phone: string | undefined | null, email: string | undefined | null, lineDisplayName: string | undefined | null, address: string | undefined | null, birthDate: string | undefined | null, source: string | undefined | null, note: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null, lead: { id: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null };
+
+export type UpdateMemberMutationVariables = Exact<{
+  memberId: string;
+  input: MemberInput;
+}>;
+
+
+export type UpdateMemberMutation = { updateMember: { id: string | undefined | null, locationId: string | undefined | null, leadId: string | undefined | null, name: string | undefined | null, status: string | undefined | null, joinedAt: string | undefined | null, resignedAt: string | undefined | null, resignationReasonCode: string | undefined | null, resignationNote: string | undefined | null, phone: string | undefined | null, email: string | undefined | null, lineDisplayName: string | undefined | null, address: string | undefined | null, birthDate: string | undefined | null, source: string | undefined | null, note: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null, lead: { id: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null };
+
+export type DeleteMemberMutationVariables = Exact<{
+  memberId: string;
+}>;
+
+
+export type DeleteMemberMutation = { deleteMember: boolean };
+
+export type PrefectureOptionFragment = { code: string | undefined | null, name: string | undefined | null, sortOrder: number | undefined | null };
+
+export type AllPrefecturesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type AllPrefecturesQuery = { allPrefectures: Array<{ code: string | undefined | null, name: string | undefined | null, sortOrder: number | undefined | null } | undefined | null> | undefined | null };
 
 export const AreaListItemFragmentDoc = gql`
     fragment AreaListItem on Area {
@@ -785,6 +489,59 @@ export const LocationListItemFragmentDoc = gql`
     code
     name
   }
+}
+    `;
+export const MemberDetailViewFragmentDoc = gql`
+    fragment MemberDetailView on Member {
+  id
+  locationId
+  location {
+    id
+    name
+  }
+  leadId
+  lead {
+    id
+    name
+  }
+  name
+  status
+  joinedAt
+  resignedAt
+  resignationReasonCode
+  resignationNote
+  phone
+  email
+  lineDisplayName
+  address
+  birthDate
+  source
+  note
+}
+    `;
+export const MemberListItemFragmentDoc = gql`
+    fragment MemberListItem on Member {
+  id
+  locationId
+  location {
+    id
+    name
+  }
+  name
+  status
+  joinedAt
+  resignedAt
+  phone
+  email
+  source
+}
+    `;
+export const MemberOptionFragmentDoc = gql`
+    fragment MemberOption on Member {
+  id
+  locationId
+  name
+  status
 }
     `;
 export const PrefectureOptionFragmentDoc = gql`
@@ -1011,6 +768,52 @@ export const DeleteLocationDocument = gql`
   deleteLocation(locationId: $locationId)
 }
     `;
+export const MemberByIdDocument = gql`
+    query memberById($memberId: String!) {
+  memberById(memberId: $memberId) {
+    ...MemberDetailView
+  }
+}
+    ${MemberDetailViewFragmentDoc}`;
+export const MemberPageDocument = gql`
+    query memberPage($pagination: Pagination!, $filter: MemberFilterInput) {
+  memberPagination(pagination: $pagination, filter: $filter) {
+    contents {
+      ...MemberListItem
+    }
+    offset
+    limit
+    totalCount
+    totalPages
+  }
+}
+    ${MemberListItemFragmentDoc}`;
+export const AllMembersDocument = gql`
+    query allMembers {
+  allMembers {
+    ...MemberOption
+  }
+}
+    ${MemberOptionFragmentDoc}`;
+export const CreateMemberDocument = gql`
+    mutation createMember($input: MemberInput!) {
+  createMember(input: $input) {
+    ...MemberDetailView
+  }
+}
+    ${MemberDetailViewFragmentDoc}`;
+export const UpdateMemberDocument = gql`
+    mutation updateMember($memberId: String!, $input: MemberInput!) {
+  updateMember(memberId: $memberId, input: $input) {
+    ...MemberDetailView
+  }
+}
+    ${MemberDetailViewFragmentDoc}`;
+export const DeleteMemberDocument = gql`
+    mutation deleteMember($memberId: String!) {
+  deleteMember(memberId: $memberId)
+}
+    `;
 export const AllPrefecturesDocument = gql`
     query allPrefectures {
   allPrefectures {
@@ -1019,540 +822,118 @@ export const AllPrefecturesDocument = gql`
 }
     ${PrefectureOptionFragmentDoc}`;
 
-export type SdkFunctionWrapper = <T>(
-  action: (requestHeaders?: Record<string, string>) => Promise<T>,
-  operationName: string,
-  operationType?: string,
-  variables?: any,
-) => Promise<T>;
+export type SdkFunctionWrapper = <T>(action: (requestHeaders?:Record<string, string>) => Promise<T>, operationName: string, operationType?: string, variables?: any) => Promise<T>;
 
-const defaultWrapper: SdkFunctionWrapper = (action, _operationName, _operationType, _variables) =>
-  action();
+
+const defaultWrapper: SdkFunctionWrapper = (action, _operationName, _operationType, _variables) => action();
 
 export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = defaultWrapper) {
   return {
-    allAreas(
-      variables?: AllAreasQueryVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
-      signal?: RequestInit["signal"],
-    ): Promise<AllAreasQuery> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<AllAreasQuery>({
-            document: AllAreasDocument,
-            variables,
-            requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
-            signal,
-          }),
-        "allAreas",
-        "query",
-        variables,
-      );
+    allAreas(variables?: AllAreasQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<AllAreasQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<AllAreasQuery>({ document: AllAreasDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'allAreas', 'query', variables);
     },
-    areaById(
-      variables: AreaByIdQueryVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
-      signal?: RequestInit["signal"],
-    ): Promise<AreaByIdQuery> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<AreaByIdQuery>({
-            document: AreaByIdDocument,
-            variables,
-            requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
-            signal,
-          }),
-        "areaById",
-        "query",
-        variables,
-      );
+    areaById(variables: AreaByIdQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<AreaByIdQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<AreaByIdQuery>({ document: AreaByIdDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'areaById', 'query', variables);
     },
-    areaPage(
-      variables: AreaPageQueryVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
-      signal?: RequestInit["signal"],
-    ): Promise<AreaPageQuery> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<AreaPageQuery>({
-            document: AreaPageDocument,
-            variables,
-            requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
-            signal,
-          }),
-        "areaPage",
-        "query",
-        variables,
-      );
+    areaPage(variables: AreaPageQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<AreaPageQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<AreaPageQuery>({ document: AreaPageDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'areaPage', 'query', variables);
     },
-    createArea(
-      variables: CreateAreaMutationVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
-      signal?: RequestInit["signal"],
-    ): Promise<CreateAreaMutation> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<CreateAreaMutation>({
-            document: CreateAreaDocument,
-            variables,
-            requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
-            signal,
-          }),
-        "createArea",
-        "mutation",
-        variables,
-      );
+    createArea(variables: CreateAreaMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<CreateAreaMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<CreateAreaMutation>({ document: CreateAreaDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'createArea', 'mutation', variables);
     },
-    updateArea(
-      variables: UpdateAreaMutationVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
-      signal?: RequestInit["signal"],
-    ): Promise<UpdateAreaMutation> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<UpdateAreaMutation>({
-            document: UpdateAreaDocument,
-            variables,
-            requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
-            signal,
-          }),
-        "updateArea",
-        "mutation",
-        variables,
-      );
+    updateArea(variables: UpdateAreaMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<UpdateAreaMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<UpdateAreaMutation>({ document: UpdateAreaDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'updateArea', 'mutation', variables);
     },
-    deleteArea(
-      variables: DeleteAreaMutationVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
-      signal?: RequestInit["signal"],
-    ): Promise<DeleteAreaMutation> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<DeleteAreaMutation>({
-            document: DeleteAreaDocument,
-            variables,
-            requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
-            signal,
-          }),
-        "deleteArea",
-        "mutation",
-        variables,
-      );
+    deleteArea(variables: DeleteAreaMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<DeleteAreaMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<DeleteAreaMutation>({ document: DeleteAreaDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'deleteArea', 'mutation', variables);
     },
-    updateAreaOrders(
-      variables: UpdateAreaOrdersMutationVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
-      signal?: RequestInit["signal"],
-    ): Promise<UpdateAreaOrdersMutation> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<UpdateAreaOrdersMutation>({
-            document: UpdateAreaOrdersDocument,
-            variables,
-            requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
-            signal,
-          }),
-        "updateAreaOrders",
-        "mutation",
-        variables,
-      );
+    updateAreaOrders(variables: UpdateAreaOrdersMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<UpdateAreaOrdersMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<UpdateAreaOrdersMutation>({ document: UpdateAreaOrdersDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'updateAreaOrders', 'mutation', variables);
     },
-    allEmployees(
-      variables?: AllEmployeesQueryVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
-      signal?: RequestInit["signal"],
-    ): Promise<AllEmployeesQuery> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<AllEmployeesQuery>({
-            document: AllEmployeesDocument,
-            variables,
-            requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
-            signal,
-          }),
-        "allEmployees",
-        "query",
-        variables,
-      );
+    allEmployees(variables?: AllEmployeesQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<AllEmployeesQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<AllEmployeesQuery>({ document: AllEmployeesDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'allEmployees', 'query', variables);
     },
-    employeeById(
-      variables: EmployeeByIdQueryVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
-      signal?: RequestInit["signal"],
-    ): Promise<EmployeeByIdQuery> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<EmployeeByIdQuery>({
-            document: EmployeeByIdDocument,
-            variables,
-            requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
-            signal,
-          }),
-        "employeeById",
-        "query",
-        variables,
-      );
+    employeeById(variables: EmployeeByIdQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<EmployeeByIdQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<EmployeeByIdQuery>({ document: EmployeeByIdDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'employeeById', 'query', variables);
     },
-    employeePage(
-      variables: EmployeePageQueryVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
-      signal?: RequestInit["signal"],
-    ): Promise<EmployeePageQuery> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<EmployeePageQuery>({
-            document: EmployeePageDocument,
-            variables,
-            requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
-            signal,
-          }),
-        "employeePage",
-        "query",
-        variables,
-      );
+    employeePage(variables: EmployeePageQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<EmployeePageQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<EmployeePageQuery>({ document: EmployeePageDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'employeePage', 'query', variables);
     },
-    createEmployee(
-      variables: CreateEmployeeMutationVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
-      signal?: RequestInit["signal"],
-    ): Promise<CreateEmployeeMutation> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<CreateEmployeeMutation>({
-            document: CreateEmployeeDocument,
-            variables,
-            requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
-            signal,
-          }),
-        "createEmployee",
-        "mutation",
-        variables,
-      );
+    createEmployee(variables: CreateEmployeeMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<CreateEmployeeMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<CreateEmployeeMutation>({ document: CreateEmployeeDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'createEmployee', 'mutation', variables);
     },
-    updateEmployee(
-      variables: UpdateEmployeeMutationVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
-      signal?: RequestInit["signal"],
-    ): Promise<UpdateEmployeeMutation> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<UpdateEmployeeMutation>({
-            document: UpdateEmployeeDocument,
-            variables,
-            requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
-            signal,
-          }),
-        "updateEmployee",
-        "mutation",
-        variables,
-      );
+    updateEmployee(variables: UpdateEmployeeMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<UpdateEmployeeMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<UpdateEmployeeMutation>({ document: UpdateEmployeeDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'updateEmployee', 'mutation', variables);
     },
-    deleteEmployee(
-      variables: DeleteEmployeeMutationVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
-      signal?: RequestInit["signal"],
-    ): Promise<DeleteEmployeeMutation> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<DeleteEmployeeMutation>({
-            document: DeleteEmployeeDocument,
-            variables,
-            requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
-            signal,
-          }),
-        "deleteEmployee",
-        "mutation",
-        variables,
-      );
+    deleteEmployee(variables: DeleteEmployeeMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<DeleteEmployeeMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<DeleteEmployeeMutation>({ document: DeleteEmployeeDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'deleteEmployee', 'mutation', variables);
     },
-    updateOwnAccount(
-      variables: UpdateOwnAccountMutationVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
-      signal?: RequestInit["signal"],
-    ): Promise<UpdateOwnAccountMutation> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<UpdateOwnAccountMutation>({
-            document: UpdateOwnAccountDocument,
-            variables,
-            requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
-            signal,
-          }),
-        "updateOwnAccount",
-        "mutation",
-        variables,
-      );
+    updateOwnAccount(variables: UpdateOwnAccountMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<UpdateOwnAccountMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<UpdateOwnAccountMutation>({ document: UpdateOwnAccountDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'updateOwnAccount', 'mutation', variables);
     },
-    allGenders(
-      variables?: AllGendersQueryVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
-      signal?: RequestInit["signal"],
-    ): Promise<AllGendersQuery> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<AllGendersQuery>({
-            document: AllGendersDocument,
-            variables,
-            requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
-            signal,
-          }),
-        "allGenders",
-        "query",
-        variables,
-      );
+    allGenders(variables?: AllGendersQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<AllGendersQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<AllGendersQuery>({ document: AllGendersDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'allGenders', 'query', variables);
     },
-    issueEmployeeInvite(
-      variables: IssueEmployeeInviteMutationVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
-      signal?: RequestInit["signal"],
-    ): Promise<IssueEmployeeInviteMutation> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<IssueEmployeeInviteMutation>({
-            document: IssueEmployeeInviteDocument,
-            variables,
-            requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
-            signal,
-          }),
-        "issueEmployeeInvite",
-        "mutation",
-        variables,
-      );
+    issueEmployeeInvite(variables: IssueEmployeeInviteMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<IssueEmployeeInviteMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<IssueEmployeeInviteMutation>({ document: IssueEmployeeInviteDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'issueEmployeeInvite', 'mutation', variables);
     },
-    leadById(
-      variables: LeadByIdQueryVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
-      signal?: RequestInit["signal"],
-    ): Promise<LeadByIdQuery> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<LeadByIdQuery>({
-            document: LeadByIdDocument,
-            variables,
-            requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
-            signal,
-          }),
-        "leadById",
-        "query",
-        variables,
-      );
+    leadById(variables: LeadByIdQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<LeadByIdQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<LeadByIdQuery>({ document: LeadByIdDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'leadById', 'query', variables);
     },
-    leadPage(
-      variables: LeadPageQueryVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
-      signal?: RequestInit["signal"],
-    ): Promise<LeadPageQuery> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<LeadPageQuery>({
-            document: LeadPageDocument,
-            variables,
-            requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
-            signal,
-          }),
-        "leadPage",
-        "query",
-        variables,
-      );
+    leadPage(variables: LeadPageQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<LeadPageQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<LeadPageQuery>({ document: LeadPageDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'leadPage', 'query', variables);
     },
-    allLeads(
-      variables?: AllLeadsQueryVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
-      signal?: RequestInit["signal"],
-    ): Promise<AllLeadsQuery> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<AllLeadsQuery>({
-            document: AllLeadsDocument,
-            variables,
-            requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
-            signal,
-          }),
-        "allLeads",
-        "query",
-        variables,
-      );
+    allLeads(variables?: AllLeadsQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<AllLeadsQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<AllLeadsQuery>({ document: AllLeadsDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'allLeads', 'query', variables);
     },
-    createLead(
-      variables: CreateLeadMutationVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
-      signal?: RequestInit["signal"],
-    ): Promise<CreateLeadMutation> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<CreateLeadMutation>({
-            document: CreateLeadDocument,
-            variables,
-            requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
-            signal,
-          }),
-        "createLead",
-        "mutation",
-        variables,
-      );
+    createLead(variables: CreateLeadMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<CreateLeadMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<CreateLeadMutation>({ document: CreateLeadDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'createLead', 'mutation', variables);
     },
-    updateLead(
-      variables: UpdateLeadMutationVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
-      signal?: RequestInit["signal"],
-    ): Promise<UpdateLeadMutation> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<UpdateLeadMutation>({
-            document: UpdateLeadDocument,
-            variables,
-            requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
-            signal,
-          }),
-        "updateLead",
-        "mutation",
-        variables,
-      );
+    updateLead(variables: UpdateLeadMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<UpdateLeadMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<UpdateLeadMutation>({ document: UpdateLeadDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'updateLead', 'mutation', variables);
     },
-    deleteLead(
-      variables: DeleteLeadMutationVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
-      signal?: RequestInit["signal"],
-    ): Promise<DeleteLeadMutation> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<DeleteLeadMutation>({
-            document: DeleteLeadDocument,
-            variables,
-            requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
-            signal,
-          }),
-        "deleteLead",
-        "mutation",
-        variables,
-      );
+    deleteLead(variables: DeleteLeadMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<DeleteLeadMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<DeleteLeadMutation>({ document: DeleteLeadDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'deleteLead', 'mutation', variables);
     },
-    allLocations(
-      variables?: AllLocationsQueryVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
-      signal?: RequestInit["signal"],
-    ): Promise<AllLocationsQuery> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<AllLocationsQuery>({
-            document: AllLocationsDocument,
-            variables,
-            requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
-            signal,
-          }),
-        "allLocations",
-        "query",
-        variables,
-      );
+    allLocations(variables?: AllLocationsQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<AllLocationsQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<AllLocationsQuery>({ document: AllLocationsDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'allLocations', 'query', variables);
     },
-    locationById(
-      variables: LocationByIdQueryVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
-      signal?: RequestInit["signal"],
-    ): Promise<LocationByIdQuery> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<LocationByIdQuery>({
-            document: LocationByIdDocument,
-            variables,
-            requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
-            signal,
-          }),
-        "locationById",
-        "query",
-        variables,
-      );
+    locationById(variables: LocationByIdQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<LocationByIdQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<LocationByIdQuery>({ document: LocationByIdDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'locationById', 'query', variables);
     },
-    locationPage(
-      variables: LocationPageQueryVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
-      signal?: RequestInit["signal"],
-    ): Promise<LocationPageQuery> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<LocationPageQuery>({
-            document: LocationPageDocument,
-            variables,
-            requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
-            signal,
-          }),
-        "locationPage",
-        "query",
-        variables,
-      );
+    locationPage(variables: LocationPageQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<LocationPageQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<LocationPageQuery>({ document: LocationPageDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'locationPage', 'query', variables);
     },
-    createLocation(
-      variables: CreateLocationMutationVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
-      signal?: RequestInit["signal"],
-    ): Promise<CreateLocationMutation> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<CreateLocationMutation>({
-            document: CreateLocationDocument,
-            variables,
-            requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
-            signal,
-          }),
-        "createLocation",
-        "mutation",
-        variables,
-      );
+    createLocation(variables: CreateLocationMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<CreateLocationMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<CreateLocationMutation>({ document: CreateLocationDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'createLocation', 'mutation', variables);
     },
-    updateLocation(
-      variables: UpdateLocationMutationVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
-      signal?: RequestInit["signal"],
-    ): Promise<UpdateLocationMutation> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<UpdateLocationMutation>({
-            document: UpdateLocationDocument,
-            variables,
-            requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
-            signal,
-          }),
-        "updateLocation",
-        "mutation",
-        variables,
-      );
+    updateLocation(variables: UpdateLocationMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<UpdateLocationMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<UpdateLocationMutation>({ document: UpdateLocationDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'updateLocation', 'mutation', variables);
     },
-    deleteLocation(
-      variables: DeleteLocationMutationVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
-      signal?: RequestInit["signal"],
-    ): Promise<DeleteLocationMutation> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<DeleteLocationMutation>({
-            document: DeleteLocationDocument,
-            variables,
-            requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
-            signal,
-          }),
-        "deleteLocation",
-        "mutation",
-        variables,
-      );
+    deleteLocation(variables: DeleteLocationMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<DeleteLocationMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<DeleteLocationMutation>({ document: DeleteLocationDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'deleteLocation', 'mutation', variables);
     },
-    allPrefectures(
-      variables?: AllPrefecturesQueryVariables,
-      requestHeaders?: GraphQLClientRequestHeaders,
-      signal?: RequestInit["signal"],
-    ): Promise<AllPrefecturesQuery> {
-      return withWrapper(
-        (wrappedRequestHeaders) =>
-          client.request<AllPrefecturesQuery>({
-            document: AllPrefecturesDocument,
-            variables,
-            requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders },
-            signal,
-          }),
-        "allPrefectures",
-        "query",
-        variables,
-      );
+    memberById(variables: MemberByIdQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<MemberByIdQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<MemberByIdQuery>({ document: MemberByIdDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'memberById', 'query', variables);
     },
+    memberPage(variables: MemberPageQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<MemberPageQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<MemberPageQuery>({ document: MemberPageDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'memberPage', 'query', variables);
+    },
+    allMembers(variables?: AllMembersQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<AllMembersQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<AllMembersQuery>({ document: AllMembersDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'allMembers', 'query', variables);
+    },
+    createMember(variables: CreateMemberMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<CreateMemberMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<CreateMemberMutation>({ document: CreateMemberDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'createMember', 'mutation', variables);
+    },
+    updateMember(variables: UpdateMemberMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<UpdateMemberMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<UpdateMemberMutation>({ document: UpdateMemberDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'updateMember', 'mutation', variables);
+    },
+    deleteMember(variables: DeleteMemberMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<DeleteMemberMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<DeleteMemberMutation>({ document: DeleteMemberDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'deleteMember', 'mutation', variables);
+    },
+    allPrefectures(variables?: AllPrefecturesQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<AllPrefecturesQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<AllPrefecturesQuery>({ document: AllPrefecturesDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'allPrefectures', 'query', variables);
+    }
   };
 }
 export type Sdk = ReturnType<typeof getSdk>;

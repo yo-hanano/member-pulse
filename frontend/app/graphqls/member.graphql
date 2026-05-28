@@ -1,0 +1,89 @@
+fragment MemberDetailView on Member {
+  id
+  locationId
+  location {
+    id
+    name
+  }
+  leadId
+  lead {
+    id
+    name
+  }
+  name
+  status
+  joinedAt
+  resignedAt
+  resignationReasonCode
+  resignationNote
+  phone
+  email
+  lineDisplayName
+  address
+  birthDate
+  source
+  note
+}
+
+fragment MemberListItem on Member {
+  id
+  locationId
+  location {
+    id
+    name
+  }
+  name
+  status
+  joinedAt
+  resignedAt
+  phone
+  email
+  source
+}
+
+fragment MemberOption on Member {
+  id
+  locationId
+  name
+  status
+}
+
+query memberById($memberId: String!) {
+  memberById(memberId: $memberId) {
+    ...MemberDetailView
+  }
+}
+
+query memberPage($pagination: Pagination!, $filter: MemberFilterInput) {
+  memberPagination(pagination: $pagination, filter: $filter) {
+    contents {
+      ...MemberListItem
+    }
+    offset
+    limit
+    totalCount
+    totalPages
+  }
+}
+
+query allMembers {
+  allMembers {
+    ...MemberOption
+  }
+}
+
+mutation createMember($input: MemberInput!) {
+  createMember(input: $input) {
+    ...MemberDetailView
+  }
+}
+
+mutation updateMember($memberId: String!, $input: MemberInput!) {
+  updateMember(memberId: $memberId, input: $input) {
+    ...MemberDetailView
+  }
+}
+
+mutation deleteMember($memberId: String!) {
+  deleteMember(memberId: $memberId)
+}

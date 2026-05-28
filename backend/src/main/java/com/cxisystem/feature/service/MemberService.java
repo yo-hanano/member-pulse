@@ -1,0 +1,104 @@
+package com.cxisystem.feature.service;
+
+import com.cxisystem.annotation.Rls;
+import com.cxisystem.exception.NotFoundException;
+import com.cxisystem.feature.dao.MemberDao;
+import com.cxisystem.feature.dto.Page;
+import com.cxisystem.feature.input.MemberFilterInput;
+import com.cxisystem.feature.input.MemberInput;
+import com.cxisystem.feature.input.Pagination;
+import com.cxisystem.feature.type.Member;
+import com.cxisystem.jooq.tables.records.MemberRecord;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
+
+/**
+ * 会員管理の業務操作をまとめるサービスです。基本情報の CRUD と検索、論理削除を扱います。
+ */
+@ApplicationScoped
+public class MemberService extends AbstractService<MemberRecord, Member, String, MemberDao> {
+
+  @Inject
+  MemberDao memberDao;
+
+  /** 会員操作に使う Dao を返します。 */
+  @Override
+  protected MemberDao getDao() {
+    return memberDao;
+  }
+
+  /** 会員変換先の型を返します。 */
+  @Override
+  protected Class<Member> getTypeClass() {
+    return Member.class;
+  }
+
+  /** 条件付きの会員一覧をページ形式で返します。 */
+  @Rls
+  @Transactional
+  public Page<Member> pagination(Pagination pagination, MemberFilterInput filter) {
+    List<Member> members = memberDao.pagination(pagination, filter).stream()
+        .map(record -> record.into(Member.class)).collect(Collectors.toList());
+    long total = memberDao.fetchCount(filter);
+    int totalPages =
+        pagination.getLimit() > 0 ? (int) Math.ceil((double) total / pagination.getLimit()) : 0;
+
+    if (pagination.getOffset() < 0 || pagination.getLimit() <= 0
+        || pagination.getOffset() >= total) {
+      return new Page<>(Collections.emptyList(), pagination.getOffset(), pagination.getLimit(),
+          total, totalPages);
+    }
+
+    return new Page<>(members, pagination.getOffset(), pagination.getLimit(), total, totalPages);
+  }
+
+  /** 会員を新規作成して、保存後の値を返します。 */
+  @Rls
+  @Transactional
+  public Member create(MemberInput input) {
+    MemberRecord memberRecord = newRecord(input);
+    normalizeOptionalFields(memberRecord);
+    memberRecord.store();
+    memberRecord.refresh();
+    return memberRecord.into(Member.class);
+  }
+
+  /** 既存会員を更新して、保存後の値を返します。 */
+  @Rls
+  @Transactional
+  public Member update(String id, MemberInput input) {
+    MemberRecord memberRecord = memberDao.findOptionalById(id)
+        .orElseThrow(() -> new NotFoundException("member not found: " + id));
+    memberRecord.from(input);
+    normalizeOptionalFields(memberRecord);
+    memberRecord.store();
+    memberRecord.refresh();
+    return memberRecord.into(Member.class);
+  }
+
+  /** 会員を論理削除します。 */
+  @Rls
+  @Transactional
+  public boolean deleteMember(String id) {
+    delete(id);
+    return true;
+  }
+
+  private void normalizeOptionalFields(MemberRecord memberRecord) {
+    memberRecord.setLeadId(StringUtils.trimToNull(memberRecord.getLeadId()));
+    memberRecord.setPhone(StringUtils.trimToNull(memberRecord.getPhone()));
+    memberRecord.setEmail(StringUtils.trimToNull(memberRecord.getEmail()));
+    memberRecord.setLineDisplayName(StringUtils.trimToNull(memberRecord.getLineDisplayName()));
+    memberRecord.setAddress(StringUtils.trimToNull(memberRecord.getAddress()));
+    memberRecord.setSource(StringUtils.trimToNull(memberRecord.getSource()));
+    memberRecord
+        .setResignationReasonCode(StringUtils.trimToNull(memberRecord.getResignationReasonCode()));
+    memberRecord.setResignationNote(StringUtils.trimToNull(memberRecord.getResignationNote()));
+    memberRecord.setNote(StringUtils.trimToNull(memberRecord.getNote()));
+  }
+}
