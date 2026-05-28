@@ -13,7 +13,15 @@ import {
   ThemeIcon,
   Title,
 } from "@mantine/core";
-import { ArrowRight, CircleDollarSign, MessageSquare, TrendingUp, Users } from "lucide-react";
+import {
+  ArrowRight,
+  CircleDollarSign,
+  MessageSquare,
+  Settings,
+  TrendingUp,
+  Users,
+} from "lucide-react";
+import { Link } from "react-router";
 
 const kpis = [
   {
@@ -65,8 +73,14 @@ export default function Home() {
             月次の実績と次に見るべき指標をまとめています。
           </Text>
         </Stack>
-        <Button rightSection={<ArrowRight size={16} />} visibleFrom="sm">
-          レビューを入力
+        <Button
+          component={Link}
+          leftSection={<Settings size={16} />}
+          rightSection={<ArrowRight size={16} />}
+          to="/initial-plan"
+          visibleFrom="sm"
+        >
+          初年度計画
         </Button>
       </Group>
 

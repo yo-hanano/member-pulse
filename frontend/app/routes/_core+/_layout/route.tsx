@@ -16,6 +16,7 @@ import {
   Activity,
   BadgeJapaneseYen,
   BarChart3,
+  ClipboardCheck,
   ClipboardList,
   CreditCard,
   LogOut,
@@ -198,6 +199,16 @@ export default function CoreLayout() {
             leftSection={<BarChart3 size={18} />}
             onClick={() => setMobileOpened(false)}
             to="/"
+            variant="light"
+          />
+
+          <MantineNavLink
+            active={location.pathname === "/initial-plan"}
+            component={NavLink}
+            label="初年度計画"
+            leftSection={<ClipboardCheck size={18} />}
+            onClick={() => setMobileOpened(false)}
+            to="/initial-plan"
             variant="light"
           />
 
