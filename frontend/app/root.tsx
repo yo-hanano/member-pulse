@@ -78,7 +78,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <ColorSchemeScript defaultColorScheme="auto" />
       </head>
       <body>
-        {children}
+        <NuqsAdapter>
+          <MantineProvider defaultColorScheme="auto" theme={mantineTheme}>
+            {children}
+            <Notifications position="top-right" />
+          </MantineProvider>
+        </NuqsAdapter>
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -99,13 +104,10 @@ export default function App() {
   }, [navigation.state]);
 
   return (
-    <NuqsAdapter>
-      <MantineProvider defaultColorScheme="auto" theme={mantineTheme}>
-        <NavigationProgress color="brand" size={4} stepInterval={100} />
-        <Outlet />
-        <Notifications position="top-right" />
-      </MantineProvider>
-    </NuqsAdapter>
+    <>
+      <NavigationProgress color="brand" size={4} stepInterval={100} />
+      <Outlet />
+    </>
   );
 }
 

@@ -80,13 +80,20 @@ export default function Home() {
           to="/initial-plan"
           visibleFrom="sm"
         >
-          初年度計画
+          収支計画
         </Button>
       </Group>
 
       <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="md">
         {kpis.map((kpi) => (
-          <Paper key={kpi.label} p="lg" radius="sm" shadow="xs" withBorder>
+          <Paper
+            className="app-dashboard-surface"
+            key={kpi.label}
+            p="lg"
+            radius="sm"
+            shadow="xs"
+            withBorder
+          >
             <Group justify="space-between" wrap="nowrap">
               <Stack gap={4}>
                 <Text c="dimmed" fw={600} size="sm">
@@ -108,7 +115,7 @@ export default function Home() {
       </SimpleGrid>
 
       <SimpleGrid cols={{ base: 1, lg: 3 }} spacing="md">
-        <Paper p="lg" radius="sm" shadow="xs" withBorder>
+        <Paper className="app-dashboard-surface" p="lg" radius="sm" shadow="xs" withBorder>
           <Stack gap="md">
             <Group justify="space-between">
               <Title order={3} size="h4">
@@ -149,7 +156,13 @@ export default function Home() {
           </Stack>
         </Paper>
 
-        <Paper className="lg:col-span-2" p="lg" radius="sm" shadow="xs" withBorder>
+        <Paper
+          className="app-dashboard-surface lg:col-span-2"
+          p="lg"
+          radius="sm"
+          shadow="xs"
+          withBorder
+        >
           <Stack gap="md">
             <Group justify="space-between">
               <Title order={3} size="h4">

@@ -26,6 +26,7 @@ import {
   MessageSquare,
   NotebookTabs,
   Settings,
+  SlidersHorizontal,
   Tags,
   UserRound,
   Users,
@@ -83,6 +84,7 @@ const navigationGroups: NavigationGroup[] = [
     items: [
       { label: "従業員", to: "/employees", icon: Users },
       { label: "アカウント設定", to: "/settings/account", icon: Settings },
+      { label: "システム設定", to: "/settings/system", icon: SlidersHorizontal },
     ],
   },
 ];
@@ -130,7 +132,7 @@ export default function CoreLayout() {
       navbar={{ width: 280, breakpoint: "md", collapsed: { mobile: !mobileOpened } }}
       padding="lg"
     >
-      <AppShell.Header>
+      <AppShell.Header className="app-shell-header">
         <Group h="100%" justify="space-between" px="lg">
           <Group gap="sm">
             <Burger
@@ -179,7 +181,14 @@ export default function CoreLayout() {
                 leftSection={<Settings size={16} />}
                 to="/settings/account"
               >
-                設定
+                アカウント設定
+              </Menu.Item>
+              <Menu.Item
+                component={NavLink}
+                leftSection={<SlidersHorizontal size={16} />}
+                to="/settings/system"
+              >
+                システム設定
               </Menu.Item>
               <Menu.Divider />
               <Menu.Item color="red" leftSection={<LogOut size={16} />} onClick={handleLogout}>
@@ -190,7 +199,7 @@ export default function CoreLayout() {
         </Group>
       </AppShell.Header>
 
-      <AppShell.Navbar p="md">
+      <AppShell.Navbar className="app-shell-navbar" p="md">
         <Stack h="100%" gap="md">
           <MantineNavLink
             active={location.pathname === "/"}
@@ -205,7 +214,7 @@ export default function CoreLayout() {
           <MantineNavLink
             active={location.pathname === "/initial-plan"}
             component={NavLink}
-            label="初年度計画"
+            label="収支計画"
             leftSection={<ClipboardCheck size={18} />}
             onClick={() => setMobileOpened(false)}
             to="/initial-plan"
@@ -281,7 +290,7 @@ export default function CoreLayout() {
         </Stack>
       </AppShell.Navbar>
 
-      <AppShell.Main bg="gray.0">
+      <AppShell.Main className="app-shell-main">
         <Outlet />
       </AppShell.Main>
     </AppShell>

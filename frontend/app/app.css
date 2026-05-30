@@ -2,10 +2,24 @@
 
 :root {
   --app-bg: #ffffff;
+  --app-shell-bg: var(--mantine-color-gray-0);
+  --app-shell-panel-bg: var(--mantine-color-white);
+  --app-shell-border: var(--mantine-color-gray-3);
+  --app-surface-bg: var(--mantine-color-white);
+  --app-surface-border: var(--mantine-color-gray-3);
   --field-background: color-mix(in oklab, var(--surface) 84%, var(--background) 16%);
   --field-foreground: var(--foreground);
   --field-placeholder: color-mix(in oklab, var(--foreground) 42%, transparent);
   --field-border: color-mix(in oklab, var(--foreground) 24%, transparent);
+}
+
+[data-mantine-color-scheme="dark"] {
+  --app-bg: var(--mantine-color-dark-8);
+  --app-shell-bg: var(--mantine-color-dark-8);
+  --app-shell-panel-bg: var(--mantine-color-dark-7);
+  --app-shell-border: var(--mantine-color-dark-5);
+  --app-surface-bg: var(--mantine-color-dark-7);
+  --app-surface-border: var(--mantine-color-dark-5);
 }
 
 html.dark,
@@ -42,6 +56,22 @@ html.dark,
 :where(:focus-visible, [data-focus-visible="true"]) {
   outline: none;
   box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-foreground, #111827) 28%, transparent);
+}
+
+.app-shell-header,
+.app-shell-navbar {
+  border-color: var(--app-shell-border);
+  background: var(--app-shell-panel-bg);
+}
+
+.app-shell-main {
+  min-height: 100vh;
+  background: var(--app-shell-bg);
+}
+
+.app-dashboard-surface {
+  border-color: var(--app-surface-border);
+  background: var(--app-surface-bg);
 }
 
 .app-primary-button {
