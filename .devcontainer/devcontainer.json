@@ -55,7 +55,7 @@
     "source=${localEnv:HOME}/.codex,target=/home/vscode/.codex,type=bind,consistency=cached",
     "source=${localEnv:HOME}/.claude,target=/home/vscode/.claude,type=bind,consistency=cached",
     "source=${localEnv:HOME}/.claude.json,target=/home/vscode/.claude.json,type=bind,consistency=cached",
-    "source=${localEnv:HOME}/workspace/juku-ops,target=/workspace/ref/juku-ops,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/workspace/alcos-portal,target=/workspace/ref/alcos-portal,type=bind,consistency=cached",
     "source=${localEnv:HOME}/workspace/markeman,target=/workspace/ref/markeman,type=bind,consistency=cached"
   ],
   "containerEnv": {

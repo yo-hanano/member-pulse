@@ -83,6 +83,7 @@ const navigationGroups: NavigationGroup[] = [
     label: "Admin",
     items: [
       { label: "従業員", to: "/employees", icon: Users },
+      { label: "初期セットアップ", to: "/setup", icon: ClipboardCheck },
       { label: "アカウント設定", to: "/settings/account", icon: Settings },
       { label: "システム設定", to: "/settings/system", icon: SlidersHorizontal },
     ],

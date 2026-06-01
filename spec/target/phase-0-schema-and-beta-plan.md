@@ -6,11 +6,23 @@
 
 Phase 0 は、実 DB、ログイン、RLS を含む動くプロトタイプとして作る。
 
-主目的は、月次レビューの入力、CRM 補助集計、PL / CPO / LTV 計算、重要成功要因の判定、レポート表示が実運用に近い形で成立するかを検証すること。
+主目的は、収支計画、CRM 実績、月次レビューの予実管理が実運用に近い形で成立するかを検証すること。
 
-`lead` / `member` は最初から入れる。ただし主機能として前面には出さず、月次レビュー入力の任意データソースとして扱う。
+プロダクト方針は、`markeman` で計画を作り、`alcos-portal` 的な CRM で実績を拾い、MemberPulse で月次レビューする、という整理にする。
 
-CRM 登録がある場合は、月次レビュー入力時に参考集計値を自動算出し、ユーザーが今回の入力値へ反映または上書きできるようにする。
+- `markeman` 由来: 収支計画、成り行き、GAP 調整、KPI レバー、CPO / LTV / 販管費
+- `alcos-portal` 由来: 会員 CRM、問い合わせ、コース契約、月謝売上、入会 / 休会 / 退会
+- MemberPulse 固有: 収支計画と CRM 実績の予実管理、重要成功要因、来月アクション、月次レビュー
+
+Phase 0 では責務を次の 3 つに分ける。
+
+- 収支計画: `markeman` の Plan / PlanSim に近い。仮説として既存会員、会員プラン、新規入会、広告費、費用を置き、成り行きと改善案を比較する。
+- CRM 実績: `lead` / `trial_session` / `member` / `membership_subscription` を実績データの正として扱う。誰がどのプランで入会、継続、退会したかを保持する。
+- 月次レビュー: 収支計画と CRM 実績または手入力実績を突き合わせ、差分、PL / CPO / LTV、重要成功要因、レポートを生成する。
+
+`lead` / `member` は最初から入れる。ただし収支計画の代替ではなく、月次レビューと予実管理の実績ソースとして扱う。
+
+CRM 登録がある場合は、月次レビュー入力時に参考集計値を自動算出し、ユーザーが今回の入力値へ反映または上書きできるようにする。CRM 登録がない場合でも、収支計画は手入力の仮説で作れるようにする。
 
 ## 2. 最初の DB スキーマ
 
@@ -22,7 +34,9 @@ CRM 登録がある場合は、月次レビュー入力時に参考集計値を�
 - `area`
 - `location`
 - `goal_plan`
+- `goal_plan_member_group`
 - `goal_plan_month`
+- `goal_plan_month_member_group`
 - `lead`
 - `trial_session`
 - `member`
@@ -69,9 +83,22 @@ CRM 登録がある場合は、月次レビュー入力時に参考集計値を�
 
 ## 3. 事業プロフィール
 
-`company` は認証、RLS、組織境界の基盤テーブルとして残す。
+会社発行は admin 機能の責務にする。
 
-プロダクト固有の事業プロフィールは `business_profile` に分ける。
+admin の会社発行で行うこと:
+
+- `company` 作成
+- company code / 会社 ID の発行
+- `business_profile` の初期作成
+- 初期管理者 `employee` の作成
+- 初期管理者への招待または初期ログイン手段の発行
+- 業種に応じた販管費テンプレート候補の用意
+
+ユーザー初回導線では会社 ID を発行しない。ユーザーは発行済みの会社にログインし、必要に応じて自社情報、会員プラン、販管費項目を確認・調整する。
+
+`company` は認証、RLS、組織境界の基盤テーブルとして残す。会社 ID / company code は admin の会社発行時に決まり、ユーザー側では変更不可にする。
+
+プロダクト固有の事業プロフィールは `business_profile` に分ける。`business_profile` は admin の会社発行時に初期作成し、ユーザーは自社情報画面で会社 ID 以外を編集できるようにする。
 
 最小項目:
 
@@ -82,21 +109,47 @@ CRM 登録がある場合は、月次レビュー入力時に参考集計値を�
 - `setup_completed_at`
 - `default_location_id nullable`
 - `fiscal_year_start_month`
+- `zip_code nullable`
+- `prefecture_code nullable`
+- `address nullable`
+- `phone_number nullable`
 - `note`
 
 表示上は `business_profile.business_name` を優先する。
 
+自社情報画面で編集できるもの:
+
+- 事業者名 / 表示名
+- 業種
+- 決算月
+- 郵便番号
+- 都道府県
+- 住所
+- 電話番号
+- メモ
+
+会社 ID / company code は編集不可。
+
 ## 4. 拠点とエリア
 
-`location` は必須にする。
+`location` は任意にする。
 
-1 拠点ユーザーでも、初期セットアップ時にデフォルト拠点を 1 件作る。
+初期セットアップでは拠点登録を必須にしない。まずは全社単位のマスタ整備と収支計画から始められるようにする。
 
-- デフォルト名は `メインスタジオ` またはユーザー入力
-- `location.is_default = true`
-- `location.area_id` は nullable
-- デフォルト拠点は削除不可
-- 名称変更は可能
+拠点を登録するタイミング:
+
+- 収支計画で拠点別目標を作るとき
+- CRM 実績を拠点に紐づけたいとき
+- 拠点別 PL を見たいとき
+- 広告費や共通費を拠点へ按分したいとき
+
+拠点未登録の場合:
+
+- `location_id` は nullable のまま扱う
+- 収支計画は全社計画として作る
+- CRM 実績は全社実績として扱う
+- 月次レビューは全体レビューとして作る
+- 拠点別 PL は表示しない
 
 `area` は任意マスタとして残す。
 
@@ -105,11 +158,13 @@ CRM 登録がある場合は、月次レビュー入力時に参考集計値を�
 - 複数拠点設定時だけ使える
 - UI ナビでは強く出さない
 
-## 5. CRM 補助データ
+## 5. CRM 実績データ
 
-`lead` / `member` / `trial_session` / `membership_subscription` は、月次レビューの自動算出に使う任意データソースとして扱う。
+`lead` / `member` / `trial_session` / `membership_subscription` は、月次レビューの自動算出と予実管理に使う実績データソースとして扱う。
 
-月次レビューの主導線はあくまで月次レビュー入力であり、CRM は「データ管理」または「入力補助」配下に置く。
+収支計画は仮説入力で作れるようにし、CRM はその予実管理を支える。計画作成時に CRM データが存在する場合は、既存会員数、会員プラン別単価、退会率などの初期値を CRM から補完できるようにする。
+
+月次レビューの主導線はあくまで月次レビュー入力とレポートであり、CRM は「データ管理」または「実績補助」配下に置く。
 
 LP や初期訴求では CRM を前面に出さない。
 
@@ -220,6 +275,8 @@ LP や初期訴求では CRM を前面に出さない。
 
 費用テンプレートは DB の `cost_item_template` に持つ。
 
+`cost_item_template` は admin 機能で管理する共通マスタとする。admin は業種別にテンプレートを追加、編集、無効化できる。会社発行時またはユーザー初回導線では、業種に合うテンプレートを初期候補として提示する。
+
 最小項目:
 
 - `industry_type`: `studio` / `gym` / `language_school` / `common`
@@ -233,6 +290,8 @@ LP や初期訴求では CRM を前面に出さない。
 - `description`
 - `display_order`
 - `active`
+- `created_by_admin_id nullable`
+- `updated_by_admin_id nullable`
 
 セットアップ画面では、テンプレート一覧から「使う費用だけ ON」にする。
 
@@ -246,8 +305,10 @@ ON にしたテンプレートを `cost_item` にコピーする。
 
 - `name`
 - `cost_type`: `fixed` / `variable`
-- `scope`: `location_direct` / `head_office`
+- `scope_type`: `company` / `area` / `prefecture` / `location` / `head_office`
+- `scope_id nullable`
 - `location_id nullable`
+- `allocation_method`: `none` / `equal_by_location` / `by_revenue` / `by_member_count` / `manual`
 - `calculation_method`: `fixed_amount` / `revenue_rate` / `member_count` / `manual`
 - `amount`
 - `rate`
@@ -265,10 +326,13 @@ ON にしたテンプレートを `cost_item` にコピーする。
 - `cost_item_id nullable`
 - `name`
 - `cost_type`
-- `scope`
+- `scope_type`
+- `scope_id nullable`
+- `allocation_method`
 - `calculation_method`
 - `expected_amount`
 - `actual_amount`
+- `allocated_amount`
 - `is_overridden`
 
 費用の正は `monthly_review_cost` とする。
@@ -283,6 +347,15 @@ ON にしたテンプレートを `cost_item` にコピーする。
 
 ユーザーが合計だけ直接入力した場合は、`cost_item_id = null`, `name = '実績入力'` の明細を作る。
 
+拠点別 PL は撤退、移転、追加投資の判断に使う重要要件とする。そのため費用は、拠点直接費だけでなく、本部共通、エリア共通、都道府県単位の費用も表現できるようにする。月次レビュー生成時には、共通費を拠点別に按分した結果を `monthly_review_cost.allocated_amount` と `monthly_review_location` の合計カラムへ固定する。
+
+MVP の費用按分は次を優先する。
+
+- `location`: 指定拠点へ全額
+- `company` / `head_office`: 全社共通費として保持し、必要なら均等または売上比で按分
+- `area` / `prefecture`: 対象エリアまたは都道府県に属する拠点へ均等按分
+- `manual`: ユーザーが拠点別金額を直接補正
+
 ## 8. 広告費
 
 広告費は費用マスタに混ぜず、`ad_spend` として別管理する。
@@ -291,27 +364,56 @@ ON にしたテンプレートを `cost_item` にコピーする。
 
 - `company_id`
 - `monthly_review_id`
+- `scope_type`: `company` / `area` / `prefecture` / `location` / `membership_plan`
+- `scope_id nullable`
 - `location_id nullable`
+- `prefecture_code nullable`
+- `membership_plan_id nullable`
+- `allocation_method`: `none` / `equal_by_location` / `by_revenue` / `by_inquiry_count` / `by_new_member_count` / `manual`
 - `name`
 - `amount`
+- `allocated_amount nullable`
 - `source_type`: `manual` / `imported` / `crm`
 - `note`
 
 扱い:
 
-- `location_id` あり: 拠点直接広告費
-- `location_id` なし: 本部広告費として売上比率で配賦
-- 全体 PL: すべて合算
-- 拠点 PL: 直接広告費 + 配賦広告費
+- `location`: 指定拠点の直接広告費
+- `company`: 全社広告費。全体 PL では全額合算し、拠点別 PL では按分対象にする
+- `prefecture`: 都道府県広告費。該当都道府県の拠点へ按分する
+- `area`: 商圏または管理エリア広告費。該当エリアの拠点へ按分する
+- `membership_plan`: 特定会員種別やコース訴求の広告費。MVP では全体広告費として扱い、将来会員種別別 CPO に使う
 - CPO: 対象範囲の広告費 ÷ 入会数
+
+MVP の広告費按分は次を優先する。
+
+- 拠点指定ならその拠点へ全額
+- 都道府県指定なら、その都道府県に属する拠点へ均等按分
+- エリア指定なら、そのエリアに属する拠点へ均等按分
+- 全社指定なら、全体 PL では全額、拠点別 PL では均等按分または手動按分
+- 問い合わせ数按分、入会数按分、売上按分は Phase 0 後半または beta で追加検討
 
 広告媒体別分析は MVP では作らない。
 
-## 9. 目標設定
+## 9. 収支計画
 
-目標は `goal_plan` / `goal_plan_month` として月次レビューから分ける。
+収支計画は `markeman` の Plan / PlanSim に近い位置づけにする。
+
+目的は、実績入力前でも仮説として次を置き、成り行きと改善案を比較できるようにすること。
+
+- 目標売上、目標営業利益
+- 既存会員グループ
+- 会員プランまたは会員種別
+- 新規入会計画
+- 広告費
+- 変動費、固定費、本部経費
+- 退会率、平均継続月数、LTV、限界 CPO
+
+収支計画は月次レビューから分け、`goal_plan` 系テーブルに保存する。月次レビュー生成時には、該当月の計画値をスナップショットへコピーして固定する。
 
 ### 9.1 goal_plan
+
+`goal_plan` は収支計画の親。
 
 最小項目:
 
@@ -320,9 +422,6 @@ ON にしたテンプレートを `cost_item` にコピーする。
 - `annual_revenue_goal`
 - `annual_operating_profit_goal`
 - `year_end_member_count_goal`
-- `current_member_count`
-- `average_monthly_fee`
-- `acceptable_churn_rate`
 - `trial_booking_rate`
 - `trial_attendance_rate`
 - `enrollment_rate`
@@ -330,7 +429,42 @@ ON にしたテンプレートを `cost_item` にコピーする。
 - `acceptable_ad_investment_rate`
 - `active`
 
-### 9.2 goal_plan_month
+`current_member_count` と `average_monthly_fee` は全体の簡易表示値として持ってもよいが、収支計画の主計算は `goal_plan_member_group` の積み上げを優先する。
+
+### 9.2 goal_plan_member_group
+
+`goal_plan_member_group` は、計画時点の既存会員を一緒くたにせず、単価や退会特性ごとに分けるための仮説グループ。
+
+CRM がある場合は `membership_plan` や `membership_subscription` から初期値を作る。CRM がない場合は手入力で作る。
+
+最小項目:
+
+- `goal_plan_id`
+- `location_id nullable`
+- `membership_plan_id nullable`
+- `name`
+- `source_type`: `manual` / `crm`
+- `current_member_count`
+- `average_monthly_fee`
+- `monthly_churn_rate`
+- `member_variable_cost_amount nullable`
+- `revenue_variable_cost_rate nullable`
+- `expected_end_month nullable`
+- `display_order`
+
+例:
+
+- 通常会員
+- 上級会員
+- 短期集中会員
+- 受験生
+- 法人会員
+
+`membership_plan` は料金プラン、`goal_plan_member_group` は計画上の分析単位とする。同じ料金プランでも退会タイミングが違う場合は別グループにできるようにする。
+
+### 9.3 goal_plan_month
+
+`goal_plan_month` は月別計画の全体または拠点別の集計値。
 
 最小項目:
 
@@ -355,7 +489,24 @@ ON にしたテンプレートを `cost_item` にコピーする。
 
 拠点別目標の合計が全体目標とズレる場合は警告のみ出す。
 
-レビュー生成時には、該当月の目標値をスナップショットへコピーして固定する。
+### 9.4 goal_plan_month_member_group
+
+`goal_plan_month_member_group` は、会員グループ別の月別計画値。
+
+最小項目:
+
+- `goal_plan_month_id`
+- `goal_plan_member_group_id`
+- `beginning_member_count`
+- `new_member_count_goal`
+- `resigned_member_count_limit`
+- `ending_member_count_goal`
+- `membership_revenue_goal`
+- `average_monthly_fee_goal`
+- `ad_spend_limit nullable`
+- `is_overridden`
+
+全体の `goal_plan_month` は、この明細の積み上げから再計算できるようにする。MVP では全体だけの簡易計画も許容するが、画面設計は会員グループ別へ拡張できる形にする。
 
 ## 10. スナップショット
 
@@ -467,43 +618,95 @@ backend は Java enum、GraphQL は enum として扱う。
 
 ## 14. 初期セットアップ
 
-ログイン後、セットアップ未完了なら初期セットアップウィザードへ強制遷移する。
+ログイン後、セットアップ未完了なら初期セットアップへ誘導する。
 
-初期セットアップで入力するもの:
+初期セットアップは、収支計画そのものではなく、収支計画と CRM で使うマスタの確認・調整に寄せる。ここでは成り行き、GAP 調整、月別計画は作らない。
 
-- 事業名
-- デフォルト拠点名
-- 現在会員数
-- 平均月謝
-- 年間売上目標
-- 年間営業利益目標
-- 年度末会員数目標
-- 許容退会率
-- 想定体験予約率
-- 想定体験実施率
-- 想定入会率
-- 年間広告費上限
-- 許容広告投資率
-- 使う費用テンプレート選択
+会社発行時点で admin が作るもの:
+
+- `company`
+- company code / 会社 ID
+- `business_profile`
+- 初期管理者 `employee`
+- 初期管理者への招待または初期ログイン手段
+- 業種に応じた販管費テンプレート候補
+
+ユーザー初回導線で確認・調整するもの:
+
+- 会員種別 / 会員プラン
+- 利用する販管費項目
+- CRM 実績を使うか、まず手入力で始めるか
+
+セットアップで作るもの:
+
+- `membership_plan`
+- 選択された `cost_item_template` から作る `cost_item`
+
+会員種別 / 会員プランで扱う最小項目:
+
+- 名称
+- 基準月額 nullable
+- 利用回数や区分 nullable
+- 表示順
+- active
+
+販管費項目で扱う最小項目:
+
+- 名称
+- 固定費 / 変動費
+- 店舗別 / 本部共通 / 全社共通などのスコープ
+- 金額または率は任意。未入力の場合は収支計画で入力する
+- active
+
+セットアップ完了後は、最初の収支計画作成へ誘導する。収支計画画面では、ここで登録した会員プランと販管費項目を選択肢として使う。
+
+事業者名、業種、決算月、住所などは初期セットアップではなく、自社情報画面で確認・変更できるようにする。UI では年度開始月ではなく決算月を表示し、内部保存は `business_profile.fiscal_year_start_month` とする。
+
+## 15. 収支計画立案 UI
+
+収支計画立案は、`markeman` の Plan setting / PlanSim に近い画面として作る。
+
+収支計画は 15〜30 分程度かかってもよい。初期セットアップと混ぜず、「今年どうやって売上と利益を作るか」を組む画面として扱う。
+
+入力ステップ:
+
+1. 目標数値: 計画期間、年間売上目標、年間営業利益目標、年度末会員数目標
+2. 既存会員: 会員グループ、現在会員数、平均月謝、月次退会率
+3. 新規入会: 会員グループ別の月間入会数、問い合わせ、体験予約率、体験実施率、入会率
+4. 費用、広告: 登録済み販管費項目ごとの計画額、年間広告費上限、店舗固定費、変動費、本部経費
+5. 成り行き: 現状ペースを続けた場合の売上、利益、会員数
+6. GAP 調整: 入会数、退会率、単価、上位プラン比率、広告費を動かす
+7. 計画保存
 
 初期値:
 
-- 許容退会率: 3%
+- 月次退会率: 3%
 - 体験予約率: 70%
 - 体験実施率: 80%
 - 入会率: 50%
 - 年間目標は月商 × 12 から自動提案
 - 年間営業利益目標は売上 × 目標利益率から自動提案
 
-セットアップで作るもの:
+CRM データがある場合:
 
-- `business_profile`
-- デフォルト `location`
+- `membership_subscription` から会員グループ候補を作る
+- `membership_plan` から月謝単価を補完する
+- 直近退会実績から退会率候補を出す
+
+CRM データがない場合:
+
+- 手入力の会員グループで収支計画を作る
+- 月次レビューで実績入力しながら、後で CRM 実績へ置き換えられるようにする
+
+収支計画保存で作るもの:
+
 - `goal_plan`
+- `goal_plan_member_group`
 - `goal_plan_month`
-- 選択された `cost_item`
+- `goal_plan_month_member_group`
+- 登録済み `cost_item` をもとにした計画費用
 
-## 15. プロトタイプ画面
+## 16. プロトタイプ画面
 
 ベータ募集前に、動くプロトタイプを作る。
 
@@ -514,6 +717,10 @@ backend は Java enum、GraphQL は enum として扱う。
 - ログイン
 - 招待
 - 初期セットアップ
+- 収支計画作成
+- 既存会員グループ設定
+- 成り行き計算
+- GAP 調整
 - location
 - lead
 - trial_session
@@ -521,7 +728,8 @@ backend は Java enum、GraphQL は enum として扱う。
 - membership_subscription
 - cost_item template 選択
 - monthly_review 入力
-- CRM 参考値の自動算出
+- CRM 実績値の自動算出
+- 計画と実績の差分表示
 - PL / CPO / LTV 計算
 - 重要成功要因 最大 3 つ
 - レポート表示
@@ -538,29 +746,30 @@ backend は Java enum、GraphQL は enum として扱う。
 - 予約枠管理
 - 出席履歴
 
-## 16. 月次レビュー入力 UI
+## 17. 月次レビュー入力 UI
 
-月次レビュー入力は 8 ステップのウィザードにする。
+月次レビュー入力は、収支計画と CRM 実績を突き合わせるウィザードにする。
 
 1. 対象月とスタジオ選択
-2. 会員数
-3. 集客
-4. 売上
-5. 広告費
-6. 費用
+2. 計画値確認
+3. CRM 実績値確認
+4. 会員数の補正
+5. 集客実績の補正
+6. 売上、広告費、費用の補正
 7. 確認
 8. レポート生成
 
 必要な UX:
 
 - ステップ間の自動保存
-- CRM 参考値がある場合の「反映」ボタン
+- CRM 実績値がある場合の「反映」ボタン
+- 計画値、CRM 実績値、手入力値を区別して表示する
 - 不整合はブロックせず警告
 - 未確定値フラグ
 - スキップ可能な項目の明示
-- 最終確認で主要 KPI を先に見せる
+- 最終確認で主要 KPI と予実差分を先に見せる
 
-## 17. レポート UI
+## 18. レポート UI
 
 レポートは画面表示を先行する。
 
@@ -572,31 +781,60 @@ backend は Java enum、GraphQL は enum として扱う。
 
 - 今月の重要成功要因 最大 3 つ
 - 来月の推奨アクション
-- 売上 / 営業利益 / 会員数 / CPO の目標差分カード
+- 売上 / 営業利益 / 会員数 / CPO の予実差分カード
+- 計画、CRM 実績、手入力確定値の比較
 - ファネル: 問い合わせ → 体験予約 → 体験実施 → 入会
 - 会員: 月初、入会、退会、月末
+- 既存会員グループ別の差分: 会員数、月謝売上、退会
 - PL: 売上、粗利、営業利益
 - 広告: CPA、CPO、限界 CPO
 - 問題のある拠点カード最大 3 つ
 - 拠点別 PL 比較テーブル
+- 拠点別の撤退判断材料: 売上、粗利、販管費、広告費、営業利益、会員数、退会数
+- 共通費と広告費の按分根拠
 
 各カードには「根拠を見る」を置き、計算式と入力値を展開できるようにする。
 
-## 18. 実装順
+## 19. 実装順
 
-1. 旧ドメイン削除
-2. Liquibase で新ドメインスキーマ作成
-3. jOOQ 生成
-4. backend GraphQL CRUD
-5. 月次レビュー計算サービス
-6. frontend Mantine 導入と旧 HeroUI 置換の土台
-7. 初期セットアップ画面
-8. `lead` / `member` / `trial_session` CRUD
-9. 月次レビュー入力ウィザード
-10. レポート表示
-11. ベータ用デモデータ
+Phase 0 は、いきなり DB / API を完成させず、収支計画の体験と計算仮説を先に固める。
 
-## 19. ベータ顧客獲得
+短期の進め方:
+
+1. 収支計画 UI を mock で育てる
+2. CRM 側で必要な実績データを決める
+3. DB スキーマを Phase 0 の正として確定する
+4. 収支計画の計算ロジックをサービス化する
+5. 計画保存から月次レビューへ接続する
+
+収支計画 UI では、通常会員、上級会員、受験生、週回数別会員などの会員グループを置き、単価、退会率、月間獲得数、広告費、販管費を調整して、成り行きと改善案を比較できる状態を先に作る。
+
+CRM は、計画画面の代替ではなく、月次レビューで実績を拾うための土台として設計する。最初に CRUD を広げすぎず、収支計画と予実管理に必要な `lead`、`member`、`membership_plan`、`membership_subscription`、月謝売上、入会 / 退会 / 休会の実績を優先する。
+
+DB スキーマと GraphQL は、mock UI で固めた入力項目と計算結果を保存できる形に落とす。`goal_plan_member_group` は、CRM の実データをそのまま表すものではなく、収支計画上の分析単位として扱う。
+
+実装順:
+
+1. 収支計画の mock UI
+2. 収支計画の mock 計算ロジック
+3. CRM 実績として必要な項目の仕様確定
+4. 旧ドメイン削除
+5. Liquibase で新ドメインスキーマ作成
+6. jOOQ 生成
+7. backend GraphQL CRUD
+8. 収支計画計算サービス
+9. 初期セットアップ
+10. 収支計画保存
+11. `lead` / `member` / `trial_session` CRUD
+12. CRM 実績集計サービス
+13. 月次レビュー入力ウィザード
+14. 月次レビュー計算サービス
+15. レポート表示
+16. ベータ用デモデータ
+
+収支計画の画面体験を先に固めてから、CRM 実績と月次レビューの予実管理へ接続する。
+
+## 20. ベータ顧客獲得
 
 ベータは無料で始める。ただし条件付きにする。
 
@@ -615,7 +853,7 @@ backend は Java enum、GraphQL は enum として扱う。
 - 正式版移行時に初期価格を一定期間据え置き
 - 月次レビュー資料を返す
 
-## 20. ベータ候補の集め方
+## 21. ベータ候補の集め方
 
 最初は LP / 広告ではなく、知人紹介と直接 DM で取る。
 
@@ -644,7 +882,7 @@ backend は Java enum、GraphQL は enum として扱う。
 
 最初の 1 件は、多少ターゲットからズレても、関係性が強く深く話せる相手を優先する。
 
-## 21. 最初の訴求
+## 22. 最初の訴求
 
 最初の訴求は「SaaS を試してください」ではなく、「月次数字の見直しを一緒にやらせてください」にする。
 
@@ -658,7 +896,7 @@ DM の核:
 
 売り込みではなく、協力依頼と返礼としての月次レビューたたき台を前面に出す。
 
-## 22. ヒアリング方針
+## 23. ヒアリング方針
 
 初回は運用フロー中心に聞き、可能なら概算数字まで聞く。
 
@@ -684,7 +922,7 @@ DM の核:
 - 広告費を使っているか
 - 店舗数
 
-## 23. ベータ運用
+## 24. ベータ運用
 
 ベータ期間中は毎月 1 回同席する。
 
@@ -697,7 +935,7 @@ DM の核:
 - 2 回目: できればセルフ入力後に 30 分レビュー
 - 終了時: 30 分、継続意向、価格感、不要機能確認
 
-## 24. ベータ成功条件
+## 25. ベータ成功条件
 
 成功条件:
 
