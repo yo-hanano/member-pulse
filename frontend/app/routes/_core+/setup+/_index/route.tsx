@@ -631,7 +631,7 @@ export default function SetupIndexRoute() {
         <Button component={Link} to="/settings/system" variant="light">
           システム設定へ
         </Button>
-        <Button component={Link} leftSection={<Check size={16} />} to="/initial-plan">
+        <Button component={Link} leftSection={<Check size={16} />} to="/financial-plans">
           収支計画へ進む
         </Button>
       </Group>

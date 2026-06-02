@@ -77,7 +77,7 @@ export default function Home() {
           component={Link}
           leftSection={<Settings size={16} />}
           rightSection={<ArrowRight size={16} />}
-          to="/initial-plan"
+          to="/financial-plans"
           visibleFrom="sm"
         >
           収支計画

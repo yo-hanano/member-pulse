@@ -1,4 +1,5 @@
 import {
+  ActionIcon,
   AppShell,
   Avatar,
   Burger,
@@ -10,8 +11,10 @@ import {
   Stack,
   Text,
   Title,
+  Tooltip,
   UnstyledButton,
 } from "@mantine/core";
+import { useLocalStorage } from "@mantine/hooks";
 import {
   Activity,
   BadgeJapaneseYen,
@@ -25,6 +28,8 @@ import {
   Megaphone,
   MessageSquare,
   NotebookTabs,
+  PanelLeftClose,
+  PanelLeftOpen,
   Settings,
   SlidersHorizontal,
   Tags,
@@ -115,6 +120,11 @@ export default function CoreLayout() {
   const location = useLocation();
   const submit = useSubmit();
   const [mobileOpened, setMobileOpened] = useState(false);
+  const [sidebarOpened, setSidebarOpened] = useLocalStorage({
+    key: "sidebar-opened",
+    defaultValue: true,
+    getInitialValueInEffect: true,
+  });
   const initials = user.name.slice(0, 1).toUpperCase();
 
   const handleLogout = () => {
@@ -130,7 +140,11 @@ export default function CoreLayout() {
   return (
     <AppShell
       header={{ height: 64 }}
-      navbar={{ width: 280, breakpoint: "md", collapsed: { mobile: !mobileOpened } }}
+      navbar={{
+        width: 280,
+        breakpoint: "md",
+        collapsed: { mobile: !mobileOpened, desktop: !sidebarOpened },
+      }}
       padding="lg"
     >
       <AppShell.Header className="app-shell-header">
@@ -155,6 +169,20 @@ export default function CoreLayout() {
                 </Text>
               </Stack>
             </Group>
+            <Tooltip
+              label={sidebarOpened ? "メニューを閉じる" : "メニューを開く"}
+              position="bottom"
+            >
+              <ActionIcon
+                aria-label={sidebarOpened ? "メニューを閉じる" : "メニューを開く"}
+                onClick={() => setSidebarOpened((opened) => !opened)}
+                size="lg"
+                variant="subtle"
+                visibleFrom="md"
+              >
+                {sidebarOpened ? <PanelLeftClose size={18} /> : <PanelLeftOpen size={18} />}
+              </ActionIcon>
+            </Tooltip>
           </Group>
 
           <Menu position="bottom-end" shadow="md" width={220}>
@@ -213,12 +241,12 @@ export default function CoreLayout() {
           />
 
           <MantineNavLink
-            active={location.pathname === "/initial-plan"}
+            active={location.pathname.startsWith("/financial-plans")}
             component={NavLink}
             label="収支計画"
             leftSection={<ClipboardCheck size={18} />}
             onClick={() => setMobileOpened(false)}
-            to="/initial-plan"
+            to="/financial-plans"
             variant="light"
           />
 
