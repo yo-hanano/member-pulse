@@ -87,3 +87,9 @@ mutation updateMember($memberId: String!, $input: MemberInput!) {
 mutation deleteMember($memberId: String!) {
   deleteMember(memberId: $memberId)
 }
+
+mutation enrollLead($leadId: String!, $input: MemberInput!) {
+  enrollLead(leadId: $leadId, input: $input) {
+    ...MemberDetailView
+  }
+}

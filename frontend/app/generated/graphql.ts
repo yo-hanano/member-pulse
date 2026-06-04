@@ -124,6 +124,17 @@ export type Pagination = {
   orderDirection?: string | null | undefined;
 };
 
+export type TrialSessionInput = {
+  /** ISO-8601 */
+  completedAt?: string | null | undefined;
+  leadId: string;
+  locationId?: string | null | undefined;
+  note?: string | null | undefined;
+  /** ISO-8601 */
+  scheduledAt: string;
+  status: string;
+};
+
 export type AreaListItemFragment = { id: string | undefined | null, name: string | undefined | null, dispOrder: number | undefined | null };
 
 export type AllAreasQueryVariables = Exact<{ [key: string]: never; }>;
@@ -288,6 +299,44 @@ export type DeleteLeadMutationVariables = Exact<{
 
 export type DeleteLeadMutation = { deleteLead: boolean };
 
+export type TrialSessionListItemFragment = { id: string | undefined | null, leadId: string | undefined | null, locationId: string | undefined | null, scheduledAt: string | undefined | null, completedAt: string | undefined | null, status: string | undefined | null, note: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null };
+
+export type TrialSessionsByLeadIdQueryVariables = Exact<{
+  leadId: string;
+}>;
+
+
+export type TrialSessionsByLeadIdQuery = { trialSessionsByLeadId: Array<{ id: string | undefined | null, leadId: string | undefined | null, locationId: string | undefined | null, scheduledAt: string | undefined | null, completedAt: string | undefined | null, status: string | undefined | null, note: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null> | undefined | null };
+
+export type TrialSessionByIdQueryVariables = Exact<{
+  trialSessionId: string;
+}>;
+
+
+export type TrialSessionByIdQuery = { trialSessionById: { id: string | undefined | null, leadId: string | undefined | null, locationId: string | undefined | null, scheduledAt: string | undefined | null, completedAt: string | undefined | null, status: string | undefined | null, note: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null };
+
+export type CreateTrialSessionMutationVariables = Exact<{
+  input: TrialSessionInput;
+}>;
+
+
+export type CreateTrialSessionMutation = { createTrialSession: { id: string | undefined | null, leadId: string | undefined | null, locationId: string | undefined | null, scheduledAt: string | undefined | null, completedAt: string | undefined | null, status: string | undefined | null, note: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null };
+
+export type UpdateTrialSessionMutationVariables = Exact<{
+  trialSessionId: string;
+  input: TrialSessionInput;
+}>;
+
+
+export type UpdateTrialSessionMutation = { updateTrialSession: { id: string | undefined | null, leadId: string | undefined | null, locationId: string | undefined | null, scheduledAt: string | undefined | null, completedAt: string | undefined | null, status: string | undefined | null, note: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null };
+
+export type DeleteTrialSessionMutationVariables = Exact<{
+  trialSessionId: string;
+}>;
+
+
+export type DeleteTrialSessionMutation = { deleteTrialSession: boolean };
+
 export type LocationFormInitialFragment = { id: string | undefined | null, areaId: string | undefined | null, name: string | undefined | null, zipCode: string | undefined | null, prefectureCode: string | undefined | null, address: string | undefined | null, isDefault: boolean | undefined | null, displayOrder: number | undefined | null };
 
 export type LocationListItemFragment = { id: string | undefined | null, areaId: string | undefined | null, name: string | undefined | null, zipCode: string | undefined | null, prefectureCode: string | undefined | null, address: string | undefined | null, isDefault: boolean | undefined | null, displayOrder: number | undefined | null, area: { id: string | undefined | null, name: string | undefined | null } | undefined | null, prefecture: { code: string | undefined | null, name: string | undefined | null } | undefined | null };
@@ -382,6 +431,14 @@ export type DeleteMemberMutationVariables = Exact<{
 
 export type DeleteMemberMutation = { deleteMember: boolean };
 
+export type EnrollLeadMutationVariables = Exact<{
+  leadId: string;
+  input: MemberInput;
+}>;
+
+
+export type EnrollLeadMutation = { enrollLead: { id: string | undefined | null, locationId: string | undefined | null, leadId: string | undefined | null, name: string | undefined | null, status: string | undefined | null, joinedAt: string | undefined | null, resignedAt: string | undefined | null, resignationReasonCode: string | undefined | null, resignationNote: string | undefined | null, phone: string | undefined | null, email: string | undefined | null, lineDisplayName: string | undefined | null, address: string | undefined | null, birthDate: string | undefined | null, source: string | undefined | null, note: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null, lead: { id: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null };
+
 export type PrefectureOptionFragment = { code: string | undefined | null, name: string | undefined | null, sortOrder: number | undefined | null };
 
 export type AllPrefecturesQueryVariables = Exact<{ [key: string]: never; }>;
@@ -457,6 +514,21 @@ export const LeadOptionFragmentDoc = gql`
   locationId
   name
   status
+}
+    `;
+export const TrialSessionListItemFragmentDoc = gql`
+    fragment TrialSessionListItem on TrialSession {
+  id
+  leadId
+  locationId
+  location {
+    id
+    name
+  }
+  scheduledAt
+  completedAt
+  status
+  note
 }
     `;
 export const LocationFormInitialFragmentDoc = gql`
@@ -722,6 +794,39 @@ export const DeleteLeadDocument = gql`
   deleteLead(leadId: $leadId)
 }
     `;
+export const TrialSessionsByLeadIdDocument = gql`
+    query trialSessionsByLeadId($leadId: String!) {
+  trialSessionsByLeadId(leadId: $leadId) {
+    ...TrialSessionListItem
+  }
+}
+    ${TrialSessionListItemFragmentDoc}`;
+export const TrialSessionByIdDocument = gql`
+    query trialSessionById($trialSessionId: String!) {
+  trialSessionById(trialSessionId: $trialSessionId) {
+    ...TrialSessionListItem
+  }
+}
+    ${TrialSessionListItemFragmentDoc}`;
+export const CreateTrialSessionDocument = gql`
+    mutation createTrialSession($input: TrialSessionInput!) {
+  createTrialSession(input: $input) {
+    ...TrialSessionListItem
+  }
+}
+    ${TrialSessionListItemFragmentDoc}`;
+export const UpdateTrialSessionDocument = gql`
+    mutation updateTrialSession($trialSessionId: String!, $input: TrialSessionInput!) {
+  updateTrialSession(trialSessionId: $trialSessionId, input: $input) {
+    ...TrialSessionListItem
+  }
+}
+    ${TrialSessionListItemFragmentDoc}`;
+export const DeleteTrialSessionDocument = gql`
+    mutation deleteTrialSession($trialSessionId: String!) {
+  deleteTrialSession(trialSessionId: $trialSessionId)
+}
+    `;
 export const AllLocationsDocument = gql`
     query allLocations {
   allLocations {
@@ -814,6 +919,13 @@ export const DeleteMemberDocument = gql`
   deleteMember(memberId: $memberId)
 }
     `;
+export const EnrollLeadDocument = gql`
+    mutation enrollLead($leadId: String!, $input: MemberInput!) {
+  enrollLead(leadId: $leadId, input: $input) {
+    ...MemberDetailView
+  }
+}
+    ${MemberDetailViewFragmentDoc}`;
 export const AllPrefecturesDocument = gql`
     query allPrefectures {
   allPrefectures {
@@ -895,6 +1007,21 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     deleteLead(variables: DeleteLeadMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<DeleteLeadMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<DeleteLeadMutation>({ document: DeleteLeadDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'deleteLead', 'mutation', variables);
     },
+    trialSessionsByLeadId(variables: TrialSessionsByLeadIdQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<TrialSessionsByLeadIdQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<TrialSessionsByLeadIdQuery>({ document: TrialSessionsByLeadIdDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'trialSessionsByLeadId', 'query', variables);
+    },
+    trialSessionById(variables: TrialSessionByIdQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<TrialSessionByIdQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<TrialSessionByIdQuery>({ document: TrialSessionByIdDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'trialSessionById', 'query', variables);
+    },
+    createTrialSession(variables: CreateTrialSessionMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<CreateTrialSessionMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<CreateTrialSessionMutation>({ document: CreateTrialSessionDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'createTrialSession', 'mutation', variables);
+    },
+    updateTrialSession(variables: UpdateTrialSessionMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<UpdateTrialSessionMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<UpdateTrialSessionMutation>({ document: UpdateTrialSessionDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'updateTrialSession', 'mutation', variables);
+    },
+    deleteTrialSession(variables: DeleteTrialSessionMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<DeleteTrialSessionMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<DeleteTrialSessionMutation>({ document: DeleteTrialSessionDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'deleteTrialSession', 'mutation', variables);
+    },
     allLocations(variables?: AllLocationsQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<AllLocationsQuery> {
       return withWrapper((wrappedRequestHeaders) => client.request<AllLocationsQuery>({ document: AllLocationsDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'allLocations', 'query', variables);
     },
@@ -930,6 +1057,9 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     deleteMember(variables: DeleteMemberMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<DeleteMemberMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<DeleteMemberMutation>({ document: DeleteMemberDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'deleteMember', 'mutation', variables);
+    },
+    enrollLead(variables: EnrollLeadMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<EnrollLeadMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<EnrollLeadMutation>({ document: EnrollLeadDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'enrollLead', 'mutation', variables);
     },
     allPrefectures(variables?: AllPrefecturesQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<AllPrefecturesQuery> {
       return withWrapper((wrappedRequestHeaders) => client.request<AllPrefecturesQuery>({ document: AllPrefecturesDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'allPrefectures', 'query', variables);

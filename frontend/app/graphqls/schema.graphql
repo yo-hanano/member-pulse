@@ -129,11 +129,14 @@ type Mutation {
   createLead(input: LeadInput): Lead
   createLocation(input: LocationInput): Location
   createMember(input: MemberInput): Member
+  createTrialSession(input: TrialSessionInput): TrialSession
   deleteArea(areaId: String!): Boolean!
   deleteEmployee(employeeId: String!): Boolean!
   deleteLead(leadId: String!): Boolean!
   deleteLocation(locationId: String!): Boolean!
   deleteMember(memberId: String!): Boolean!
+  deleteTrialSession(trialSessionId: String!): Boolean!
+  enrollLead(input: MemberInput, leadId: String!): Member
   issueEmployeeInvite(input: EmployeeInviteInput): EmployeeInviteResult
   updateArea(areaId: String!, input: AreaInput): Area
   updateAreaOrders(inputs: [AreaOrderInput]): Boolean!
@@ -142,6 +145,7 @@ type Mutation {
   updateLocation(input: LocationInput, locationId: String!): Location
   updateMember(input: MemberInput, memberId: String!): Member
   updateOwnAccount(input: OwnAccountUpdateInput): Employee
+  updateTrialSession(input: TrialSessionInput, trialSessionId: String!): TrialSession
 }
 
 type Page_Area {
@@ -209,6 +213,29 @@ type Query {
   locationPagination(filter: LocationFilterInput, pagination: Pagination): Page_Location
   memberById(memberId: String!): Member
   memberPagination(filter: MemberFilterInput, pagination: Pagination): Page_Member
+  trialSessionById(trialSessionId: String!): TrialSession
+  trialSessionsByLeadId(leadId: String!): [TrialSession]
+}
+
+type TrialSession {
+  companyId: String
+  "ISO-8601"
+  completedAt: DateTime
+  "ISO-8601"
+  createdAt: DateTime
+  "ISO-8601"
+  deletedAt: DateTime
+  id: String
+  lead: Lead
+  leadId: String
+  location: Location
+  locationId: String
+  note: String
+  "ISO-8601"
+  scheduledAt: DateTime
+  status: String
+  "ISO-8601"
+  updatedAt: DateTime
 }
 
 "Scalar for BigDecimal"
@@ -340,4 +367,15 @@ input Pagination {
   offset: Int
   orderBy: String
   orderDirection: String
+}
+
+input TrialSessionInput {
+  "ISO-8601"
+  completedAt: DateTime
+  leadId: String!
+  locationId: String
+  note: String
+  "ISO-8601"
+  scheduledAt: DateTime!
+  status: String!
 }

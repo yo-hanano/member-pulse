@@ -1,13 +1,16 @@
 package com.cxisystem.feature.service;
 
 import com.cxisystem.annotation.Rls;
+import com.cxisystem.exception.BadRequestException;
 import com.cxisystem.exception.NotFoundException;
+import com.cxisystem.feature.dao.LeadDao;
 import com.cxisystem.feature.dao.MemberDao;
 import com.cxisystem.feature.dto.Page;
 import com.cxisystem.feature.input.MemberFilterInput;
 import com.cxisystem.feature.input.MemberInput;
 import com.cxisystem.feature.input.Pagination;
 import com.cxisystem.feature.type.Member;
+import com.cxisystem.jooq.tables.records.LeadRecord;
 import com.cxisystem.jooq.tables.records.MemberRecord;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -23,8 +26,14 @@ import org.apache.commons.lang3.StringUtils;
 @ApplicationScoped
 public class MemberService extends AbstractService<MemberRecord, Member, String, MemberDao> {
 
+  private static final String LEAD_STATUS_CONTRACTED = "contracted";
+  private static final String LEAD_STATUS_ENROLLED = "enrolled";
+
   @Inject
   MemberDao memberDao;
+
+  @Inject
+  LeadDao leadDao;
 
   /** 会員操作に使う Dao を返します。 */
   @Override
@@ -65,6 +74,30 @@ public class MemberService extends AbstractService<MemberRecord, Member, String,
     normalizeOptionalFields(memberRecord);
     memberRecord.store();
     memberRecord.refresh();
+    return memberRecord.into(Member.class);
+  }
+
+  /** 成約済みリードを起点に会員を作成し、リードを入会済みにします。 */
+  @Rls
+  @Transactional
+  public Member enrollLead(String leadId, MemberInput input) {
+    LeadRecord leadRecord = leadDao.findOptionalById(leadId)
+        .orElseThrow(() -> new NotFoundException("lead not found: " + leadId));
+    if (!LEAD_STATUS_CONTRACTED.equals(leadRecord.getStatus())) {
+      throw new BadRequestException("lead is not contracted: " + leadId);
+    }
+    if (memberDao.existsByLeadId(leadId)) {
+      throw new BadRequestException("lead is already enrolled: " + leadId);
+    }
+
+    MemberRecord memberRecord = newRecord(input);
+    memberRecord.setLeadId(leadId);
+    normalizeOptionalFields(memberRecord);
+    memberRecord.store();
+    memberRecord.refresh();
+
+    leadRecord.setStatus(LEAD_STATUS_ENROLLED);
+    leadRecord.store();
     return memberRecord.into(Member.class);
   }
 

@@ -4,6 +4,7 @@ export const leadStatusValues = [
   "contacted",
   "trial_scheduled",
   "trial_completed",
+  "contracted",
   "enrolled",
   "lost",
 ] as const;
@@ -15,8 +16,9 @@ export const leadStatusOptions = [
   { value: "contacted", label: "連絡済み" },
   { value: "trial_scheduled", label: "体験予定" },
   { value: "trial_completed", label: "体験済み" },
+  { value: "contracted", label: "成約" },
   { value: "enrolled", label: "入会済み" },
-  { value: "lost", label: "失注" },
+  { value: "lost", label: "不成約" },
 ] as const;
 
 export const leadStatusLabels: Record<LeadStatus, string> = {
@@ -24,8 +26,9 @@ export const leadStatusLabels: Record<LeadStatus, string> = {
   contacted: "連絡済み",
   trial_scheduled: "体験予定",
   trial_completed: "体験済み",
+  contracted: "成約",
   enrolled: "入会済み",
-  lost: "失注",
+  lost: "不成約",
 };
 
 export const formatLeadStatus = (value?: string | null) => {
@@ -37,7 +40,7 @@ export const formatLeadStatus = (value?: string | null) => {
 export const leadStatusBadgeColor = (value?: string | null) => {
   const key = value?.trim().toLowerCase();
   if (key === "trial_scheduled" || key === "trial_completed") return "yellow";
-  if (key === "contacted" || key === "enrolled") return "teal";
+  if (key === "contacted" || key === "contracted" || key === "enrolled") return "teal";
   if (key === "lost") return "red";
   return "gray";
 };
@@ -47,7 +50,7 @@ export const leadStatusColor = (
 ): "success" | "warning" | "default" | "danger" => {
   const key = value?.trim().toLowerCase();
   if (key === "trial_scheduled" || key === "trial_completed") return "warning";
-  if (key === "contacted" || key === "enrolled") return "success";
+  if (key === "contacted" || key === "contracted" || key === "enrolled") return "success";
   if (key === "lost") return "danger";
   return "default";
 };

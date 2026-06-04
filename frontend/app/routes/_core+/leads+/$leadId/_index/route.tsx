@@ -41,7 +41,8 @@ type UpdateLeadStatusNoteActionData = Awaited<ReturnType<typeof updateLeadStatus
 
 // リード詳細の概要タブ。
 export default function LeadDetailOverviewRoute() {
-  const { lead } = useOutletContext<LeadDetailContext>();
+  const { lead, trialSessions } = useOutletContext<LeadDetailContext>();
+  const latestTrialSession = trialSessions[0];
   const navigate = useNavigate();
   const [isStatusNoteOpen, setStatusNoteOpen] = useState(false);
 
@@ -77,6 +78,10 @@ export default function LeadDetailOverviewRoute() {
               {formatLeadStatus(lead.status)}
             </Badge>
           </Stack>
+          <Field
+            label="最新体験日時"
+            value={formatDateTimeYmdHm(latestTrialSession?.scheduledAt)}
+          />
           <Field label="電話番号" value={lead.phone ?? "-"} />
           <Field label="メールアドレス" value={lead.email ?? "-"} />
           <Field label="流入元" value={lead.source ?? "-"} />

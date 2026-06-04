@@ -32,6 +32,11 @@ public class MemberDao extends AbstractDao<MemberRecord, String> {
     return paginationByCondition(pagination, buildFilterCondition(filter));
   }
 
+  /** 指定リードから変換済みの未削除会員が存在するか返します。 */
+  public boolean existsByLeadId(String leadId) {
+    return exists(deletedCondition().and(MEMBER.LEAD_ID.eq(leadId)));
+  }
+
   /** 絞り込み条件に一致する会員件数を返します。 */
   public Integer fetchCount(MemberFilterInput filter) {
     return fetchCount(deletedCondition().and(buildFilterCondition(filter)));

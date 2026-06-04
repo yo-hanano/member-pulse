@@ -78,3 +78,45 @@ mutation updateLead($leadId: String!, $input: LeadInput!) {
 mutation deleteLead($leadId: String!) {
   deleteLead(leadId: $leadId)
 }
+
+fragment TrialSessionListItem on TrialSession {
+  id
+  leadId
+  locationId
+  location {
+    id
+    name
+  }
+  scheduledAt
+  completedAt
+  status
+  note
+}
+
+query trialSessionsByLeadId($leadId: String!) {
+  trialSessionsByLeadId(leadId: $leadId) {
+    ...TrialSessionListItem
+  }
+}
+
+query trialSessionById($trialSessionId: String!) {
+  trialSessionById(trialSessionId: $trialSessionId) {
+    ...TrialSessionListItem
+  }
+}
+
+mutation createTrialSession($input: TrialSessionInput!) {
+  createTrialSession(input: $input) {
+    ...TrialSessionListItem
+  }
+}
+
+mutation updateTrialSession($trialSessionId: String!, $input: TrialSessionInput!) {
+  updateTrialSession(trialSessionId: $trialSessionId, input: $input) {
+    ...TrialSessionListItem
+  }
+}
+
+mutation deleteTrialSession($trialSessionId: String!) {
+  deleteTrialSession(trialSessionId: $trialSessionId)
+}
