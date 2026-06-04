@@ -16,7 +16,7 @@ Phase 0 は、実 DB、ログイン、RLS を含む動くプロトタイプと�
 
 Phase 0 では責務を次の 3 つに分ける。
 
-- 収支計画: `markeman` の Plan / PlanSim に近い。仮説として既存会員、会員プラン、新規入会、広告費、費用を置き、成り行きと改善案を比較する。
+- 収支計画: `markeman` の Plan / PlanSim に近い。仮説として既存会員、料金プラン、新規入会、広告費、費用を置き、成り行きと改善案を比較する。
 - CRM 実績: `lead` / `trial_session` / `member` / `membership_subscription` を実績データの正として扱う。誰がどのプランで入会、継続、退会したかを保持する。
 - 月次レビュー: 収支計画と CRM 実績または手入力実績を突き合わせ、差分、PL / CPO / LTV、重要成功要因、レポートを生成する。
 
@@ -42,6 +42,9 @@ CRM 登録がある場合は、月次レビュー入力時に参考集計値を�
 - `member`
 - `membership_plan`
 - `membership_subscription`
+- `additional_revenue_item`
+- `goal_plan_additional_revenue`
+- `monthly_review_additional_revenue`
 - `cost_item_template`
 - `cost_item`
 - `monthly_review`
@@ -50,6 +53,16 @@ CRM 登録がある場合は、月次レビュー入力時に参考集計値を�
 - `ad_spend`
 - `monthly_review_snapshot`
 - `monthly_review_location_snapshot`
+
+### 2.1 売上系テーブルの位置づけ
+
+`membership_plan` は、Phase 0 では月額固定と回数購入を含む料金プランとして扱う。月額固定、通い放題、回数券、チケット制、1回券は、種別と契約条件の組み合わせで表現する。DB 確定前に、より広い名前として `pricing_plan` へ改名するかを最終判断する。
+
+`additional_revenue_item` は、入会金、体験料、物販、イベント、季節講習的な一時売上など、会員契約とは別に発生する売上項目のマスタとする。
+
+`goal_plan_additional_revenue` は、収支計画上の月別追加売上見込みを持つ。
+
+`monthly_review_additional_revenue` は、月次レビュー時の追加売上実績明細を持つ。MVP では `monthly_review_location.other_revenue` の合計入力だけでも保存できるようにし、明細入力がある場合にこのテーブルへ分解する。
 
 既存 `juku-ops` 由来の旧ドメインは、新ドメイン実装前に削除する。
 
@@ -94,7 +107,7 @@ admin の会社発行で行うこと:
 - 初期管理者への招待または初期ログイン手段の発行
 - 業種に応じた販管費テンプレート候補の用意
 
-ユーザー初回導線では会社 ID を発行しない。ユーザーは発行済みの会社にログインし、必要に応じて自社情報、会員プラン、販管費項目を確認・調整する。
+ユーザー初回導線では会社 ID を発行しない。ユーザーは発行済みの会社にログインし、必要に応じて自社情報、料金プラン、追加売上項目、販管費項目を確認・調整する。
 
 `company` は認証、RLS、組織境界の基盤テーブルとして残す。会社 ID / company code は admin の会社発行時に決まり、ユーザー側では変更不可にする。
 
@@ -162,13 +175,50 @@ admin の会社発行で行うこと:
 
 `lead` / `member` / `trial_session` / `membership_subscription` は、月次レビューの自動算出と予実管理に使う実績データソースとして扱う。
 
-収支計画は仮説入力で作れるようにし、CRM はその予実管理を支える。計画作成時に CRM データが存在する場合は、既存会員数、会員プラン別単価、退会率などの初期値を CRM から補完できるようにする。
+収支計画は仮説入力で作れるようにし、CRM はその予実管理を支える。計画作成時に CRM データが存在する場合は、既存会員数、料金プラン別単価、退会率などの初期値を CRM から補完できるようにする。
 
 月次レビューの主導線はあくまで月次レビュー入力とレポートであり、CRM は「データ管理」または「実績補助」配下に置く。
 
 LP や初期訴求では CRM を前面に出さない。
 
-### 5.1 lead から member への入会変換
+### 5.1 リード管理と体験セッションの位置づけ
+
+リード管理は、問い合わせから入会までの業務フローをまとめて扱う。`trial_session` は独立メニューではなく、`lead` の関連情報として扱う。
+
+基本フロー:
+
+1. `lead` を作成する
+2. `lead.status` を更新する
+3. `trial_session` を追加して体験予約を記録する
+4. `trial_session` に実施結果を入力する
+5. 入会処理で `member` と `membership_subscription` を作成する
+
+リード詳細画面は次の関連情報を持つ。
+
+- 基本情報: 氏名、連絡先、問い合わせ日、問い合わせ経路、希望拠点、メモ
+- 対応履歴: 架電、メール、LINE、面談メモなどの軽量記録
+- 体験セッション: 予約日時、実施日時、ステータス、結果メモ
+- 入会処理: 入会日、会員情報、契約する料金プラン、契約開始日
+
+`lead.status` は画面操作上の状態として保持し、`trial_session` の有無や結果から完全自動導出しない。実務では再体験、体験後保留、体験予約済みだが連絡待ちなどが発生するため、状態は手動更新できるようにする。
+
+初期ステータス:
+
+- `new`: 新規問い合わせ
+- `contacted`: 連絡済み
+- `trial_scheduled`: 体験予約
+- `trial_completed`: 体験実施
+- `enrolled`: 入会
+- `lost`: 失注
+
+月次レビューで使うファネル指標は、リード管理から次のように取得する。
+
+- 問い合わせ数: `lead.inquiry_at` または `lead.created_at` が対象月の件数
+- 体験予約数: 対象月に `trial_session.scheduled_at` がある件数
+- 体験実施数: 対象月に `trial_session.completed_at` がある、または `status = completed` の件数
+- 入会数: `lead.enrolled_at`、または `membership_subscription.start_date` が対象月の件数
+
+### 5.2 lead から member への入会変換
 
 入会変換時は、必ず `member` と `membership_subscription` を同時作成する。
 
@@ -183,7 +233,7 @@ LP や初期訴求では CRM を前面に出さない。
 
 同一 `lead` から二重変換できない制約を置く。
 
-### 5.2 trial_session
+### 5.3 trial_session
 
 `trial_session` は独立テーブルとして持つ。
 
@@ -204,7 +254,7 @@ LP や初期訴求では CRM を前面に出さない。
 
 予約管理ではなく、ファネル実績の軽量記録として扱う。
 
-### 5.3 member と membership_subscription
+### 5.4 member と membership_subscription
 
 月末会員数、平均月謝、月謝売上、LTV は `membership_subscription` の履歴を使って算出する。
 
@@ -221,6 +271,78 @@ LP や初期訴求では CRM を前面に出さない。
 - `membership_subscription.monthly_fee`
 
 休会は内訳には出すが、月謝売上と LTV 用在籍からは別扱いにする。
+
+### 5.5 料金プラン管理
+
+`membership_plan` は、入会処理で選択する料金プランとして扱う。実装上は会員プランという名前を維持するが、仕様上は月額固定と回数購入を表現できる料金プランである。
+
+料金体系は次の 2 種類を基本にする。
+
+- `subscription`: 月額固定。月4回、月8回、通い放題、デイタイムなど
+- `ticket`: 回数購入。5回券、10回券、40レッスン、1回券など
+
+都度払いは独立種別にせず、初期は `ticket` の 1回券、または追加売上項目として扱う。
+
+コース契約は独立種別にしない。3ヶ月コースや短期集中は、`subscription` または `ticket` に契約期間、有効期限、付与回数を持たせて表現する。
+
+最小項目:
+
+- `company_id`
+- `name`
+- `pricing_model`: `subscription` / `ticket`
+- `price`
+- `contract_months nullable`
+- `included_sessions nullable`
+- `usage_limit_type`: `limited` / `unlimited`
+- `validity_days nullable`
+- `auto_renew`
+- `affects_member_count`
+- `display_order`
+- `active`
+
+表現例:
+
+| 例 | pricing_model | contract_months | included_sessions | usage_limit_type | validity_days | auto_renew |
+| --- | --- | ---: | ---: | --- | ---: | --- |
+| 月4回 | subscription | 1 | 4 | limited | null | true |
+| 月8回 | subscription | 1 | 8 | limited | null | true |
+| 通い放題 | subscription | 1 | null | unlimited | null | true |
+| 10回券 | ticket | null | 10 | limited | 90 | false |
+| 3ヶ月コース | subscription または ticket | 3 | 任意 | limited | null または 90 | false |
+| 都度払い | ticket | null | 1 | limited | null | false |
+
+`membership_subscription` は、入会時点の契約内容を履歴として保持する。将来プラン価格が変わっても過去月の月謝売上や LTV が壊れないよう、契約時の `price`、`pricing_model`、`included_sessions` など必要なスナップショット値を持たせる。
+
+### 5.6 追加売上項目管理
+
+`additional_revenue_item` は、会員契約とは別に発生する売上項目を扱う。リードや会員に紐づく場合もあるが、月次レビュー上は売上明細として集計できればよい。
+
+対象例:
+
+- 入会金
+- 体験料
+- ワークショップ
+- イベント
+- 物販
+- 季節キャンペーン
+- 特別レッスン
+- その他
+
+最小項目:
+
+- `company_id`
+- `name`
+- `revenue_category`: `enrollment_fee` / `trial_fee` / `event` / `workshop` / `merchandise` / `campaign` / `other`
+- `default_unit_price nullable`
+- `affects_member_count` default false
+- `display_order`
+- `active`
+
+収支計画では、`goal_plan_additional_revenue` に対象月、拠点、売上項目、単価、数量、金額、メモを持つ。
+
+月次レビューでは、`monthly_review_additional_revenue` に対象月、拠点、売上項目、単価、数量、金額、メモを持つ。明細入力を使わない場合は `monthly_review_location.other_revenue` の合計だけでよい。
+
+追加売上は、会員数 KPI に直接効くものとして扱わない。入会金のように入会数と連動する項目でも、会員数は `lead` から `member` への入会変換で数え、売上は追加売上として別集計する。
 
 ## 6. 月次レビュー入力
 
@@ -403,7 +525,7 @@ MVP の広告費按分は次を優先する。
 
 - 目標売上、目標営業利益
 - 既存会員グループ
-- 会員プランまたは会員種別
+- 料金プランまたは会員グループ
 - 新規入会計画
 - 広告費
 - 変動費、固定費、本部経費
@@ -461,6 +583,8 @@ CRM がある場合は `membership_plan` や `membership_subscription` から初
 - 法人会員
 
 `membership_plan` は料金プラン、`goal_plan_member_group` は計画上の分析単位とする。同じ料金プランでも退会タイミングが違う場合は別グループにできるようにする。
+
+`goal_plan_member_group` は、会員数 KPI に効く料金プランを中心に扱う。回数購入でも継続的な会員として追う場合はここに含める。単発イベントや物販のように会員数 KPI に効かない売上は、`goal_plan_additional_revenue` で扱う。
 
 ### 9.3 goal_plan_month
 
@@ -599,6 +723,9 @@ CRM やマスタ、目標、入力値が後で変わっても、確定済みレ�
 - `trial_session`
 - `member`
 - `membership_subscription`
+- `additional_revenue_item`
+- `goal_plan_additional_revenue`
+- `monthly_review_additional_revenue`
 - `monthly_review`
 - `monthly_review_location`
 - `monthly_review_cost`
@@ -633,20 +760,36 @@ backend は Java enum、GraphQL は enum として扱う。
 
 ユーザー初回導線で確認・調整するもの:
 
-- 会員種別 / 会員プラン
+- 料金プラン
+- 追加売上項目
 - 利用する販管費項目
 - CRM 実績を使うか、まず手入力で始めるか
 
 セットアップで作るもの:
 
 - `membership_plan`
+- `additional_revenue_item`
 - 選択された `cost_item_template` から作る `cost_item`
 
-会員種別 / 会員プランで扱う最小項目:
+料金プランで扱う最小項目:
 
 - 名称
-- 基準月額 nullable
-- 利用回数や区分 nullable
+- 料金体系: 月額固定 / 回数購入
+- 金額
+- 契約期間 nullable
+- 付与回数 nullable
+- 利用上限: 回数制限あり / 通い放題
+- 有効期限 nullable
+- 自動更新有無
+- 会員数 KPI に反映するか
+- 表示順
+- active
+
+追加売上項目で扱う最小項目:
+
+- 名称
+- 売上カテゴリ
+- 標準単価 nullable
 - 表示順
 - active
 
@@ -658,7 +801,7 @@ backend は Java enum、GraphQL は enum として扱う。
 - 金額または率は任意。未入力の場合は収支計画で入力する
 - active
 
-セットアップ完了後は、最初の収支計画作成へ誘導する。収支計画画面では、ここで登録した会員プランと販管費項目を選択肢として使う。
+セットアップ完了後は、最初の収支計画作成へ誘導する。収支計画画面では、ここで登録した料金プラン、追加売上項目、販管費項目を選択肢として使う。
 
 事業者名、業種、決算月、住所などは初期セットアップではなく、自社情報画面で確認・変更できるようにする。UI では年度開始月ではなく決算月を表示し、内部保存は `business_profile.fiscal_year_start_month` とする。
 
@@ -680,7 +823,7 @@ backend は Java enum、GraphQL は enum として扱う。
 
 用語対応:
 
-- product: 会員プランまたは会員グループ
+- product: 料金プランまたは会員グループ
 - plan setting: 計画シナリオ設定
 - 販売件数: 入会数
 - CVR: F2 体験予約率 / F3 体験実施率 / F4 入会率
@@ -700,7 +843,7 @@ backend は Java enum、GraphQL は enum として扱う。
 `financial-plans/setting` の確定構成:
 
 - 計画グループ: 期間、売上目標、営業利益目標、期末会員目標を設定する。markeman の目標数値カード相当はここへ統合する
-- 1. 売上関連: 会員プランと入会計画をカードで表示する。目標数値は計画グループに持たせるため、このセクションには出さない
+- 1. 売上関連: 料金プランと入会計画、追加売上をカードで表示する。目標数値は計画グループに持たせるため、このセクションには出さない
 - 2. 経費関連: 販管費と広告費をカードで表示する
 - 3. 着地: 月別の売上、営業利益、会員数、入会数、問い合わせ数を確認する
 - 各カード: チェック状態、編集アイコン、主要な要約値を持つ。setting 画面内には結果カードだけを表示し、追加・更新フォームは Drawer で開く
@@ -717,23 +860,28 @@ backend は Java enum、GraphQL は enum として扱う。
    - 期末会員数目標
 
 2. 現状数値
-   - 会員プラン別に、現時点の売上・会員・ファネル前提を Drawer で入力する
+   - 料金プラン別に、現時点の売上・会員・ファネル前提を Drawer で入力する
    - 入会件数などの計画値はここには置かず、次のセクションに分ける
-   - setting 画面には入力フォームを直接並べず、会員プランごとの設定結果カードを表示する
-   - 会員プラン別の項目:
-     - 会員プラン名
-     - 月謝
-     - 期初人数
-     - 月次解約率
+   - setting 画面には入力フォームを直接並べず、料金プランごとの設定結果カードを表示する
+   - 料金プラン別の項目:
+     - 料金プラン名
+     - 料金体系: 月額固定 / 回数購入
+     - 金額
+     - 期初人数または販売数
+     - 月額固定: 月次解約率、自動更新有無
+     - 回数購入: 付与回数、有効期限
+     - 通い放題: 利用上限なしとして表示
      - 体験予約率
      - 体験実施率
      - 入会率
+   - Drawer ではカード表示と同じく `在籍・単価前提` と `獲得ファネル` に分ける
+   - 3ヶ月コースや短期集中は独立した種別にせず、月額固定または回数購入に契約期間、有効期限、付与回数を持たせて表現する
 
 3. リード・入会計画
    - `markeman` の販売件数に相当するものとして、MemberPulse ではリード数を起点にする
    - 表示名は利用者に伝わりやすいように `問い合わせ数/月` を優先する
    - 内部モデル名は `lead_count` 系を優先する
-   - 会員プラン別の項目:
+   - 料金プラン別の項目:
      - 問い合わせ数/月
      - 体験予約数/月 = 問い合わせ数/月 × 体験予約率
      - 体験実施数/月 = 体験予約数/月 × 体験実施率
@@ -765,13 +913,13 @@ backend は Java enum、GraphQL は enum として扱う。
 現状数値の初期値:
 
 - 実績がある場合:
-  - `membership_plan` から会員プランと月謝を取得する
+  - `membership_plan` から料金プランと金額を取得する
   - `membership_subscription` から期初人数候補を作る
   - 直近退会実績から月次解約率候補を出す
   - CRM 実績から問い合わせ、体験予約、体験実施、入会の実績率を計算する
 - 実績がない場合:
-  - 会員プラン、月謝、期初人数、解約率、F2/F3/F4 を手入力する
-  - 初期値は月次解約率 3%、体験予約率 70%、体験実施率 80%、入会率 50% とする
+  - 料金プラン、料金体系、金額、期初人数または販売数、解約率または有効期限、体験予約率、体験実施率、入会率を手入力する
+  - 初期値は月額固定、月次解約率 3%、体験予約率 70%、体験実施率 80%、入会率 50% とする
 
 グリッド入力:
 
@@ -786,15 +934,15 @@ backend は Java enum、GraphQL は enum として扱う。
 
 - 計画グループ: 期間と目標を持つ
 - 収支計画: 計画グループに紐づく具体シナリオを持つ
-- 会員プラン別の現状数値スナップショット
-- 会員プラン別のリード・入会計画
+- 料金プラン別の現状数値スナップショット
+- 料金プラン別のリード・入会計画
 - 月次の売上、会員数、問い合わせ数、入会数、営業利益の計算結果
 - 登録済み `cost_item` をもとにした計画費用
 
 既存スキーマ案との対応:
 
 - UI 上の「計画グループ」は、現行メモの `goal_plan` 相当を再整理する概念として扱う
-- 会員プラン別の現状数値と計画値は、`goal_plan_member_group` / `goal_plan_month_member_group` 相当へ保存する
+- 料金プラン別の現状数値と計画値は、`goal_plan_member_group` / `goal_plan_month_member_group` 相当へ保存する
 - DB 命名は実装前に、`goal_plan` のままにするか `financial_plan_group` / `financial_plan` へ寄せるかを再検討する
 
 ## 16. プロトタイプ画面
@@ -888,42 +1036,44 @@ backend は Java enum、GraphQL は enum として扱う。
 
 ## 19. 実装順
 
-Phase 0 は、いきなり DB / API を完成させず、収支計画の体験と計算仮説を先に固める。
+Phase 0 は、業務フロー順に仕様と実装を固める。収支計画は入力の起点ではなく、料金プラン、追加売上、リード、入会、会員契約の実績を使う集計・シミュレーション画面として扱う。
 
 短期の進め方:
 
-1. 収支計画 UI を mock で育てる
-2. CRM 側で必要な実績データを決める
+1. 料金プランと追加売上項目の仕様を固める
+2. リード管理、体験セッション、入会処理の仕様を固める
 3. DB スキーマを Phase 0 の正として確定する
-4. 収支計画の計算ロジックをサービス化する
-5. 計画保存から月次レビューへ接続する
+4. リード詳細と入会処理を mock UI で確認する
+5. 収支計画を、登録済みマスタと CRM 実績を使う画面へ接続する
+6. 月次レビュー入力とレポートへ接続する
 
-収支計画 UI では、通常会員、上級会員、受験生、週回数別会員などの会員グループを置き、単価、退会率、月間獲得数、広告費、販管費を調整して、成り行きと改善案を比較できる状態を先に作る。
+CRM は、計画画面の代替ではなく、月次レビューで実績を拾うための土台として設計する。最初に日々の予約管理や請求管理へ広げすぎず、リード詳細に紐づく体験セッション、入会変換、会員契約履歴を優先する。
 
-CRM は、計画画面の代替ではなく、月次レビューで実績を拾うための土台として設計する。最初に CRUD を広げすぎず、収支計画と予実管理に必要な `lead`、`member`、`membership_plan`、`membership_subscription`、月謝売上、入会 / 退会 / 休会の実績を優先する。
-
-DB スキーマと GraphQL は、mock UI で固めた入力項目と計算結果を保存できる形に落とす。`goal_plan_member_group` は、CRM の実データをそのまま表すものではなく、収支計画上の分析単位として扱う。
+DB スキーマと GraphQL は、業務フローを保存できる形に落とす。`lead` を問い合わせから入会までの起点にし、`trial_session` は `lead` の関連履歴、`membership_subscription` は入会後の料金プラン契約履歴として扱う。`goal_plan_member_group` は、CRM の実データをそのまま表すものではなく、収支計画上の分析単位として扱う。
 
 実装順:
 
-1. 収支計画の mock UI
-2. 収支計画の mock 計算ロジック
-3. CRM 実績として必要な項目の仕様確定
+1. 料金プラン管理の仕様確定
+2. 追加売上項目管理の仕様確定
+3. リード管理と入会処理の仕様確定
 4. 旧ドメイン削除
 5. Liquibase で新ドメインスキーマ作成
 6. jOOQ 生成
 7. backend GraphQL CRUD
-8. 収支計画計算サービス
-9. 初期セットアップ
-10. 収支計画保存
-11. `lead` / `member` / `trial_session` CRUD
-12. CRM 実績集計サービス
-13. 月次レビュー入力ウィザード
-14. 月次レビュー計算サービス
-15. レポート表示
-16. ベータ用デモデータ
+8. 初期セットアップ
+9. `lead` 詳細 mock UI
+10. `trial_session` 関連情報 UI
+11. `lead` から `member` への入会変換
+12. `member` / `membership_subscription` 管理
+13. CRM 実績集計サービス
+14. 収支計画の mock UI と計算ロジック再接続
+15. 収支計画保存
+16. 月次レビュー入力ウィザード
+17. 月次レビュー計算サービス
+18. レポート表示
+19. ベータ用デモデータ
 
-収支計画の画面体験を先に固めてから、CRM 実績と月次レビューの予実管理へ接続する。
+収支計画は、料金プランと CRM 実績の仕様が固まった後に、予実管理と月次レビューへ接続する。
 
 ## 20. ベータ顧客獲得
 
