@@ -13,15 +13,15 @@ java {
 repositories { mavenCentral() }
 
 dependencies {
-    api 'org.jooq:jooq:3.21.4'
-    implementation platform('org.testcontainers:testcontainers-bom:2.0.3')
+    api 'org.jooq:jooq:3.21.5'
+    implementation platform('org.testcontainers:testcontainers-bom:2.0.5')
     implementation 'org.testcontainers:testcontainers-postgresql'
-    implementation 'org.jooq:jooq-codegen:3.21.4'
+    implementation 'org.jooq:jooq-codegen:3.21.5'
     implementation 'commons-dbutils:commons-dbutils:1.8.1'
     implementation 'net.datafaker:datafaker:2.5.4'
     implementation 'org.postgresql:postgresql:42.7.11'
     implementation 'org.liquibase:liquibase-core:5.0.3'
-    implementation 'org.slf4j:slf4j-simple:2.0.17'
+    implementation 'org.slf4j:slf4j-simple:2.0.18'
     compileOnly 'org.projectlombok:lombok:1.18.46'
     annotationProcessor 'org.projectlombok:lombok:1.18.46'
 }
