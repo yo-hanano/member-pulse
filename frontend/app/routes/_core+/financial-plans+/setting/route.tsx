@@ -11,6 +11,7 @@ import {
   Group,
   NumberInput,
   Paper,
+  SegmentedControl,
   SimpleGrid,
   Stack,
   Table,
@@ -46,13 +47,18 @@ type NumericPlanField = Exclude<
 >;
 type TextPlanField = "groupName" | "periodEnd" | "periodStart";
 
+type PlanType = "continuous" | "fixedTerm";
+
 type MemberPlanRow = {
   id: string;
   name: string;
   description: string;
+  planType: PlanType;
   currentMembers: number;
   monthlyFee: number;
   churnRate: number;
+  contractMonths: number;
+  completionContinuationRate: number;
   newMembers: number;
   trialBookingRate: number;
   trialAttendanceRate: number;
@@ -89,9 +95,12 @@ const initialValues: PlanValues = {
       id: "regular",
       name: "通常会員",
       description: "月4回",
+      planType: "continuous",
       currentMembers: 52,
       monthlyFee: 9800,
       churnRate: 2.8,
+      contractMonths: 0,
+      completionContinuationRate: 0,
       newMembers: 3,
       trialBookingRate: 70,
       trialAttendanceRate: 80,
@@ -101,9 +110,12 @@ const initialValues: PlanValues = {
       id: "premium",
       name: "上級会員",
       description: "通い放題",
+      planType: "continuous",
       currentMembers: 18,
       monthlyFee: 17800,
       churnRate: 2,
+      contractMonths: 0,
+      completionContinuationRate: 0,
       newMembers: 2,
       trialBookingRate: 68,
       trialAttendanceRate: 82,
@@ -113,9 +125,12 @@ const initialValues: PlanValues = {
       id: "short",
       name: "短期集中",
       description: "3か月集中",
+      planType: "fixedTerm",
       currentMembers: 10,
       monthlyFee: 24000,
       churnRate: 7,
+      contractMonths: 3,
+      completionContinuationRate: 0,
       newMembers: 1,
       trialBookingRate: 62,
       trialAttendanceRate: 76,
@@ -350,15 +365,27 @@ type MemberPlanSummaryGroup = {
 };
 
 // 会員プランの設定値を、markeman のオファーカードと同じ小さな確認タグへ整形する。
+function getPlanTypeLabel(planType: PlanType) {
+  return planType === "fixedTerm" ? "期間型" : "継続型";
+}
+
 function buildMemberPlanSummaryGroups(plan: MemberPlanRow): MemberPlanSummaryGroup[] {
+  const baseItems: MemberPlanSummaryItem[] = [
+    { label: "月謝", value: formatPlainYen(plan.monthlyFee) },
+    { label: "期初人数", value: `${numberFormatter.format(plan.currentMembers)} 人` },
+    plan.planType === "fixedTerm"
+      ? { label: "契約月数", value: `${numberFormatter.format(plan.contractMonths)} ヶ月` }
+      : { label: "月次解約率", value: `${plan.churnRate}%` },
+  ];
+
+  if (plan.planType === "fixedTerm") {
+    baseItems.push({ label: "満了後継続率", value: `${plan.completionContinuationRate}%` });
+  }
+
   return [
     {
       title: "在籍・単価前提",
-      items: [
-        { label: "月謝", value: formatPlainYen(plan.monthlyFee) },
-        { label: "期初人数", value: `${numberFormatter.format(plan.currentMembers)} 人` },
-        { label: "月次解約率", value: `${plan.churnRate}%` },
-      ],
+      items: baseItems,
     },
     {
       title: "獲得ファネル",
@@ -384,8 +411,8 @@ function MemberPlanSummary({ plan }: { plan: MemberPlanRow }) {
               <Box
                 key={`${group.title}-${item.label}`}
                 style={{
-                  backgroundColor: "var(--mantine-color-gray-0)",
-                  border: "1px solid var(--mantine-color-gray-2)",
+                  backgroundColor: "var(--app-shell-bg)",
+                  border: "1px solid var(--app-surface-border)",
                   borderRadius: "var(--mantine-radius-sm)",
                   flex: "1 1 0",
                   minWidth: 0,
@@ -411,7 +438,8 @@ function MemberPlanStatus({ plan }: { plan: MemberPlanRow }) {
   const labels = [
     plan.monthlyFee > 0 ? "月謝設定済み" : "月謝未設定",
     plan.currentMembers > 0 ? "期初人数設定済み" : "期初人数未設定",
-    "率設定済み",
+    plan.planType === "fixedTerm" ? "期間前提設定済み" : "解約率設定済み",
+    "獲得ファネル設定済み",
   ];
 
   return (
@@ -423,7 +451,14 @@ function MemberPlanStatus({ plan }: { plan: MemberPlanRow }) {
 
 function MemberPlanCard({ onEdit, plan }: { onEdit: () => void; plan: MemberPlanRow }) {
   return (
-    <Card p={0} radius="sm" shadow="xs" style={{ overflow: "hidden", width: "100%" }} withBorder>
+    <Card
+      className="app-dashboard-surface"
+      p={0}
+      radius="sm"
+      shadow="xs"
+      style={{ overflow: "hidden", width: "100%" }}
+      withBorder
+    >
       <Flex align="stretch">
         <Box style={{ backgroundColor: "var(--mantine-color-brand-5)", width: 3 }} />
         <Flex
@@ -431,13 +466,20 @@ function MemberPlanCard({ onEdit, plan }: { onEdit: () => void; plan: MemberPlan
           gap="md"
           p="md"
           style={{
-            backgroundColor: "#ffffff",
+            backgroundColor: "var(--app-surface-bg)",
             flexGrow: 1,
           }}
         >
           <Stack gap={6} style={{ flexGrow: 1 }}>
-            <Group gap="xs" wrap="nowrap">
+            <Group gap="xs" wrap="wrap">
               <Text fw={800}>{plan.name}</Text>
+              <Badge
+                color={plan.planType === "fixedTerm" ? "grape" : "brand"}
+                radius="sm"
+                variant="light"
+              >
+                {getPlanTypeLabel(plan.planType)}
+              </Badge>
               <Tooltip label="編集" position="top" withArrow>
                 <ActionIcon
                   aria-label={`${plan.name}を編集`}
@@ -519,9 +561,12 @@ export default function FinancialPlanSettingRoute() {
       id: `manual-${Date.now()}`,
       name: "新規会員プラン",
       description: "",
+      planType: "continuous",
       currentMembers: 0,
       monthlyFee: 0,
       churnRate: 3,
+      contractMonths: 3,
+      completionContinuationRate: 0,
       newMembers: 0,
       trialBookingRate: 70,
       trialAttendanceRate: 80,
@@ -547,7 +592,9 @@ export default function FinancialPlanSettingRoute() {
     setEditingPlan((current) => {
       if (!current) return current;
       const nextValue =
-        field === "name" || field === "description" ? String(value) : toNumber(value);
+        field === "name" || field === "description" || field === "planType"
+          ? String(value)
+          : toNumber(value);
       return { ...current, [field]: nextValue };
     });
   };
@@ -836,6 +883,14 @@ export default function FinancialPlanSettingRoute() {
               onChange={(event) => updateEditingPlan("name", event.currentTarget.value)}
               value={editingPlan.name}
             />
+            <SegmentedControl
+              data={[
+                { label: "継続型", value: "continuous" },
+                { label: "期間型", value: "fixedTerm" },
+              ]}
+              onChange={(value) => updateEditingPlan("planType", value)}
+              value={editingPlan.planType}
+            />
             <Paper p="md" radius="sm" withBorder>
               <Stack gap="sm">
                 <Text c="dimmed" fw={800} size="xs">
@@ -859,13 +914,34 @@ export default function FinancialPlanSettingRoute() {
                     suffix="人"
                     value={editingPlan.currentMembers}
                   />
-                  <NumberInput
-                    label="月次解約率"
-                    min={0}
-                    onChange={(value) => updateEditingPlan("churnRate", value)}
-                    suffix="%"
-                    value={editingPlan.churnRate}
-                  />
+                  {editingPlan.planType === "fixedTerm" ? (
+                    <>
+                      <NumberInput
+                        allowDecimal={false}
+                        label="契約月数"
+                        min={1}
+                        onChange={(value) => updateEditingPlan("contractMonths", value)}
+                        suffix="ヶ月"
+                        value={editingPlan.contractMonths}
+                      />
+                      <NumberInput
+                        label="満了後継続率"
+                        max={100}
+                        min={0}
+                        onChange={(value) => updateEditingPlan("completionContinuationRate", value)}
+                        suffix="%"
+                        value={editingPlan.completionContinuationRate}
+                      />
+                    </>
+                  ) : (
+                    <NumberInput
+                      label="月次解約率"
+                      min={0}
+                      onChange={(value) => updateEditingPlan("churnRate", value)}
+                      suffix="%"
+                      value={editingPlan.churnRate}
+                    />
+                  )}
                 </SimpleGrid>
               </Stack>
             </Paper>
