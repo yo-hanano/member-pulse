@@ -17,6 +17,7 @@ opencode = "latest"
 "asdf:mise-plugins/mise-quarkus" = "3.36.1"
 "npm:@antfu/ni" = "latest"
 "npm:@openai/codex" = "latest"
+"npm:@anthropic-ai/claude-code" = "latest"
 "npm:@samuelfaj/distill" = "1.5.2"
 "gem:kamal" = "2.11.0"
 

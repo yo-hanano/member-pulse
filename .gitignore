@@ -114,6 +114,7 @@ mise.local.toml
 *.log
 
 # --- mcp ---
+.claude.json
 .claude/*
 .serena/*
 .understand-anything-plugin/*

@@ -11,6 +11,12 @@ if [ -f "${CODEX_TEMPLATE}" ] && [ ! -e "${CODEX_CONFIG_FILE}" ] && [ ! -f "${CO
   cp "${CODEX_TEMPLATE}" "${CODEX_CONFIG_FILE}"
 fi
 
+CLAUDE_TEMPLATE="/workspace/.devcontainer/claude-config.json.template"
+CLAUDE_CONFIG_FILE="${HOME}/.claude.json"
+if [ -f "${CLAUDE_TEMPLATE}" ] && [ ! -e "${CLAUDE_CONFIG_FILE}" ]; then
+  cp "${CLAUDE_TEMPLATE}" "${CLAUDE_CONFIG_FILE}"
+fi
+
 if ! command -v mise >/dev/null 2>&1; then
   echo "mise not found during postCreate" >&2
   exit 1
@@ -46,6 +52,15 @@ Suggested recovery:
 - Rebuild/reopen after exporting GH_TOKEN or GITHUB_TOKEN to the devcontainer
 - Or rerun `mise install` later after GitHub authentication is available
 EOF
+  fi
+fi
+
+CLAUDE_CODE_DIR="${HOME}/.local/share/mise/installs/npm-anthropic-ai-claude-code"
+if command -v claude >/dev/null 2>&1 && ! claude --version >/dev/null 2>&1 && [ -d "${CLAUDE_CODE_DIR}" ]; then
+  CLAUDE_INSTALL_SCRIPT="$(find "${CLAUDE_CODE_DIR}" -path "*/lib/node_modules/@anthropic-ai/claude-code/install.cjs" | sort -V | tail -n 1)"
+  if [ -n "${CLAUDE_INSTALL_SCRIPT}" ]; then
+    echo "Repairing Claude Code native binary..."
+    node "${CLAUDE_INSTALL_SCRIPT}"
   fi
 fi
 

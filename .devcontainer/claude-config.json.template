@@ -1,0 +1,10 @@
+{
+  "installMethod": "npm",
+  "autoUpdates": false,
+  "hasCompletedOnboarding": true,
+  "projects": {
+    "/workspace": {
+      "hasTrustDialogAccepted": true
+    }
+  }
+}
