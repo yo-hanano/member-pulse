@@ -26,9 +26,10 @@ public class TrialSessionService
   private static final String STATUS_SCHEDULED = "scheduled";
   private static final String STATUS_COMPLETED = "completed";
   private static final String STATUS_CANCELED = "canceled";
-  private static final String LEAD_STATUS_CONTACTED = "contacted";
+  private static final String LEAD_STATUS_NEW = "new";
   private static final String LEAD_STATUS_TRIAL_SCHEDULED = "trial_scheduled";
   private static final String LEAD_STATUS_TRIAL_COMPLETED = "trial_completed";
+  private static final String LEAD_STATUS_CANCELED = "canceled";
   private static final String LEAD_STATUS_CONTRACTED = "contracted";
   private static final String LEAD_STATUS_ENROLLED = "enrolled";
   private static final String LEAD_STATUS_LOST = "lost";
@@ -151,15 +152,18 @@ public class TrialSessionService
       return LEAD_STATUS_TRIAL_SCHEDULED;
     }
     if (STATUS_CANCELED.equals(trialSessionStatus)) {
-      return LEAD_STATUS_CONTACTED;
+      // 体験キャンセルは体験前の失敗として lead をキャンセル状態へ寄せる（再予約で復帰可能）。
+      return LEAD_STATUS_CANCELED;
     }
     return null;
   }
 
   private String fallbackLeadStatusWithoutTrialSession(String currentStatus) {
+    // 体験を全て削除した場合は問い合わせ直後の新規へ戻す。
     if (LEAD_STATUS_TRIAL_SCHEDULED.equals(currentStatus)
-        || LEAD_STATUS_TRIAL_COMPLETED.equals(currentStatus)) {
-      return LEAD_STATUS_CONTACTED;
+        || LEAD_STATUS_TRIAL_COMPLETED.equals(currentStatus)
+        || LEAD_STATUS_CANCELED.equals(currentStatus)) {
+      return LEAD_STATUS_NEW;
     }
     return null;
   }

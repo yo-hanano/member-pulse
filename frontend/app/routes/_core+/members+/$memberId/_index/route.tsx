@@ -2,6 +2,7 @@ import { Badge, Button, Group, Paper, SimpleGrid, Stack, Text } from "@mantine/c
 import { ArrowLeft } from "lucide-react";
 import { useNavigate, useOutletContext } from "react-router";
 
+import { useMasterPrefectures } from "~/hooks/useMasterData";
 import { formatDateYmd } from "~/lib/date";
 import {
   formatMemberStatus,
@@ -13,6 +14,12 @@ import type { MemberDetailContext } from "~/routes/_core+/members+/$memberId/rou
 export default function MemberDetailOverviewRoute() {
   const { member } = useOutletContext<MemberDetailContext>();
   const navigate = useNavigate();
+  // 都道府県コードを表示名へ変換する。
+  const { data: prefectures = [] } = useMasterPrefectures();
+  const prefectureName =
+    prefectures.find((prefecture) => prefecture.code === member.prefectureCode)?.name ??
+    member.prefectureCode ??
+    "-";
 
   return (
     <Stack gap="md">
@@ -47,6 +54,8 @@ export default function MemberDetailOverviewRoute() {
           <Field label="退会日" value={formatDateYmd(member.resignedAt)} />
           <Field label="退会理由コード" value={member.resignationReasonCode ?? "-"} />
           <Field label="変換元リード" value={member.lead?.name ?? member.leadId ?? "-"} />
+          <Field label="郵便番号" value={member.zipCode ?? "-"} />
+          <Field label="都道府県" value={prefectureName} />
           <Field className="md:col-span-2" label="住所" value={member.address ?? "-"} />
           <Field
             className="md:col-span-2"

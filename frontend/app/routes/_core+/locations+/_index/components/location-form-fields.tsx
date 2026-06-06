@@ -1,7 +1,9 @@
 import { Select, SimpleGrid, Switch, TextInput } from "@mantine/core";
 import type { UseFormReturnType } from "@mantine/form";
+import { useState } from "react";
 
 import { useMasterAreas, useMasterPrefectures } from "~/hooks/useMasterData";
+import { usePostalCodeAutofill } from "~/hooks/usePostalCodeAutofill";
 import type { LocationForm } from "~/routes/_core+/locations+/_index/location-form-schema";
 
 interface Props {
@@ -13,6 +15,19 @@ interface Props {
 export function LocationFormFields({ form, lockDefaultOff }: Props) {
   const { data: areas = [], loading: areasLoading } = useMasterAreas();
   const { data: prefectures = [], loading: prefecturesLoading } = useMasterPrefectures();
+
+  // 郵便番号のユーザー入力値。初期表示の既存値では補完を発火させず、入力時のみ反応させる。
+  const [zipCodeInput, setZipCodeInput] = useState("");
+  usePostalCodeAutofill({
+    zipCode: zipCodeInput,
+    prefectures,
+    onAutofill: (result) => {
+      // 都道府県は専用カラムへ、住所には市区町村以下を補完する。
+      form.setFieldValue("prefectureCode", result.prefectureCode);
+      form.setFieldValue("address", result.address);
+    },
+  });
+  const zipCodeProps = form.getInputProps("zipCode");
 
   const areaOptions = areas.map((area) => ({
     value: area.id ?? "",
@@ -46,10 +61,15 @@ export function LocationFormFields({ form, lockDefaultOff }: Props) {
 
       <TextInput
         key={form.key("zipCode")}
-        {...form.getInputProps("zipCode")}
+        {...zipCodeProps}
+        description="7桁を入力すると都道府県・住所を自動補完します"
         inputMode="numeric"
         label="郵便番号"
         placeholder="例）100-0001"
+        onChange={(event) => {
+          zipCodeProps.onChange(event);
+          setZipCodeInput(event.currentTarget.value);
+        }}
       />
 
       <Select

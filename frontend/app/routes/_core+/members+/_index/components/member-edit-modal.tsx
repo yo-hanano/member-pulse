@@ -67,6 +67,8 @@ export function MemberEditModal({ memberId, isOpen, onOpenChange }: Props) {
       phone: member.phone ?? "",
       email: member.email ?? "",
       lineDisplayName: member.lineDisplayName ?? "",
+      zipCode: member.zipCode ?? "",
+      prefectureCode: member.prefectureCode ?? "",
       address: member.address ?? "",
       birthDate: member.birthDate ?? "",
       source: member.source ?? "",

@@ -40,6 +40,12 @@ public class MemberInput {
 
   @Size(max = 100) private String lineDisplayName;
 
+  /** 郵便番号。住所の自動補完と合わせて管理する。 */
+  @Size(max = 8) private String zipCode;
+
+  /** 都道府県コード。拠点と同じ prefecture マスタを参照する。 */
+  @Size(max = 21) private String prefectureCode;
+
   @Size(max = 1000) private String address;
 
   private LocalDate birthDate;

@@ -3,6 +3,7 @@ package com.cxisystem.feature.resolver;
 import com.cxisystem.feature.dto.Page;
 import com.cxisystem.feature.input.MemberFilterInput;
 import com.cxisystem.feature.input.MemberInput;
+import com.cxisystem.feature.input.MembershipSubscriptionInput;
 import com.cxisystem.feature.input.Pagination;
 import com.cxisystem.feature.service.LeadService;
 import com.cxisystem.feature.service.LocationService;
@@ -72,11 +73,12 @@ public class MemberResolver extends AbstractResolver {
     return memberService.create(input);
   }
 
-  /** 成約済みリードを起点に会員を作成します。 */
+  /** 成約済みリードを起点に、会員とコース契約を同一トランザクションで作成します。 */
   @Mutation("enrollLead")
   @RolesAllowed("admin")
-  public Member enrollLead(@NotNull String leadId, @Valid MemberInput input) {
-    return memberService.enrollLead(leadId, input);
+  public Member enrollLead(@NotNull String leadId, @Valid MemberInput input,
+      @NotNull @Valid MembershipSubscriptionInput subscription) {
+    return memberService.enrollLead(leadId, input, subscription);
   }
 
   /** 会員を更新します。 */

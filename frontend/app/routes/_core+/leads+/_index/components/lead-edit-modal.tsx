@@ -64,6 +64,7 @@ export function LeadEditModal({ leadId, isOpen, onOpenChange }: Props) {
       email: lead.email ?? "",
       source: lead.source ?? "",
       status: (lead.status ?? "new") as LeadForm["status"],
+      nextContactAt: toDateTimeLocalValue(lead.nextContactAt ?? ""),
       lostAt: toDateTimeLocalValue(lead.lostAt ?? ""),
       lostReason: lead.lostReason ?? "",
       note: lead.note ?? "",

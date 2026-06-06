@@ -11,6 +11,7 @@ fragment LeadDetailView on Lead {
   source
   status
   inquiryAt
+  nextContactAt
   lostAt
   lostReason
   note
@@ -29,6 +30,7 @@ fragment LeadListItem on Lead {
   source
   status
   inquiryAt
+  nextContactAt
   lostAt
 }
 

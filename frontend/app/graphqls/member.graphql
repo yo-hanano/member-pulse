@@ -19,6 +19,8 @@ fragment MemberDetailView on Member {
   phone
   email
   lineDisplayName
+  zipCode
+  prefectureCode
   address
   birthDate
   source
@@ -88,8 +90,12 @@ mutation deleteMember($memberId: String!) {
   deleteMember(memberId: $memberId)
 }
 
-mutation enrollLead($leadId: String!, $input: MemberInput!) {
-  enrollLead(leadId: $leadId, input: $input) {
+mutation enrollLead(
+  $leadId: String!
+  $input: MemberInput!
+  $subscription: MembershipSubscriptionInput!
+) {
+  enrollLead(leadId: $leadId, input: $input, subscription: $subscription) {
     ...MemberDetailView
   }
 }

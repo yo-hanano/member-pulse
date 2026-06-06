@@ -33,6 +33,9 @@ public class LeadInput {
 
   private LocalDateTime lostAt;
 
+  /** 次回連絡予定日時。保留中の追客タイミングを管理する。 */
+  private LocalDateTime nextContactAt;
+
   @Size(max = 1000) private String lostReason;
 
   @Size(max = 1000) private String note;

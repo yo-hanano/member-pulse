@@ -3,13 +3,13 @@ import type { UseFormReturnType } from "@mantine/form";
 
 import { useMasterLocations } from "~/hooks/useMasterData";
 import type { LeadForm } from "~/routes/_core+/leads+/_index/lead-form-schema";
-import { leadStatusOptions } from "~/routes/_core+/leads+/_index/lead-status";
 
 interface Props {
   form: UseFormReturnType<LeadForm>;
 }
 
 // リード作成・編集モーダルで共通利用するフォーム描画コンポーネント。
+// 状態は対応履歴（体験・不通・キャンセル・成約・不成約などの記録）から導出されるため、ここでは扱わない。
 export function LeadFormFields({ form }: Props) {
   const { data: locations = [] } = useMasterLocations();
   const locationOptions = locations.map((location) => ({
@@ -61,24 +61,24 @@ export function LeadFormFields({ form }: Props) {
         label="流入元"
         placeholder="例) Web / 紹介 / チラシ"
       />
-      <Select
-        key={form.key("status")}
-        {...form.getInputProps("status")}
-        data={leadStatusOptions.map((option) => ({ value: option.value, label: option.label }))}
-        label="状態"
-        withAsterisk
+      <TextInput
+        key={form.key("nextContactAt")}
+        {...form.getInputProps("nextContactAt")}
+        description="保留・追客の連絡予定日時"
+        label="次回連絡日"
+        type="datetime-local"
       />
       <TextInput
         key={form.key("lostAt")}
         {...form.getInputProps("lostAt")}
-        label="失注日時"
+        label="不成約日時"
         type="datetime-local"
       />
       <TextInput
         key={form.key("lostReason")}
         {...form.getInputProps("lostReason")}
         className="md:col-span-2"
-        label="失注理由"
+        label="不成約理由"
         placeholder="例) 価格が合わない"
       />
       <Textarea

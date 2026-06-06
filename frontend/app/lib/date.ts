@@ -61,6 +61,21 @@ export function formatDateTimeYmdHm(value: string | Date | null | undefined) {
   return `${year}/${month.padStart(2, "0")}/${day.padStart(2, "0")} ${hour.padStart(2, "0")}:${minute}`;
 }
 
+const WEEKDAY_LABELS = ["日", "月", "火", "水", "木", "金", "土"] as const;
+
+// 日時文字列を yyyy/MM/dd(曜) HH:mm に正規化して表示する。予約日時など強調したい場面で使う。
+export function formatDateTimeYmdHmWithWeekday(value: string | Date | null | undefined) {
+  const formatted = formatDateTimeYmdHm(value);
+  const matched = formatted.match(/^(\d{4})\/(\d{2})\/(\d{2}) (\d{2}:\d{2})$/);
+  if (!matched) {
+    return formatted;
+  }
+
+  const [, year, month, day, time] = matched;
+  const weekday = WEEKDAY_LABELS[new Date(Number(year), Number(month) - 1, Number(day)).getDay()];
+  return `${year}/${month}/${day}(${weekday}) ${time}`;
+}
+
 // datetime-local input で扱いやすい yyyy-MM-ddTHH:mm 形式へ正規化する。
 export function toDateTimeLocalValue(value: string | Date | null | undefined) {
   if (value == null) {

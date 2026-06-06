@@ -57,6 +57,8 @@ export type LeadInput = {
   lostAt?: string | null | undefined;
   lostReason?: string | null | undefined;
   name: string;
+  /** ISO-8601 */
+  nextContactAt?: string | null | undefined;
   note?: string | null | undefined;
   phone?: string | null | undefined;
   source?: string | null | undefined;
@@ -103,12 +105,22 @@ export type MemberInput = {
   name: string;
   note?: string | null | undefined;
   phone?: string | null | undefined;
+  prefectureCode?: string | null | undefined;
   resignationNote?: string | null | undefined;
   resignationReasonCode?: string | null | undefined;
   /** ISO-8601 */
   resignedAt?: string | null | undefined;
   source?: string | null | undefined;
   status: string;
+  zipCode?: string | null | undefined;
+};
+
+export type MembershipSubscriptionInput = {
+  membershipPlanId: string;
+  monthlyFee?: number | null | undefined;
+  note?: string | null | undefined;
+  /** ISO-8601 */
+  startDate: string;
 };
 
 export type OwnAccountUpdateInput = {
@@ -251,9 +263,9 @@ export type IssueEmployeeInviteMutationVariables = Exact<{
 
 export type IssueEmployeeInviteMutation = { issueEmployeeInvite: { employeeId: string | undefined | null, email: string | undefined | null, inviteUrl: string | undefined | null, expiresAt: string | undefined | null } | undefined | null };
 
-export type LeadDetailViewFragment = { id: string | undefined | null, locationId: string | undefined | null, name: string | undefined | null, phone: string | undefined | null, email: string | undefined | null, source: string | undefined | null, status: string | undefined | null, inquiryAt: string | undefined | null, lostAt: string | undefined | null, lostReason: string | undefined | null, note: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null };
+export type LeadDetailViewFragment = { id: string | undefined | null, locationId: string | undefined | null, name: string | undefined | null, phone: string | undefined | null, email: string | undefined | null, source: string | undefined | null, status: string | undefined | null, inquiryAt: string | undefined | null, nextContactAt: string | undefined | null, lostAt: string | undefined | null, lostReason: string | undefined | null, note: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null };
 
-export type LeadListItemFragment = { id: string | undefined | null, locationId: string | undefined | null, name: string | undefined | null, phone: string | undefined | null, email: string | undefined | null, source: string | undefined | null, status: string | undefined | null, inquiryAt: string | undefined | null, lostAt: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null };
+export type LeadListItemFragment = { id: string | undefined | null, locationId: string | undefined | null, name: string | undefined | null, phone: string | undefined | null, email: string | undefined | null, source: string | undefined | null, status: string | undefined | null, inquiryAt: string | undefined | null, nextContactAt: string | undefined | null, lostAt: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null };
 
 export type LeadOptionFragment = { id: string | undefined | null, locationId: string | undefined | null, name: string | undefined | null, status: string | undefined | null };
 
@@ -262,7 +274,7 @@ export type LeadByIdQueryVariables = Exact<{
 }>;
 
 
-export type LeadByIdQuery = { leadById: { id: string | undefined | null, locationId: string | undefined | null, name: string | undefined | null, phone: string | undefined | null, email: string | undefined | null, source: string | undefined | null, status: string | undefined | null, inquiryAt: string | undefined | null, lostAt: string | undefined | null, lostReason: string | undefined | null, note: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null };
+export type LeadByIdQuery = { leadById: { id: string | undefined | null, locationId: string | undefined | null, name: string | undefined | null, phone: string | undefined | null, email: string | undefined | null, source: string | undefined | null, status: string | undefined | null, inquiryAt: string | undefined | null, nextContactAt: string | undefined | null, lostAt: string | undefined | null, lostReason: string | undefined | null, note: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null };
 
 export type LeadPageQueryVariables = Exact<{
   pagination: Pagination;
@@ -270,7 +282,7 @@ export type LeadPageQueryVariables = Exact<{
 }>;
 
 
-export type LeadPageQuery = { leadPagination: { offset: number, limit: number, totalCount: number, totalPages: number, contents: Array<{ id: string | undefined | null, locationId: string | undefined | null, name: string | undefined | null, phone: string | undefined | null, email: string | undefined | null, source: string | undefined | null, status: string | undefined | null, inquiryAt: string | undefined | null, lostAt: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null> | undefined | null } | undefined | null };
+export type LeadPageQuery = { leadPagination: { offset: number, limit: number, totalCount: number, totalPages: number, contents: Array<{ id: string | undefined | null, locationId: string | undefined | null, name: string | undefined | null, phone: string | undefined | null, email: string | undefined | null, source: string | undefined | null, status: string | undefined | null, inquiryAt: string | undefined | null, nextContactAt: string | undefined | null, lostAt: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null> | undefined | null } | undefined | null };
 
 export type AllLeadsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -282,7 +294,7 @@ export type CreateLeadMutationVariables = Exact<{
 }>;
 
 
-export type CreateLeadMutation = { createLead: { id: string | undefined | null, locationId: string | undefined | null, name: string | undefined | null, phone: string | undefined | null, email: string | undefined | null, source: string | undefined | null, status: string | undefined | null, inquiryAt: string | undefined | null, lostAt: string | undefined | null, lostReason: string | undefined | null, note: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null };
+export type CreateLeadMutation = { createLead: { id: string | undefined | null, locationId: string | undefined | null, name: string | undefined | null, phone: string | undefined | null, email: string | undefined | null, source: string | undefined | null, status: string | undefined | null, inquiryAt: string | undefined | null, nextContactAt: string | undefined | null, lostAt: string | undefined | null, lostReason: string | undefined | null, note: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null };
 
 export type UpdateLeadMutationVariables = Exact<{
   leadId: string;
@@ -290,7 +302,7 @@ export type UpdateLeadMutationVariables = Exact<{
 }>;
 
 
-export type UpdateLeadMutation = { updateLead: { id: string | undefined | null, locationId: string | undefined | null, name: string | undefined | null, phone: string | undefined | null, email: string | undefined | null, source: string | undefined | null, status: string | undefined | null, inquiryAt: string | undefined | null, lostAt: string | undefined | null, lostReason: string | undefined | null, note: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null };
+export type UpdateLeadMutation = { updateLead: { id: string | undefined | null, locationId: string | undefined | null, name: string | undefined | null, phone: string | undefined | null, email: string | undefined | null, source: string | undefined | null, status: string | undefined | null, inquiryAt: string | undefined | null, nextContactAt: string | undefined | null, lostAt: string | undefined | null, lostReason: string | undefined | null, note: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null };
 
 export type DeleteLeadMutationVariables = Exact<{
   leadId: string;
@@ -383,7 +395,7 @@ export type DeleteLocationMutationVariables = Exact<{
 
 export type DeleteLocationMutation = { deleteLocation: boolean };
 
-export type MemberDetailViewFragment = { id: string | undefined | null, locationId: string | undefined | null, leadId: string | undefined | null, name: string | undefined | null, status: string | undefined | null, joinedAt: string | undefined | null, resignedAt: string | undefined | null, resignationReasonCode: string | undefined | null, resignationNote: string | undefined | null, phone: string | undefined | null, email: string | undefined | null, lineDisplayName: string | undefined | null, address: string | undefined | null, birthDate: string | undefined | null, source: string | undefined | null, note: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null, lead: { id: string | undefined | null, name: string | undefined | null } | undefined | null };
+export type MemberDetailViewFragment = { id: string | undefined | null, locationId: string | undefined | null, leadId: string | undefined | null, name: string | undefined | null, status: string | undefined | null, joinedAt: string | undefined | null, resignedAt: string | undefined | null, resignationReasonCode: string | undefined | null, resignationNote: string | undefined | null, phone: string | undefined | null, email: string | undefined | null, lineDisplayName: string | undefined | null, zipCode: string | undefined | null, prefectureCode: string | undefined | null, address: string | undefined | null, birthDate: string | undefined | null, source: string | undefined | null, note: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null, lead: { id: string | undefined | null, name: string | undefined | null } | undefined | null };
 
 export type MemberListItemFragment = { id: string | undefined | null, locationId: string | undefined | null, name: string | undefined | null, status: string | undefined | null, joinedAt: string | undefined | null, resignedAt: string | undefined | null, phone: string | undefined | null, email: string | undefined | null, source: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null };
 
@@ -394,7 +406,7 @@ export type MemberByIdQueryVariables = Exact<{
 }>;
 
 
-export type MemberByIdQuery = { memberById: { id: string | undefined | null, locationId: string | undefined | null, leadId: string | undefined | null, name: string | undefined | null, status: string | undefined | null, joinedAt: string | undefined | null, resignedAt: string | undefined | null, resignationReasonCode: string | undefined | null, resignationNote: string | undefined | null, phone: string | undefined | null, email: string | undefined | null, lineDisplayName: string | undefined | null, address: string | undefined | null, birthDate: string | undefined | null, source: string | undefined | null, note: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null, lead: { id: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null };
+export type MemberByIdQuery = { memberById: { id: string | undefined | null, locationId: string | undefined | null, leadId: string | undefined | null, name: string | undefined | null, status: string | undefined | null, joinedAt: string | undefined | null, resignedAt: string | undefined | null, resignationReasonCode: string | undefined | null, resignationNote: string | undefined | null, phone: string | undefined | null, email: string | undefined | null, lineDisplayName: string | undefined | null, zipCode: string | undefined | null, prefectureCode: string | undefined | null, address: string | undefined | null, birthDate: string | undefined | null, source: string | undefined | null, note: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null, lead: { id: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null };
 
 export type MemberPageQueryVariables = Exact<{
   pagination: Pagination;
@@ -414,7 +426,7 @@ export type CreateMemberMutationVariables = Exact<{
 }>;
 
 
-export type CreateMemberMutation = { createMember: { id: string | undefined | null, locationId: string | undefined | null, leadId: string | undefined | null, name: string | undefined | null, status: string | undefined | null, joinedAt: string | undefined | null, resignedAt: string | undefined | null, resignationReasonCode: string | undefined | null, resignationNote: string | undefined | null, phone: string | undefined | null, email: string | undefined | null, lineDisplayName: string | undefined | null, address: string | undefined | null, birthDate: string | undefined | null, source: string | undefined | null, note: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null, lead: { id: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null };
+export type CreateMemberMutation = { createMember: { id: string | undefined | null, locationId: string | undefined | null, leadId: string | undefined | null, name: string | undefined | null, status: string | undefined | null, joinedAt: string | undefined | null, resignedAt: string | undefined | null, resignationReasonCode: string | undefined | null, resignationNote: string | undefined | null, phone: string | undefined | null, email: string | undefined | null, lineDisplayName: string | undefined | null, zipCode: string | undefined | null, prefectureCode: string | undefined | null, address: string | undefined | null, birthDate: string | undefined | null, source: string | undefined | null, note: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null, lead: { id: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null };
 
 export type UpdateMemberMutationVariables = Exact<{
   memberId: string;
@@ -422,7 +434,7 @@ export type UpdateMemberMutationVariables = Exact<{
 }>;
 
 
-export type UpdateMemberMutation = { updateMember: { id: string | undefined | null, locationId: string | undefined | null, leadId: string | undefined | null, name: string | undefined | null, status: string | undefined | null, joinedAt: string | undefined | null, resignedAt: string | undefined | null, resignationReasonCode: string | undefined | null, resignationNote: string | undefined | null, phone: string | undefined | null, email: string | undefined | null, lineDisplayName: string | undefined | null, address: string | undefined | null, birthDate: string | undefined | null, source: string | undefined | null, note: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null, lead: { id: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null };
+export type UpdateMemberMutation = { updateMember: { id: string | undefined | null, locationId: string | undefined | null, leadId: string | undefined | null, name: string | undefined | null, status: string | undefined | null, joinedAt: string | undefined | null, resignedAt: string | undefined | null, resignationReasonCode: string | undefined | null, resignationNote: string | undefined | null, phone: string | undefined | null, email: string | undefined | null, lineDisplayName: string | undefined | null, zipCode: string | undefined | null, prefectureCode: string | undefined | null, address: string | undefined | null, birthDate: string | undefined | null, source: string | undefined | null, note: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null, lead: { id: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null };
 
 export type DeleteMemberMutationVariables = Exact<{
   memberId: string;
@@ -434,10 +446,18 @@ export type DeleteMemberMutation = { deleteMember: boolean };
 export type EnrollLeadMutationVariables = Exact<{
   leadId: string;
   input: MemberInput;
+  subscription: MembershipSubscriptionInput;
 }>;
 
 
-export type EnrollLeadMutation = { enrollLead: { id: string | undefined | null, locationId: string | undefined | null, leadId: string | undefined | null, name: string | undefined | null, status: string | undefined | null, joinedAt: string | undefined | null, resignedAt: string | undefined | null, resignationReasonCode: string | undefined | null, resignationNote: string | undefined | null, phone: string | undefined | null, email: string | undefined | null, lineDisplayName: string | undefined | null, address: string | undefined | null, birthDate: string | undefined | null, source: string | undefined | null, note: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null, lead: { id: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null };
+export type EnrollLeadMutation = { enrollLead: { id: string | undefined | null, locationId: string | undefined | null, leadId: string | undefined | null, name: string | undefined | null, status: string | undefined | null, joinedAt: string | undefined | null, resignedAt: string | undefined | null, resignationReasonCode: string | undefined | null, resignationNote: string | undefined | null, phone: string | undefined | null, email: string | undefined | null, lineDisplayName: string | undefined | null, zipCode: string | undefined | null, prefectureCode: string | undefined | null, address: string | undefined | null, birthDate: string | undefined | null, source: string | undefined | null, note: string | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null, lead: { id: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null };
+
+export type MembershipPlanOptionFragment = { id: string | undefined | null, locationId: string | undefined | null, name: string | undefined | null, monthlyFee: number | undefined | null, displayOrder: number | undefined | null };
+
+export type ActiveMembershipPlansQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ActiveMembershipPlansQuery = { activeMembershipPlans: Array<{ id: string | undefined | null, locationId: string | undefined | null, name: string | undefined | null, monthlyFee: number | undefined | null, displayOrder: number | undefined | null } | undefined | null> | undefined | null };
 
 export type PrefectureOptionFragment = { code: string | undefined | null, name: string | undefined | null, sortOrder: number | undefined | null };
 
@@ -486,6 +506,7 @@ export const LeadDetailViewFragmentDoc = gql`
   source
   status
   inquiryAt
+  nextContactAt
   lostAt
   lostReason
   note
@@ -505,6 +526,7 @@ export const LeadListItemFragmentDoc = gql`
   source
   status
   inquiryAt
+  nextContactAt
   lostAt
 }
     `;
@@ -585,6 +607,8 @@ export const MemberDetailViewFragmentDoc = gql`
   phone
   email
   lineDisplayName
+  zipCode
+  prefectureCode
   address
   birthDate
   source
@@ -614,6 +638,15 @@ export const MemberOptionFragmentDoc = gql`
   locationId
   name
   status
+}
+    `;
+export const MembershipPlanOptionFragmentDoc = gql`
+    fragment MembershipPlanOption on MembershipPlan {
+  id
+  locationId
+  name
+  monthlyFee
+  displayOrder
 }
     `;
 export const PrefectureOptionFragmentDoc = gql`
@@ -920,12 +953,19 @@ export const DeleteMemberDocument = gql`
 }
     `;
 export const EnrollLeadDocument = gql`
-    mutation enrollLead($leadId: String!, $input: MemberInput!) {
-  enrollLead(leadId: $leadId, input: $input) {
+    mutation enrollLead($leadId: String!, $input: MemberInput!, $subscription: MembershipSubscriptionInput!) {
+  enrollLead(leadId: $leadId, input: $input, subscription: $subscription) {
     ...MemberDetailView
   }
 }
     ${MemberDetailViewFragmentDoc}`;
+export const ActiveMembershipPlansDocument = gql`
+    query activeMembershipPlans {
+  activeMembershipPlans {
+    ...MembershipPlanOption
+  }
+}
+    ${MembershipPlanOptionFragmentDoc}`;
 export const AllPrefecturesDocument = gql`
     query allPrefectures {
   allPrefectures {
@@ -1060,6 +1100,9 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     enrollLead(variables: EnrollLeadMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<EnrollLeadMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<EnrollLeadMutation>({ document: EnrollLeadDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'enrollLead', 'mutation', variables);
+    },
+    activeMembershipPlans(variables?: ActiveMembershipPlansQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<ActiveMembershipPlansQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<ActiveMembershipPlansQuery>({ document: ActiveMembershipPlansDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'activeMembershipPlans', 'query', variables);
     },
     allPrefectures(variables?: AllPrefecturesQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<AllPrefecturesQuery> {
       return withWrapper((wrappedRequestHeaders) => client.request<AllPrefecturesQuery>({ document: AllPrefecturesDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'allPrefectures', 'query', variables);

@@ -1,0 +1,13 @@
+fragment MembershipPlanOption on MembershipPlan {
+  id
+  locationId
+  name
+  monthlyFee
+  displayOrder
+}
+
+query activeMembershipPlans {
+  activeMembershipPlans {
+    ...MembershipPlanOption
+  }
+}

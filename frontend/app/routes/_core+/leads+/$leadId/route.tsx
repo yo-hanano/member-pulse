@@ -16,7 +16,9 @@ import {
   type TrialSessionInput,
   type TrialSessionListItemFragment,
 } from "~/generated/graphql";
+import { toDateTimeLocalValue } from "~/lib/date";
 import { leadStatusValues } from "~/routes/_core+/leads+/_index/lead-status";
+import { LeadPipelineStepper } from "~/routes/_core+/leads+/$leadId/components/lead-pipeline-stepper";
 import { trialSessionStatusValues } from "~/routes/_core+/leads+/trial-session-status";
 import { getGraphQLClient } from "~/services/graphql-client";
 
@@ -49,6 +51,9 @@ type LeadStatusNoteForm = {
   intent?: "updateStatusNote";
   status?: string;
   note?: string;
+  nextContactAt?: string;
+  lostAt?: string;
+  lostReason?: string;
 };
 
 type TrialSessionActionForm = {
@@ -132,9 +137,11 @@ export const clientAction = async ({ params, request }: ActionFunctionArgs) => {
     };
   }
 
+  // 体験セッション系 intent は処理済みのため、ここからは状態・メモ更新として扱う。
+  const statusForm = form as LeadStatusNoteForm;
   if (
-    !form.status ||
-    !leadStatusValues.includes(form.status as (typeof leadStatusValues)[number])
+    !statusForm.status ||
+    !leadStatusValues.includes(statusForm.status as (typeof leadStatusValues)[number])
   ) {
     throw new Response("status is invalid", { status: 400 });
   }
@@ -144,6 +151,11 @@ export const clientAction = async ({ params, request }: ActionFunctionArgs) => {
     throw new Response("lead not found", { status: 404 });
   }
 
+  // 不成約にする場合は日時・理由を記録し、不成約以外へ進める場合はクリアする。
+  const isLost = statusForm.status === "lost";
+  // 成約・入会・不成約で判断が確定したら追客は終わるため、次回連絡日をクリアする。
+  const isDecided =
+    isLost || statusForm.status === "contracted" || statusForm.status === "enrolled";
   const input: LeadInput = {
     inquiryAt: leadById.inquiryAt || undefined,
     locationId: leadById.locationId || undefined,
@@ -151,10 +163,19 @@ export const clientAction = async ({ params, request }: ActionFunctionArgs) => {
     phone: leadById.phone || undefined,
     email: leadById.email || undefined,
     source: leadById.source || undefined,
-    status: form.status,
-    lostAt: leadById.lostAt || undefined,
-    lostReason: leadById.lostReason || undefined,
-    note: form.note || undefined,
+    status: statusForm.status,
+    // nextContactAt 未指定の更新では既存の次回連絡日を維持する。
+    nextContactAt: isDecided
+      ? undefined
+      : statusForm.nextContactAt !== undefined
+        ? statusForm.nextContactAt || undefined
+        : leadById.nextContactAt || undefined,
+    lostAt: isLost
+      ? statusForm.lostAt || leadById.lostAt || toDateTimeLocalValue(new Date())
+      : undefined,
+    lostReason: isLost ? statusForm.lostReason || leadById.lostReason || undefined : undefined,
+    // note 未指定の更新(成約/失注 CTA など)では既存メモを維持する。
+    note: statusForm.note !== undefined ? statusForm.note || undefined : leadById.note || undefined,
   };
   const { updateLead } = await sdk.updateLead({ leadId, input });
 
@@ -182,11 +203,7 @@ export default function LeadDetailRoute() {
   const lead = leadData;
 
   const basePath = `/leads/${lead.id}`;
-  const selectedKey = location.pathname.endsWith("/trial-sessions")
-    ? "trial-sessions"
-    : location.pathname.endsWith("/enrollment")
-      ? "enrollment"
-      : "overview";
+  const selectedKey = location.pathname.endsWith("/enrollment") ? "enrollment" : "overview";
   const showEnrollmentTab = lead.status === "contracted" || selectedKey === "enrollment";
 
   return (
@@ -207,18 +224,17 @@ export default function LeadDetailRoute() {
         <Stack gap={4}>
           <Title order={2}>{lead.name ?? "リード詳細"}</Title>
           <Text c="dimmed" size="sm">
-            見込み客の基本情報と体験セッションを管理します。
+            見込み客の基本情報と対応履歴を管理します。
           </Text>
         </Stack>
+
+        <LeadPipelineStepper lead={lead} />
 
         <Tabs
           value={selectedKey}
           onChange={(value) => {
             if (value === "overview") {
               navigate(basePath);
-            }
-            if (value === "trial-sessions") {
-              navigate(`${basePath}/trial-sessions`);
             }
             if (value === "enrollment") {
               navigate(`${basePath}/enrollment`);
@@ -227,7 +243,6 @@ export default function LeadDetailRoute() {
         >
           <Tabs.List>
             <Tabs.Tab value="overview">概要</Tabs.Tab>
-            <Tabs.Tab value="trial-sessions">体験セッション</Tabs.Tab>
             {showEnrollmentTab ? <Tabs.Tab value="enrollment">入会処理</Tabs.Tab> : null}
           </Tabs.List>
         </Tabs>

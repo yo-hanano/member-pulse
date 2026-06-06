@@ -109,6 +109,22 @@ export function LeadListTable({
         ),
       },
       {
+        id: "next_contact_at",
+        label: "次回連絡日",
+        sortable: true,
+        // 追客の予定日。期日を過ぎたリードは赤で強調して見落としを防ぐ。
+        renderCell: (lead) => {
+          if (!lead.nextContactAt) return "-";
+          const isOverdue = new Date(lead.nextContactAt) <= new Date();
+          return (
+            <Text c={isOverdue ? "red" : undefined} fw={isOverdue ? 700 : undefined} size="sm">
+              {formatDateTimeYmdHm(lead.nextContactAt)}
+              {isOverdue ? "（超過）" : ""}
+            </Text>
+          );
+        },
+      },
+      {
         id: "phone",
         label: "電話番号",
         sortable: true,
