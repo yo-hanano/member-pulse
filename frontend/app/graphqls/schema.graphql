@@ -277,6 +277,7 @@ type Query {
   memberById(memberId: String!): Member
   memberPagination(filter: MemberFilterInput, pagination: Pagination): Page_Member
   membershipSubscriptionsByMemberId(memberId: String!): [MembershipSubscription]
+  revenueRecordsByMemberId(memberId: String!): [RevenueRecord]
   revenueRecordsByMonth(
     locationId: String,
     "ISO-8601"

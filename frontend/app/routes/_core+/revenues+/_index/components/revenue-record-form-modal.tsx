@@ -46,9 +46,15 @@ type RevenueForm = {
 interface Props {
   /** 編集対象の売上。null のときは新規登録として扱う。 */
   record: RevenueRecordItemFragment | null;
-  members: MemberOptionFragment[];
-  /** 一覧で選択中の対象月（YYYY-MM）。新規登録時の売上日の初期値に使う。 */
-  month: string;
+  /** 会員選択肢。fixedMember 指定時は不要。 */
+  members?: MemberOptionFragment[];
+  /**
+   * 会員固定モード。会員詳細の売上タブから使う場合に指定する。
+   * 会員選択を出さず、この会員の売上として登録する。拠点はこの会員の拠点を初期値にする。
+   */
+  fixedMember?: { id: string; locationId?: string | null } | null;
+  /** 一覧で選択中の対象月（YYYY-MM）。新規登録時の売上日の初期値に使う。未指定は当月。 */
+  month?: string;
   mutation: ReturnType<typeof useActionFetcher<RevenueActionData>>;
   opened: boolean;
   onClose: () => void;
@@ -57,7 +63,8 @@ interface Props {
 // 売上明細の登録・編集フォームを描画するモーダル。
 export function RevenueRecordFormModal({
   record,
-  members,
+  members = [],
+  fixedMember = null,
   month,
   mutation,
   opened,
@@ -65,19 +72,20 @@ export function RevenueRecordFormModal({
 }: Props) {
   const isEdit = record != null;
   const { data: locations = [] } = useMasterLocations();
+  const baseMonth = month ?? new Date().toISOString().slice(0, 7);
 
   const form = useForm<RevenueForm>({
     mode: "uncontrolled",
-    initialValues: buildInitialValues(month),
+    initialValues: buildInitialValues(baseMonth, fixedMember),
     validate: schemaResolver(revenueFormSchema, { sync: true }),
   });
 
   // モーダルを開くたびに、新規の初期値または編集対象の値へフォームを戻す。
   useEffect(() => {
     if (!opened) return;
-    form.setValues(record ? buildEditValues(record) : buildInitialValues(month));
+    form.setValues(record ? buildEditValues(record) : buildInitialValues(baseMonth, fixedMember));
     form.resetDirty();
-  }, [form.setValues, form.resetDirty, opened, record, month]);
+  }, [form.setValues, form.resetDirty, opened, record, baseMonth, fixedMember]);
 
   const locationOptions = locations.map((location) => ({
     value: String(location.id),
@@ -105,7 +113,8 @@ export function RevenueRecordFormModal({
       intent: isEdit ? "updateRevenue" : "createRevenue",
       revenueRecordId: record?.id,
       locationId: data.locationId || undefined,
-      memberId: data.memberId || undefined,
+      // 会員固定モードでは常にその会員の売上として登録する。
+      memberId: fixedMember ? fixedMember.id : data.memberId || undefined,
       revenueDate: data.revenueDate,
       revenueType: data.revenueType,
       amount: data.monthlyAmount,
@@ -151,16 +160,19 @@ export function RevenueRecordFormModal({
               label="拠点"
               placeholder="未指定（全社共通）"
             />
-            <Select
-              key={form.key("memberId")}
-              {...form.getInputProps("memberId")}
-              clearable
-              data={memberOptions}
-              label="会員"
-              placeholder="未指定（物販等）"
-              searchable
-              onChange={handleMemberChange}
-            />
+            {/* 会員固定モードでは会員選択を出さない。 */}
+            {fixedMember ? null : (
+              <Select
+                key={form.key("memberId")}
+                {...form.getInputProps("memberId")}
+                clearable
+                data={memberOptions}
+                label="会員"
+                placeholder="未指定（物販等）"
+                searchable
+                onChange={handleMemberChange}
+              />
+            )}
           </Group>
           <NumberInput
             key={form.key("monthlyAmount")}
@@ -192,14 +204,17 @@ export function RevenueRecordFormModal({
   );
 }
 
-function buildInitialValues(month: string): RevenueForm {
+function buildInitialValues(
+  month: string,
+  fixedMember: { id: string; locationId?: string | null } | null,
+): RevenueForm {
   // 対象月を表示中なら、その月の初日を売上日の初期値にする。
   const today = new Date().toISOString().slice(0, 10);
   return {
     revenueDate: today.startsWith(month) ? today : `${month}-01`,
     revenueType: "other",
-    locationId: "",
-    memberId: "",
+    locationId: fixedMember?.locationId ?? "",
+    memberId: fixedMember?.id ?? "",
     monthlyAmount: "",
     note: "",
   };

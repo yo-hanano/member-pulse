@@ -47,7 +47,11 @@ export default function MemberDetailRoute() {
 
   const basePath = `/members/${member.id}`;
   // リード詳細と同じく、URL からタブの選択状態を導出する。
-  const selectedKey = location.pathname.endsWith("/subscriptions") ? "subscriptions" : "overview";
+  const selectedKey = location.pathname.endsWith("/subscriptions")
+    ? "subscriptions"
+    : location.pathname.endsWith("/revenues")
+      ? "revenues"
+      : "overview";
 
   return (
     <Stack gap="lg">
@@ -80,11 +84,15 @@ export default function MemberDetailRoute() {
             if (value === "subscriptions") {
               navigate(`${basePath}/subscriptions`);
             }
+            if (value === "revenues") {
+              navigate(`${basePath}/revenues`);
+            }
           }}
         >
           <Tabs.List>
             <Tabs.Tab value="overview">概要</Tabs.Tab>
             <Tabs.Tab value="subscriptions">コース管理</Tabs.Tab>
+            <Tabs.Tab value="revenues">売上</Tabs.Tab>
           </Tabs.List>
         </Tabs>
       </Stack>

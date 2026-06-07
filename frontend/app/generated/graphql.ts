@@ -576,6 +576,13 @@ export type RevenueRecordsByMonthQueryVariables = Exact<{
 
 export type RevenueRecordsByMonthQuery = { revenueRecordsByMonth: Array<{ id: string | undefined | null, locationId: string | undefined | null, memberId: string | undefined | null, membershipSubscriptionId: string | undefined | null, revenueDate: string | undefined | null, revenueType: string | undefined | null, amount: number | undefined | null, sourceType: string | undefined | null, note: string | undefined | null, member: { id: string | undefined | null, name: string | undefined | null } | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null> | undefined | null };
 
+export type RevenueRecordsByMemberIdQueryVariables = Exact<{
+  memberId: string;
+}>;
+
+
+export type RevenueRecordsByMemberIdQuery = { revenueRecordsByMemberId: Array<{ id: string | undefined | null, locationId: string | undefined | null, memberId: string | undefined | null, membershipSubscriptionId: string | undefined | null, revenueDate: string | undefined | null, revenueType: string | undefined | null, amount: number | undefined | null, sourceType: string | undefined | null, note: string | undefined | null, member: { id: string | undefined | null, name: string | undefined | null } | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null> | undefined | null };
+
 export type RevenueSummaryQueryVariables = Exact<{
   targetMonth: string;
   locationId?: string | null | undefined;
@@ -1252,6 +1259,13 @@ export const RevenueRecordsByMonthDocument = gql`
   }
 }
     ${RevenueRecordItemFragmentDoc}`;
+export const RevenueRecordsByMemberIdDocument = gql`
+    query revenueRecordsByMemberId($memberId: String!) {
+  revenueRecordsByMemberId(memberId: $memberId) {
+    ...RevenueRecordItem
+  }
+}
+    ${RevenueRecordItemFragmentDoc}`;
 export const RevenueSummaryDocument = gql`
     query revenueSummary($targetMonth: Date!, $locationId: String) {
   revenueSummary(targetMonth: $targetMonth, locationId: $locationId) {
@@ -1453,6 +1467,9 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     revenueRecordsByMonth(variables: RevenueRecordsByMonthQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<RevenueRecordsByMonthQuery> {
       return withWrapper((wrappedRequestHeaders) => client.request<RevenueRecordsByMonthQuery>({ document: RevenueRecordsByMonthDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'revenueRecordsByMonth', 'query', variables);
+    },
+    revenueRecordsByMemberId(variables: RevenueRecordsByMemberIdQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<RevenueRecordsByMemberIdQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<RevenueRecordsByMemberIdQuery>({ document: RevenueRecordsByMemberIdDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'revenueRecordsByMemberId', 'query', variables);
     },
     revenueSummary(variables: RevenueSummaryQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<RevenueSummaryQuery> {
       return withWrapper((wrappedRequestHeaders) => client.request<RevenueSummaryQuery>({ document: RevenueSummaryDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'revenueSummary', 'query', variables);

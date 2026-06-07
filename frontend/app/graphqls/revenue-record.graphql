@@ -24,6 +24,12 @@ query revenueRecordsByMonth($targetMonth: Date!, $locationId: String) {
   }
 }
 
+query revenueRecordsByMemberId($memberId: String!) {
+  revenueRecordsByMemberId(memberId: $memberId) {
+    ...RevenueRecordItem
+  }
+}
+
 query revenueSummary($targetMonth: Date!, $locationId: String) {
   revenueSummary(targetMonth: $targetMonth, locationId: $locationId) {
     totalAmount

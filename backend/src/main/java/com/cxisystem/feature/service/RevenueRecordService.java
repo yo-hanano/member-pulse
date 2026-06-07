@@ -65,6 +65,14 @@ public class RevenueRecordService
         .map(record -> record.into(RevenueRecord.class)).collect(Collectors.toList());
   }
 
+  /** 会員の売上明細を全期間・売上日降順で返します。 */
+  @Rls
+  @Transactional
+  public List<RevenueRecord> findByMemberId(String memberId) {
+    return revenueRecordDao.findByMemberIdOrdered(memberId).stream()
+        .map(record -> record.into(RevenueRecord.class)).collect(Collectors.toList());
+  }
+
   /** 対象月の売上サマリ（売上合計・MRR・平均月謝・月謝件数）を返します。 */
   @Rls
   @Transactional

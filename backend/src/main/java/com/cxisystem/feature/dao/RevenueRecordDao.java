@@ -42,4 +42,11 @@ public class RevenueRecordDao extends AbstractDao<RevenueRecordRecord, String> {
     return dsl.selectFrom(REVENUE_RECORD).where(condition)
         .orderBy(REVENUE_RECORD.REVENUE_DATE.desc(), REVENUE_RECORD.CREATED_AT.desc()).fetch();
   }
+
+  /** 会員の売上明細を全期間・売上日降順で返します。会員詳細の売上タブで利用します。 */
+  public List<RevenueRecordRecord> findByMemberIdOrdered(String memberId) {
+    return dsl.selectFrom(REVENUE_RECORD)
+        .where(deletedCondition().and(REVENUE_RECORD.MEMBER_ID.eq(memberId)))
+        .orderBy(REVENUE_RECORD.REVENUE_DATE.desc(), REVENUE_RECORD.CREATED_AT.desc()).fetch();
+  }
 }

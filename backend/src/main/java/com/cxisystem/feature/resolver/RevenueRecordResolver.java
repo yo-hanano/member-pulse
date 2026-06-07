@@ -50,6 +50,13 @@ public class RevenueRecordResolver extends AbstractResolver {
     return revenueRecordService.findByMonth(targetMonth, locationId);
   }
 
+  /** 会員の売上明細を全期間・売上日降順で返します。会員詳細の売上タブで利用します。 */
+  @Query("revenueRecordsByMemberId")
+  @RolesAllowed("admin")
+  public List<RevenueRecord> getRevenueRecordsByMemberId(@NotNull String memberId) {
+    return revenueRecordService.findByMemberId(memberId);
+  }
+
   /** 対象月の売上サマリ（売上合計・MRR・平均月謝・月謝件数）を返します。 */
   @Query("revenueSummary")
   @RolesAllowed("admin")
