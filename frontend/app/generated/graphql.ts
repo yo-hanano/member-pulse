@@ -150,6 +150,16 @@ export type Pagination = {
   orderDirection?: string | null | undefined;
 };
 
+export type RevenueRecordInput = {
+  amount: number;
+  locationId?: string | null | undefined;
+  memberId?: string | null | undefined;
+  note?: string | null | undefined;
+  /** ISO-8601 */
+  revenueDate: string;
+  revenueType: string;
+};
+
 export type TrialSessionInput = {
   /** ISO-8601 */
   completedAt?: string | null | undefined;
@@ -556,6 +566,53 @@ export type AllPrefecturesQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type AllPrefecturesQuery = { allPrefectures: Array<{ code: string | undefined | null, name: string | undefined | null, sortOrder: number | undefined | null } | undefined | null> | undefined | null };
 
+export type RevenueRecordItemFragment = { id: string | undefined | null, locationId: string | undefined | null, memberId: string | undefined | null, membershipSubscriptionId: string | undefined | null, revenueDate: string | undefined | null, revenueType: string | undefined | null, amount: number | undefined | null, sourceType: string | undefined | null, note: string | undefined | null, member: { id: string | undefined | null, name: string | undefined | null } | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null };
+
+export type RevenueRecordsByMonthQueryVariables = Exact<{
+  targetMonth: string;
+  locationId?: string | null | undefined;
+}>;
+
+
+export type RevenueRecordsByMonthQuery = { revenueRecordsByMonth: Array<{ id: string | undefined | null, locationId: string | undefined | null, memberId: string | undefined | null, membershipSubscriptionId: string | undefined | null, revenueDate: string | undefined | null, revenueType: string | undefined | null, amount: number | undefined | null, sourceType: string | undefined | null, note: string | undefined | null, member: { id: string | undefined | null, name: string | undefined | null } | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null> | undefined | null };
+
+export type RevenueSummaryQueryVariables = Exact<{
+  targetMonth: string;
+  locationId?: string | null | undefined;
+}>;
+
+
+export type RevenueSummaryQuery = { revenueSummary: { totalAmount: number | undefined | null, membershipFeeAmount: number | undefined | null, otherAmount: number | undefined | null, averageMonthlyFee: number | undefined | null, membershipFeeCount: number } | undefined | null };
+
+export type CreateRevenueRecordMutationVariables = Exact<{
+  input: RevenueRecordInput;
+}>;
+
+
+export type CreateRevenueRecordMutation = { createRevenueRecord: { id: string | undefined | null, locationId: string | undefined | null, memberId: string | undefined | null, membershipSubscriptionId: string | undefined | null, revenueDate: string | undefined | null, revenueType: string | undefined | null, amount: number | undefined | null, sourceType: string | undefined | null, note: string | undefined | null, member: { id: string | undefined | null, name: string | undefined | null } | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null };
+
+export type UpdateRevenueRecordMutationVariables = Exact<{
+  revenueRecordId: string;
+  input: RevenueRecordInput;
+}>;
+
+
+export type UpdateRevenueRecordMutation = { updateRevenueRecord: { id: string | undefined | null, locationId: string | undefined | null, memberId: string | undefined | null, membershipSubscriptionId: string | undefined | null, revenueDate: string | undefined | null, revenueType: string | undefined | null, amount: number | undefined | null, sourceType: string | undefined | null, note: string | undefined | null, member: { id: string | undefined | null, name: string | undefined | null } | undefined | null, location: { id: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null };
+
+export type DeleteRevenueRecordMutationVariables = Exact<{
+  revenueRecordId: string;
+}>;
+
+
+export type DeleteRevenueRecordMutation = { deleteRevenueRecord: boolean };
+
+export type GenerateMembershipFeeRevenuesMutationVariables = Exact<{
+  targetMonth: string;
+}>;
+
+
+export type GenerateMembershipFeeRevenuesMutation = { generateMembershipFeeRevenues: number };
+
 export const AreaListItemFragmentDoc = gql`
     fragment AreaListItem on Area {
   id
@@ -772,6 +829,27 @@ export const PrefectureOptionFragmentDoc = gql`
   code
   name
   sortOrder
+}
+    `;
+export const RevenueRecordItemFragmentDoc = gql`
+    fragment RevenueRecordItem on RevenueRecord {
+  id
+  locationId
+  memberId
+  membershipSubscriptionId
+  revenueDate
+  revenueType
+  amount
+  sourceType
+  note
+  member {
+    id
+    name
+  }
+  location {
+    id
+    name
+  }
 }
     `;
 export const AllAreasDocument = gql`
@@ -1167,6 +1245,48 @@ export const AllPrefecturesDocument = gql`
   }
 }
     ${PrefectureOptionFragmentDoc}`;
+export const RevenueRecordsByMonthDocument = gql`
+    query revenueRecordsByMonth($targetMonth: Date!, $locationId: String) {
+  revenueRecordsByMonth(targetMonth: $targetMonth, locationId: $locationId) {
+    ...RevenueRecordItem
+  }
+}
+    ${RevenueRecordItemFragmentDoc}`;
+export const RevenueSummaryDocument = gql`
+    query revenueSummary($targetMonth: Date!, $locationId: String) {
+  revenueSummary(targetMonth: $targetMonth, locationId: $locationId) {
+    totalAmount
+    membershipFeeAmount
+    otherAmount
+    averageMonthlyFee
+    membershipFeeCount
+  }
+}
+    `;
+export const CreateRevenueRecordDocument = gql`
+    mutation createRevenueRecord($input: RevenueRecordInput!) {
+  createRevenueRecord(input: $input) {
+    ...RevenueRecordItem
+  }
+}
+    ${RevenueRecordItemFragmentDoc}`;
+export const UpdateRevenueRecordDocument = gql`
+    mutation updateRevenueRecord($revenueRecordId: String!, $input: RevenueRecordInput!) {
+  updateRevenueRecord(revenueRecordId: $revenueRecordId, input: $input) {
+    ...RevenueRecordItem
+  }
+}
+    ${RevenueRecordItemFragmentDoc}`;
+export const DeleteRevenueRecordDocument = gql`
+    mutation deleteRevenueRecord($revenueRecordId: String!) {
+  deleteRevenueRecord(revenueRecordId: $revenueRecordId)
+}
+    `;
+export const GenerateMembershipFeeRevenuesDocument = gql`
+    mutation generateMembershipFeeRevenues($targetMonth: Date!) {
+  generateMembershipFeeRevenues(targetMonth: $targetMonth)
+}
+    `;
 
 export type SdkFunctionWrapper = <T>(action: (requestHeaders?:Record<string, string>) => Promise<T>, operationName: string, operationType?: string, variables?: any) => Promise<T>;
 
@@ -1330,6 +1450,24 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     allPrefectures(variables?: AllPrefecturesQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<AllPrefecturesQuery> {
       return withWrapper((wrappedRequestHeaders) => client.request<AllPrefecturesQuery>({ document: AllPrefecturesDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'allPrefectures', 'query', variables);
+    },
+    revenueRecordsByMonth(variables: RevenueRecordsByMonthQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<RevenueRecordsByMonthQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<RevenueRecordsByMonthQuery>({ document: RevenueRecordsByMonthDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'revenueRecordsByMonth', 'query', variables);
+    },
+    revenueSummary(variables: RevenueSummaryQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<RevenueSummaryQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<RevenueSummaryQuery>({ document: RevenueSummaryDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'revenueSummary', 'query', variables);
+    },
+    createRevenueRecord(variables: CreateRevenueRecordMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<CreateRevenueRecordMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<CreateRevenueRecordMutation>({ document: CreateRevenueRecordDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'createRevenueRecord', 'mutation', variables);
+    },
+    updateRevenueRecord(variables: UpdateRevenueRecordMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<UpdateRevenueRecordMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<UpdateRevenueRecordMutation>({ document: UpdateRevenueRecordDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'updateRevenueRecord', 'mutation', variables);
+    },
+    deleteRevenueRecord(variables: DeleteRevenueRecordMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<DeleteRevenueRecordMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<DeleteRevenueRecordMutation>({ document: DeleteRevenueRecordDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'deleteRevenueRecord', 'mutation', variables);
+    },
+    generateMembershipFeeRevenues(variables: GenerateMembershipFeeRevenuesMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<GenerateMembershipFeeRevenuesMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<GenerateMembershipFeeRevenuesMutation>({ document: GenerateMembershipFeeRevenuesDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'generateMembershipFeeRevenues', 'mutation', variables);
     }
   };
 }

@@ -1,0 +1,55 @@
+fragment RevenueRecordItem on RevenueRecord {
+  id
+  locationId
+  memberId
+  membershipSubscriptionId
+  revenueDate
+  revenueType
+  amount
+  sourceType
+  note
+  member {
+    id
+    name
+  }
+  location {
+    id
+    name
+  }
+}
+
+query revenueRecordsByMonth($targetMonth: Date!, $locationId: String) {
+  revenueRecordsByMonth(targetMonth: $targetMonth, locationId: $locationId) {
+    ...RevenueRecordItem
+  }
+}
+
+query revenueSummary($targetMonth: Date!, $locationId: String) {
+  revenueSummary(targetMonth: $targetMonth, locationId: $locationId) {
+    totalAmount
+    membershipFeeAmount
+    otherAmount
+    averageMonthlyFee
+    membershipFeeCount
+  }
+}
+
+mutation createRevenueRecord($input: RevenueRecordInput!) {
+  createRevenueRecord(input: $input) {
+    ...RevenueRecordItem
+  }
+}
+
+mutation updateRevenueRecord($revenueRecordId: String!, $input: RevenueRecordInput!) {
+  updateRevenueRecord(revenueRecordId: $revenueRecordId, input: $input) {
+    ...RevenueRecordItem
+  }
+}
+
+mutation deleteRevenueRecord($revenueRecordId: String!) {
+  deleteRevenueRecord(revenueRecordId: $revenueRecordId)
+}
+
+mutation generateMembershipFeeRevenues($targetMonth: Date!) {
+  generateMembershipFeeRevenues(targetMonth: $targetMonth)
+}

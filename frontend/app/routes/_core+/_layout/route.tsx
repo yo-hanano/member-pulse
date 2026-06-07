@@ -30,6 +30,7 @@ import {
   NotebookTabs,
   PanelLeftClose,
   PanelLeftOpen,
+  Receipt,
   Settings,
   SlidersHorizontal,
   Tags,
@@ -70,6 +71,7 @@ const navigationGroups: NavigationGroup[] = [
   {
     label: "Review",
     items: [
+      { label: "売上", to: "/revenues", icon: Receipt },
       { label: "広告費", icon: Megaphone, disabled: true },
       { label: "費用", icon: BadgeJapaneseYen, disabled: true },
     ],

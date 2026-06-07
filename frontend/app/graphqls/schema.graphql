@@ -173,6 +173,7 @@ type Mutation {
   createLocation(input: LocationInput): Location
   createMember(input: MemberInput): Member
   createMembershipPlan(input: MembershipPlanInput): MembershipPlan
+  createRevenueRecord(input: RevenueRecordInput): RevenueRecord
   createTrialSession(input: TrialSessionInput): TrialSession
   deleteArea(areaId: String!): Boolean!
   deleteEmployee(employeeId: String!): Boolean!
@@ -180,6 +181,7 @@ type Mutation {
   deleteLocation(locationId: String!): Boolean!
   deleteMember(memberId: String!): Boolean!
   deleteMembershipPlan(membershipPlanId: String!): Boolean!
+  deleteRevenueRecord(revenueRecordId: String!): Boolean!
   deleteTrialSession(trialSessionId: String!): Boolean!
   endMembershipSubscription(
     "ISO-8601"
@@ -187,6 +189,10 @@ type Mutation {
     membershipSubscriptionId: String!
   ): MembershipSubscription
   enrollLead(input: MemberInput, leadId: String!, subscription: MembershipSubscriptionInput!): Member
+  generateMembershipFeeRevenues(
+    "ISO-8601"
+    targetMonth: Date!
+  ): Int!
   issueEmployeeInvite(input: EmployeeInviteInput): EmployeeInviteResult
   pauseMembershipSubscription(membershipSubscriptionId: String!): MembershipSubscription
   resumeMembershipSubscription(membershipSubscriptionId: String!): MembershipSubscription
@@ -199,6 +205,7 @@ type Mutation {
   updateMembershipPlan(input: MembershipPlanInput, membershipPlanId: String!): MembershipPlan
   updateMembershipSubscription(input: MembershipSubscriptionUpdateInput, membershipSubscriptionId: String!): MembershipSubscription
   updateOwnAccount(input: OwnAccountUpdateInput): Employee
+  updateRevenueRecord(input: RevenueRecordInput, revenueRecordId: String!): RevenueRecord
   updateTrialSession(input: TrialSessionInput, trialSessionId: String!): TrialSession
 }
 
@@ -270,8 +277,48 @@ type Query {
   memberById(memberId: String!): Member
   memberPagination(filter: MemberFilterInput, pagination: Pagination): Page_Member
   membershipSubscriptionsByMemberId(memberId: String!): [MembershipSubscription]
+  revenueRecordsByMonth(
+    locationId: String,
+    "ISO-8601"
+    targetMonth: Date!
+  ): [RevenueRecord]
+  revenueSummary(
+    locationId: String,
+    "ISO-8601"
+    targetMonth: Date!
+  ): RevenueSummary
   trialSessionById(trialSessionId: String!): TrialSession
   trialSessionsByLeadId(leadId: String!): [TrialSession]
+}
+
+type RevenueRecord {
+  amount: BigDecimal
+  companyId: String
+  "ISO-8601"
+  createdAt: DateTime
+  "ISO-8601"
+  deletedAt: DateTime
+  id: String
+  location: Location
+  locationId: String
+  member: Member
+  memberId: String
+  membershipSubscriptionId: String
+  note: String
+  "ISO-8601"
+  revenueDate: Date
+  revenueType: String
+  sourceType: String
+  "ISO-8601"
+  updatedAt: DateTime
+}
+
+type RevenueSummary {
+  averageMonthlyFee: BigDecimal
+  membershipFeeAmount: BigDecimal
+  membershipFeeCount: Int!
+  otherAmount: BigDecimal
+  totalAmount: BigDecimal
 }
 
 type TrialSession {
@@ -450,6 +497,16 @@ input Pagination {
   offset: Int
   orderBy: String
   orderDirection: String
+}
+
+input RevenueRecordInput {
+  amount: BigDecimal!
+  locationId: String
+  memberId: String
+  note: String
+  "ISO-8601"
+  revenueDate: Date!
+  revenueType: String!
 }
 
 input TrialSessionInput {
