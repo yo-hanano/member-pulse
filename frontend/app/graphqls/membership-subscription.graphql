@@ -1,0 +1,54 @@
+fragment MembershipSubscriptionItem on MembershipSubscription {
+  id
+  memberId
+  membershipPlanId
+  startDate
+  endDate
+  status
+  monthlyFee
+  note
+  createdAt
+  membershipPlan {
+    id
+    name
+  }
+}
+
+query membershipSubscriptionsByMemberId($memberId: String!) {
+  membershipSubscriptionsByMemberId(memberId: $memberId) {
+    ...MembershipSubscriptionItem
+  }
+}
+
+mutation changeMembershipPlan($memberId: String!, $input: MembershipSubscriptionInput!) {
+  changeMembershipPlan(memberId: $memberId, input: $input) {
+    ...MembershipSubscriptionItem
+  }
+}
+
+mutation pauseMembershipSubscription($membershipSubscriptionId: String!) {
+  pauseMembershipSubscription(membershipSubscriptionId: $membershipSubscriptionId) {
+    ...MembershipSubscriptionItem
+  }
+}
+
+mutation resumeMembershipSubscription($membershipSubscriptionId: String!) {
+  resumeMembershipSubscription(membershipSubscriptionId: $membershipSubscriptionId) {
+    ...MembershipSubscriptionItem
+  }
+}
+
+mutation endMembershipSubscription($membershipSubscriptionId: String!, $endDate: Date!) {
+  endMembershipSubscription(membershipSubscriptionId: $membershipSubscriptionId, endDate: $endDate) {
+    ...MembershipSubscriptionItem
+  }
+}
+
+mutation updateMembershipSubscription(
+  $membershipSubscriptionId: String!
+  $input: MembershipSubscriptionUpdateInput!
+) {
+  updateMembershipSubscription(membershipSubscriptionId: $membershipSubscriptionId, input: $input) {
+    ...MembershipSubscriptionItem
+  }
+}

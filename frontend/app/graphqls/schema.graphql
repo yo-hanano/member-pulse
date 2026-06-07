@@ -143,28 +143,61 @@ type MembershipPlan {
   updatedAt: DateTime
 }
 
+type MembershipSubscription {
+  companyId: String
+  "ISO-8601"
+  createdAt: DateTime
+  "ISO-8601"
+  deletedAt: DateTime
+  "ISO-8601"
+  endDate: Date
+  id: String
+  memberId: String
+  membershipPlan: MembershipPlan
+  membershipPlanId: String
+  monthlyFee: BigDecimal
+  note: String
+  "ISO-8601"
+  startDate: Date
+  status: String
+  "ISO-8601"
+  updatedAt: DateTime
+}
+
 "Mutation root"
 type Mutation {
+  changeMembershipPlan(input: MembershipSubscriptionInput!, memberId: String!): MembershipSubscription
   createArea(input: AreaInput): Area
   createEmployee(input: EmployeeInput): Employee
   createLead(input: LeadInput): Lead
   createLocation(input: LocationInput): Location
   createMember(input: MemberInput): Member
+  createMembershipPlan(input: MembershipPlanInput): MembershipPlan
   createTrialSession(input: TrialSessionInput): TrialSession
   deleteArea(areaId: String!): Boolean!
   deleteEmployee(employeeId: String!): Boolean!
   deleteLead(leadId: String!): Boolean!
   deleteLocation(locationId: String!): Boolean!
   deleteMember(memberId: String!): Boolean!
+  deleteMembershipPlan(membershipPlanId: String!): Boolean!
   deleteTrialSession(trialSessionId: String!): Boolean!
+  endMembershipSubscription(
+    "ISO-8601"
+    endDate: Date!,
+    membershipSubscriptionId: String!
+  ): MembershipSubscription
   enrollLead(input: MemberInput, leadId: String!, subscription: MembershipSubscriptionInput!): Member
   issueEmployeeInvite(input: EmployeeInviteInput): EmployeeInviteResult
+  pauseMembershipSubscription(membershipSubscriptionId: String!): MembershipSubscription
+  resumeMembershipSubscription(membershipSubscriptionId: String!): MembershipSubscription
   updateArea(areaId: String!, input: AreaInput): Area
   updateAreaOrders(inputs: [AreaOrderInput]): Boolean!
   updateEmployee(employeeId: String!, input: EmployeeInput): Employee
   updateLead(input: LeadInput, leadId: String!): Lead
   updateLocation(input: LocationInput, locationId: String!): Location
   updateMember(input: MemberInput, memberId: String!): Member
+  updateMembershipPlan(input: MembershipPlanInput, membershipPlanId: String!): MembershipPlan
+  updateMembershipSubscription(input: MembershipSubscriptionUpdateInput, membershipSubscriptionId: String!): MembershipSubscription
   updateOwnAccount(input: OwnAccountUpdateInput): Employee
   updateTrialSession(input: TrialSessionInput, trialSessionId: String!): TrialSession
 }
@@ -224,6 +257,7 @@ type Query {
   allLeads: [Lead]
   allLocations: [Location]
   allMembers: [Member]
+  allMembershipPlans: [MembershipPlan]
   allPrefectures: [Prefecture]
   areaById(areaId: String!): Area
   areaPagination(filter: AreaFilterInput, pagination: Pagination): Page_Area
@@ -235,6 +269,7 @@ type Query {
   locationPagination(filter: LocationFilterInput, pagination: Pagination): Page_Location
   memberById(memberId: String!): Member
   memberPagination(filter: MemberFilterInput, pagination: Pagination): Page_Member
+  membershipSubscriptionsByMemberId(memberId: String!): [MembershipSubscription]
   trialSessionById(trialSessionId: String!): TrialSession
   trialSessionsByLeadId(leadId: String!): [TrialSession]
 }
@@ -382,12 +417,26 @@ input MemberInput {
   zipCode: String
 }
 
+input MembershipPlanInput {
+  active: Boolean
+  displayOrder: Int
+  locationId: String
+  monthlyFee: BigDecimal!
+  name: String!
+  note: String
+}
+
 input MembershipSubscriptionInput {
   membershipPlanId: String!
   monthlyFee: BigDecimal
   note: String
   "ISO-8601"
   startDate: Date!
+}
+
+input MembershipSubscriptionUpdateInput {
+  monthlyFee: BigDecimal!
+  note: String
 }
 
 input OwnAccountUpdateInput {

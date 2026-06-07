@@ -6,8 +6,40 @@ fragment MembershipPlanOption on MembershipPlan {
   displayOrder
 }
 
+fragment MembershipPlanItem on MembershipPlan {
+  id
+  locationId
+  name
+  monthlyFee
+  active
+  displayOrder
+  note
+}
+
 query activeMembershipPlans {
   activeMembershipPlans {
     ...MembershipPlanOption
   }
+}
+
+query allMembershipPlans {
+  allMembershipPlans {
+    ...MembershipPlanItem
+  }
+}
+
+mutation createMembershipPlan($input: MembershipPlanInput!) {
+  createMembershipPlan(input: $input) {
+    ...MembershipPlanItem
+  }
+}
+
+mutation updateMembershipPlan($membershipPlanId: String!, $input: MembershipPlanInput!) {
+  updateMembershipPlan(membershipPlanId: $membershipPlanId, input: $input) {
+    ...MembershipPlanItem
+  }
+}
+
+mutation deleteMembershipPlan($membershipPlanId: String!) {
+  deleteMembershipPlan(membershipPlanId: $membershipPlanId)
 }

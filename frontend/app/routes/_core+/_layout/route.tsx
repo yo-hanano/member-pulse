@@ -64,7 +64,6 @@ const navigationGroups: NavigationGroup[] = [
     label: "CRM",
     items: [
       { label: "リード", to: "/leads", icon: MessageSquare },
-      { label: "体験セッション", icon: ClipboardList, disabled: true },
       { label: "会員", to: "/members", icon: UserRound },
     ],
   },
@@ -80,7 +79,7 @@ const navigationGroups: NavigationGroup[] = [
     items: [
       { label: "拠点", to: "/locations", icon: MapPin },
       { label: "エリア", to: "/areas", icon: MapIcon },
-      { label: "会員プラン", icon: CreditCard, disabled: true },
+      { label: "会員プラン", to: "/membership-plans", icon: CreditCard },
       { label: "費用マスタ", icon: Tags, disabled: true },
     ],
   },

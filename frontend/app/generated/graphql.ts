@@ -115,12 +115,26 @@ export type MemberInput = {
   zipCode?: string | null | undefined;
 };
 
+export type MembershipPlanInput = {
+  active?: boolean | null | undefined;
+  displayOrder?: number | null | undefined;
+  locationId?: string | null | undefined;
+  monthlyFee: number;
+  name: string;
+  note?: string | null | undefined;
+};
+
 export type MembershipSubscriptionInput = {
   membershipPlanId: string;
   monthlyFee?: number | null | undefined;
   note?: string | null | undefined;
   /** ISO-8601 */
   startDate: string;
+};
+
+export type MembershipSubscriptionUpdateInput = {
+  monthlyFee: number;
+  note?: string | null | undefined;
 };
 
 export type OwnAccountUpdateInput = {
@@ -454,10 +468,86 @@ export type EnrollLeadMutation = { enrollLead: { id: string | undefined | null, 
 
 export type MembershipPlanOptionFragment = { id: string | undefined | null, locationId: string | undefined | null, name: string | undefined | null, monthlyFee: number | undefined | null, displayOrder: number | undefined | null };
 
+export type MembershipPlanItemFragment = { id: string | undefined | null, locationId: string | undefined | null, name: string | undefined | null, monthlyFee: number | undefined | null, active: boolean | undefined | null, displayOrder: number | undefined | null, note: string | undefined | null };
+
 export type ActiveMembershipPlansQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type ActiveMembershipPlansQuery = { activeMembershipPlans: Array<{ id: string | undefined | null, locationId: string | undefined | null, name: string | undefined | null, monthlyFee: number | undefined | null, displayOrder: number | undefined | null } | undefined | null> | undefined | null };
+
+export type AllMembershipPlansQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type AllMembershipPlansQuery = { allMembershipPlans: Array<{ id: string | undefined | null, locationId: string | undefined | null, name: string | undefined | null, monthlyFee: number | undefined | null, active: boolean | undefined | null, displayOrder: number | undefined | null, note: string | undefined | null } | undefined | null> | undefined | null };
+
+export type CreateMembershipPlanMutationVariables = Exact<{
+  input: MembershipPlanInput;
+}>;
+
+
+export type CreateMembershipPlanMutation = { createMembershipPlan: { id: string | undefined | null, locationId: string | undefined | null, name: string | undefined | null, monthlyFee: number | undefined | null, active: boolean | undefined | null, displayOrder: number | undefined | null, note: string | undefined | null } | undefined | null };
+
+export type UpdateMembershipPlanMutationVariables = Exact<{
+  membershipPlanId: string;
+  input: MembershipPlanInput;
+}>;
+
+
+export type UpdateMembershipPlanMutation = { updateMembershipPlan: { id: string | undefined | null, locationId: string | undefined | null, name: string | undefined | null, monthlyFee: number | undefined | null, active: boolean | undefined | null, displayOrder: number | undefined | null, note: string | undefined | null } | undefined | null };
+
+export type DeleteMembershipPlanMutationVariables = Exact<{
+  membershipPlanId: string;
+}>;
+
+
+export type DeleteMembershipPlanMutation = { deleteMembershipPlan: boolean };
+
+export type MembershipSubscriptionItemFragment = { id: string | undefined | null, memberId: string | undefined | null, membershipPlanId: string | undefined | null, startDate: string | undefined | null, endDate: string | undefined | null, status: string | undefined | null, monthlyFee: number | undefined | null, note: string | undefined | null, createdAt: string | undefined | null, membershipPlan: { id: string | undefined | null, name: string | undefined | null } | undefined | null };
+
+export type MembershipSubscriptionsByMemberIdQueryVariables = Exact<{
+  memberId: string;
+}>;
+
+
+export type MembershipSubscriptionsByMemberIdQuery = { membershipSubscriptionsByMemberId: Array<{ id: string | undefined | null, memberId: string | undefined | null, membershipPlanId: string | undefined | null, startDate: string | undefined | null, endDate: string | undefined | null, status: string | undefined | null, monthlyFee: number | undefined | null, note: string | undefined | null, createdAt: string | undefined | null, membershipPlan: { id: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null> | undefined | null };
+
+export type ChangeMembershipPlanMutationVariables = Exact<{
+  memberId: string;
+  input: MembershipSubscriptionInput;
+}>;
+
+
+export type ChangeMembershipPlanMutation = { changeMembershipPlan: { id: string | undefined | null, memberId: string | undefined | null, membershipPlanId: string | undefined | null, startDate: string | undefined | null, endDate: string | undefined | null, status: string | undefined | null, monthlyFee: number | undefined | null, note: string | undefined | null, createdAt: string | undefined | null, membershipPlan: { id: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null };
+
+export type PauseMembershipSubscriptionMutationVariables = Exact<{
+  membershipSubscriptionId: string;
+}>;
+
+
+export type PauseMembershipSubscriptionMutation = { pauseMembershipSubscription: { id: string | undefined | null, memberId: string | undefined | null, membershipPlanId: string | undefined | null, startDate: string | undefined | null, endDate: string | undefined | null, status: string | undefined | null, monthlyFee: number | undefined | null, note: string | undefined | null, createdAt: string | undefined | null, membershipPlan: { id: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null };
+
+export type ResumeMembershipSubscriptionMutationVariables = Exact<{
+  membershipSubscriptionId: string;
+}>;
+
+
+export type ResumeMembershipSubscriptionMutation = { resumeMembershipSubscription: { id: string | undefined | null, memberId: string | undefined | null, membershipPlanId: string | undefined | null, startDate: string | undefined | null, endDate: string | undefined | null, status: string | undefined | null, monthlyFee: number | undefined | null, note: string | undefined | null, createdAt: string | undefined | null, membershipPlan: { id: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null };
+
+export type EndMembershipSubscriptionMutationVariables = Exact<{
+  membershipSubscriptionId: string;
+  endDate: string;
+}>;
+
+
+export type EndMembershipSubscriptionMutation = { endMembershipSubscription: { id: string | undefined | null, memberId: string | undefined | null, membershipPlanId: string | undefined | null, startDate: string | undefined | null, endDate: string | undefined | null, status: string | undefined | null, monthlyFee: number | undefined | null, note: string | undefined | null, createdAt: string | undefined | null, membershipPlan: { id: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null };
+
+export type UpdateMembershipSubscriptionMutationVariables = Exact<{
+  membershipSubscriptionId: string;
+  input: MembershipSubscriptionUpdateInput;
+}>;
+
+
+export type UpdateMembershipSubscriptionMutation = { updateMembershipSubscription: { id: string | undefined | null, memberId: string | undefined | null, membershipPlanId: string | undefined | null, startDate: string | undefined | null, endDate: string | undefined | null, status: string | undefined | null, monthlyFee: number | undefined | null, note: string | undefined | null, createdAt: string | undefined | null, membershipPlan: { id: string | undefined | null, name: string | undefined | null } | undefined | null } | undefined | null };
 
 export type PrefectureOptionFragment = { code: string | undefined | null, name: string | undefined | null, sortOrder: number | undefined | null };
 
@@ -647,6 +737,34 @@ export const MembershipPlanOptionFragmentDoc = gql`
   name
   monthlyFee
   displayOrder
+}
+    `;
+export const MembershipPlanItemFragmentDoc = gql`
+    fragment MembershipPlanItem on MembershipPlan {
+  id
+  locationId
+  name
+  monthlyFee
+  active
+  displayOrder
+  note
+}
+    `;
+export const MembershipSubscriptionItemFragmentDoc = gql`
+    fragment MembershipSubscriptionItem on MembershipSubscription {
+  id
+  memberId
+  membershipPlanId
+  startDate
+  endDate
+  status
+  monthlyFee
+  note
+  createdAt
+  membershipPlan {
+    id
+    name
+  }
 }
     `;
 export const PrefectureOptionFragmentDoc = gql`
@@ -966,6 +1084,82 @@ export const ActiveMembershipPlansDocument = gql`
   }
 }
     ${MembershipPlanOptionFragmentDoc}`;
+export const AllMembershipPlansDocument = gql`
+    query allMembershipPlans {
+  allMembershipPlans {
+    ...MembershipPlanItem
+  }
+}
+    ${MembershipPlanItemFragmentDoc}`;
+export const CreateMembershipPlanDocument = gql`
+    mutation createMembershipPlan($input: MembershipPlanInput!) {
+  createMembershipPlan(input: $input) {
+    ...MembershipPlanItem
+  }
+}
+    ${MembershipPlanItemFragmentDoc}`;
+export const UpdateMembershipPlanDocument = gql`
+    mutation updateMembershipPlan($membershipPlanId: String!, $input: MembershipPlanInput!) {
+  updateMembershipPlan(membershipPlanId: $membershipPlanId, input: $input) {
+    ...MembershipPlanItem
+  }
+}
+    ${MembershipPlanItemFragmentDoc}`;
+export const DeleteMembershipPlanDocument = gql`
+    mutation deleteMembershipPlan($membershipPlanId: String!) {
+  deleteMembershipPlan(membershipPlanId: $membershipPlanId)
+}
+    `;
+export const MembershipSubscriptionsByMemberIdDocument = gql`
+    query membershipSubscriptionsByMemberId($memberId: String!) {
+  membershipSubscriptionsByMemberId(memberId: $memberId) {
+    ...MembershipSubscriptionItem
+  }
+}
+    ${MembershipSubscriptionItemFragmentDoc}`;
+export const ChangeMembershipPlanDocument = gql`
+    mutation changeMembershipPlan($memberId: String!, $input: MembershipSubscriptionInput!) {
+  changeMembershipPlan(memberId: $memberId, input: $input) {
+    ...MembershipSubscriptionItem
+  }
+}
+    ${MembershipSubscriptionItemFragmentDoc}`;
+export const PauseMembershipSubscriptionDocument = gql`
+    mutation pauseMembershipSubscription($membershipSubscriptionId: String!) {
+  pauseMembershipSubscription(membershipSubscriptionId: $membershipSubscriptionId) {
+    ...MembershipSubscriptionItem
+  }
+}
+    ${MembershipSubscriptionItemFragmentDoc}`;
+export const ResumeMembershipSubscriptionDocument = gql`
+    mutation resumeMembershipSubscription($membershipSubscriptionId: String!) {
+  resumeMembershipSubscription(
+    membershipSubscriptionId: $membershipSubscriptionId
+  ) {
+    ...MembershipSubscriptionItem
+  }
+}
+    ${MembershipSubscriptionItemFragmentDoc}`;
+export const EndMembershipSubscriptionDocument = gql`
+    mutation endMembershipSubscription($membershipSubscriptionId: String!, $endDate: Date!) {
+  endMembershipSubscription(
+    membershipSubscriptionId: $membershipSubscriptionId
+    endDate: $endDate
+  ) {
+    ...MembershipSubscriptionItem
+  }
+}
+    ${MembershipSubscriptionItemFragmentDoc}`;
+export const UpdateMembershipSubscriptionDocument = gql`
+    mutation updateMembershipSubscription($membershipSubscriptionId: String!, $input: MembershipSubscriptionUpdateInput!) {
+  updateMembershipSubscription(
+    membershipSubscriptionId: $membershipSubscriptionId
+    input: $input
+  ) {
+    ...MembershipSubscriptionItem
+  }
+}
+    ${MembershipSubscriptionItemFragmentDoc}`;
 export const AllPrefecturesDocument = gql`
     query allPrefectures {
   allPrefectures {
@@ -1103,6 +1297,36 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     activeMembershipPlans(variables?: ActiveMembershipPlansQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<ActiveMembershipPlansQuery> {
       return withWrapper((wrappedRequestHeaders) => client.request<ActiveMembershipPlansQuery>({ document: ActiveMembershipPlansDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'activeMembershipPlans', 'query', variables);
+    },
+    allMembershipPlans(variables?: AllMembershipPlansQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<AllMembershipPlansQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<AllMembershipPlansQuery>({ document: AllMembershipPlansDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'allMembershipPlans', 'query', variables);
+    },
+    createMembershipPlan(variables: CreateMembershipPlanMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<CreateMembershipPlanMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<CreateMembershipPlanMutation>({ document: CreateMembershipPlanDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'createMembershipPlan', 'mutation', variables);
+    },
+    updateMembershipPlan(variables: UpdateMembershipPlanMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<UpdateMembershipPlanMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<UpdateMembershipPlanMutation>({ document: UpdateMembershipPlanDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'updateMembershipPlan', 'mutation', variables);
+    },
+    deleteMembershipPlan(variables: DeleteMembershipPlanMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<DeleteMembershipPlanMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<DeleteMembershipPlanMutation>({ document: DeleteMembershipPlanDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'deleteMembershipPlan', 'mutation', variables);
+    },
+    membershipSubscriptionsByMemberId(variables: MembershipSubscriptionsByMemberIdQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<MembershipSubscriptionsByMemberIdQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<MembershipSubscriptionsByMemberIdQuery>({ document: MembershipSubscriptionsByMemberIdDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'membershipSubscriptionsByMemberId', 'query', variables);
+    },
+    changeMembershipPlan(variables: ChangeMembershipPlanMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<ChangeMembershipPlanMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<ChangeMembershipPlanMutation>({ document: ChangeMembershipPlanDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'changeMembershipPlan', 'mutation', variables);
+    },
+    pauseMembershipSubscription(variables: PauseMembershipSubscriptionMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<PauseMembershipSubscriptionMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<PauseMembershipSubscriptionMutation>({ document: PauseMembershipSubscriptionDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'pauseMembershipSubscription', 'mutation', variables);
+    },
+    resumeMembershipSubscription(variables: ResumeMembershipSubscriptionMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<ResumeMembershipSubscriptionMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<ResumeMembershipSubscriptionMutation>({ document: ResumeMembershipSubscriptionDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'resumeMembershipSubscription', 'mutation', variables);
+    },
+    endMembershipSubscription(variables: EndMembershipSubscriptionMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<EndMembershipSubscriptionMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<EndMembershipSubscriptionMutation>({ document: EndMembershipSubscriptionDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'endMembershipSubscription', 'mutation', variables);
+    },
+    updateMembershipSubscription(variables: UpdateMembershipSubscriptionMutationVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<UpdateMembershipSubscriptionMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<UpdateMembershipSubscriptionMutation>({ document: UpdateMembershipSubscriptionDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'updateMembershipSubscription', 'mutation', variables);
     },
     allPrefectures(variables?: AllPrefecturesQueryVariables, requestHeaders?: GraphQLClientRequestHeaders, signal?: RequestInit['signal']): Promise<AllPrefecturesQuery> {
       return withWrapper((wrappedRequestHeaders) => client.request<AllPrefecturesQuery>({ document: AllPrefecturesDocument, variables, requestHeaders: { ...requestHeaders, ...wrappedRequestHeaders }, signal }), 'allPrefectures', 'query', variables);

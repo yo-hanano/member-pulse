@@ -1,5 +1,12 @@
 import { Anchor, Breadcrumbs, Stack, Tabs, Text, Title } from "@mantine/core";
-import { Link, type LoaderFunctionArgs, Outlet, useLoaderData, useNavigate } from "react-router";
+import {
+  Link,
+  type LoaderFunctionArgs,
+  Outlet,
+  useLoaderData,
+  useLocation,
+  useNavigate,
+} from "react-router";
 
 import { getSdk, type MemberDetailViewFragment } from "~/generated/graphql";
 import { getGraphQLClient } from "~/services/graphql-client";
@@ -32,13 +39,15 @@ export function meta() {
 export default function MemberDetailRoute() {
   const { member: memberData } = useLoaderData<typeof clientLoader>();
   const navigate = useNavigate();
+  const location = useLocation();
   if (!memberData) {
     throw new Response("member not found", { status: 404 });
   }
   const member = memberData;
 
-  const selectedKey = "overview";
   const basePath = `/members/${member.id}`;
+  // リード詳細と同じく、URL からタブの選択状態を導出する。
+  const selectedKey = location.pathname.endsWith("/subscriptions") ? "subscriptions" : "overview";
 
   return (
     <Stack gap="lg">
@@ -68,10 +77,14 @@ export default function MemberDetailRoute() {
             if (value === "overview") {
               navigate(basePath);
             }
+            if (value === "subscriptions") {
+              navigate(`${basePath}/subscriptions`);
+            }
           }}
         >
           <Tabs.List>
             <Tabs.Tab value="overview">概要</Tabs.Tab>
+            <Tabs.Tab value="subscriptions">コース管理</Tabs.Tab>
           </Tabs.List>
         </Tabs>
       </Stack>

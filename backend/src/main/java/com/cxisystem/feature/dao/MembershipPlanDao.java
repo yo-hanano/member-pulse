@@ -6,6 +6,7 @@ import com.cxisystem.jooq.tables.records.MembershipPlanRecord;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.util.List;
+import java.util.Set;
 import lombok.NoArgsConstructor;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -35,5 +36,17 @@ public class MembershipPlanDao extends AbstractDao<MembershipPlanRecord, String>
         .where(deletedCondition().and(MEMBERSHIP_PLAN.ACTIVE.isTrue()))
         .orderBy(MEMBERSHIP_PLAN.DISPLAY_ORDER.asc().nullsLast(), MEMBERSHIP_PLAN.NAME.asc())
         .fetch();
+  }
+
+  /** 停止中も含む全プランを表示順で返します。マスタ管理画面で利用します。 */
+  public List<MembershipPlanRecord> findAllOrdered() {
+    return dsl.selectFrom(MEMBERSHIP_PLAN).where(deletedCondition())
+        .orderBy(MEMBERSHIP_PLAN.DISPLAY_ORDER.asc().nullsLast(), MEMBERSHIP_PLAN.NAME.asc())
+        .fetch();
+  }
+
+  /** 削除済みも含めて指定 ID のプランを返します。契約履歴のプラン名表示で利用します。 */
+  public List<MembershipPlanRecord> findByIdsIncludingDeleted(Set<String> ids) {
+    return dsl.selectFrom(MEMBERSHIP_PLAN).where(MEMBERSHIP_PLAN.ID.in(ids)).fetch();
   }
 }
