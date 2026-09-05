@@ -64,10 +64,31 @@ java {
 	toolchain { languageVersion = JavaLanguageVersion.of(25) }
 }
 
+// smallrye-graphql plugin は解決用に <name>ForClassLoading / <name>ForIndexing という
+// copy を作るが、copy には属性が引き継がれないため quarkus の deployment variant と
+// runtime variant が曖昧になる。copy 側にも属性を補って runtime を選ばせる
+configurations.matching { it.name.endsWith('ForClassLoading') || it.name.endsWith('ForIndexing') }.configureEach {
+	attributes {
+		attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+		attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
+		attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR))
+		attribute(Attribute.of("quarkus.prod.deployment-dependency.${project.name}", String), 'off')
+	}
+}
+
 generateSchema {
 	destination = file("$buildDir/generated/schema.graphql")
 	includeTransitiveDependencies = true
 	includeScalars = true
+}
+
+// generateSchema は build/classes を丸ごと読むため、そこへ書き出す test 側のタスクと
+// 出力が重なる。build と同時に指定したときに実行順が不定にならないよう順序を固定する
+tasks.named('generateSchema') {
+	dependsOn tasks.named('classes')
+	mustRunAfter tasks.matching {
+		it.name in ['compileTestJava', 'quarkusGenerateCodeTests', 'compileQuarkusTestGeneratedSourcesJava']
+	}
 }
 
 test {
