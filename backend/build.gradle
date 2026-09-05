@@ -88,7 +88,9 @@ spotless {
     target 'src/*/java/**/*.java'
     importOrder()
     removeUnusedImports()
-    eclipse().configFile project.file("eclipse-java-google-style.xml")
+    // フォーマッタのバージョンを固定する。未指定だと spotless 更新のたびに既定の JDT が変わり、
+    // 依存更新だけで整形結果が動いてしまう
+    eclipse('4.40').configFile project.file("eclipse-java-google-style.xml")
     formatAnnotations()
     trimTrailingWhitespace()
     endWithNewline()
