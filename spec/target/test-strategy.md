@@ -1,13 +1,13 @@
 # テストコード整備計画（2026-09）
 
-member-pulse には現在テストコードが 1 件もありません。この文書は、何から書くか・何を書かないかを決めて、
-段階的に入れていくための計画です。
+member-pulse にはテストコードがありませんでした。この文書は、何から書くか・何を書かないかを決めて、
+段階的に入れていくための計画です。第 1 段階（backend の土台と往復テスト）は実装済みです。
 
 ## 1. 現状
 
 | 層 | テスト | 備考 |
 |---|---|---|
-| `backend` | **なし**（`src/test` 自体が存在しない） | `./gradlew test` は NO-SOURCE で成功扱い。`quarkus-junit5` と `quarkus-smallrye-jwt-build` は既に `testImplementation` に入っている |
+| `backend` | **第 1 段階を実装済み**（`AreaGraphQlTest` 5 件） | 土台は `GraphQlTestSupport` / `GraphQlTestProfile`。`rest-assured` を追加した |
 | `migrate` | **なし** | `jooqCodegenWithTestcontainers` で fresh DB を立てる仕組みは既にある |
 | `bff` | **なし** | test runner 自体が未導入 |
 | `frontend` | **なし** | `playwright` が devDependency に入っているだけで、設定もテストも無い |
@@ -29,6 +29,10 @@ CI も未整備で、品質の担保は `build` / `typecheck` / `check` と手�
 
 **「作って、取り直して、入れた値が返るか」を見るだけのテストが 1 本あれば防げた**バグです。
 しかも黙って落ちるので型検査でもビルドでも lint でも捕まりません。この計画はここを起点にします。
+
+**対応済み**: フィールド名を `displayOrder` に揃え、GraphQL 上の名前は `@Name("dispOrder")` で維持した
+（計画 §8 の案 (b)）。`AreaOrderInput` も実害は無かったが命名を揃えている。あわせて往復テストを入れ、
+**修正を一時的に戻すとテストが 2 件落ちる**ことまで確認した（テストがこのバグを実際に捕まえる証明）。
 
 ## 2. 方針
 
@@ -124,13 +128,32 @@ E2E は backend / bff / DB が起動している必要があるため、起動�
 
 | 段階 | 内容 | 目的 |
 |---|---|---|
-| **第 1 段階** | backend のテスト土台（`GraphQlTestSupport` + JWT 発行 + 使い捨て DB）と、往復テスト 1 本 | 今回のバグを再現・修正して、二度と起きない状態にする |
+| ~~**第 1 段階**~~ **完了** | backend のテスト土台（`GraphQlTestSupport` + JWT 発行）と往復テスト | 今回のバグを再現・修正して、二度と起きない状態にした |
 | **第 2 段階** | 会社境界（RLS）と認証境界 | 被害の大きい箇所を先に固める |
 | **第 3 段階** | 業務ルール（契約・売上生成）とページング | 仕様の意図を残す |
 | **第 4 段階** | frontend の unit と E2E 主要導線、bff の変換テスト | 手動確認の置き換え |
 | **第 5 段階** | CI で `build` / `test` / `typecheck` / `check` / `validate` を回す | 回帰を自動で止める |
 
 第 1 段階だけでも「依存を上げたあと手でブラウザを開く」作業がかなり減ります。
+
+### 第 1 段階で入れたもの（2026-09-05）
+
+| ファイル | 役割 |
+|---|---|
+| `src/test/java/com/cxisystem/test/GraphQlTestSupport.java` | クエリ実行、JWT 発行、Redis へのセッション投入 |
+| `src/test/java/com/cxisystem/test/GraphQlTestProfile.java` | テスト時だけ JWT の鍵をローカル鍵ペアへ差し替える |
+| `src/test/java/com/cxisystem/feature/AreaGraphQlTest.java` | 往復テスト・認証境界・バリデーション（5 件） |
+| `src/test/resources/application.properties` | 接続先とテストポート |
+| `src/test/resources/test-{private,public}-key.pem` | テスト専用の RSA 鍵ペア |
+
+**認証の再現方法**: backend は JWT の `jti` を Redis キーとして `UserInfo` を引き、そこから `companyId` を
+得て RLS を張る（`AppIdentityAugmentor` → `RlsInterceptor`）。そのためテストは「Redis へ UserInfo を置く」と
+「その sessionId を `jti` に載せた JWT を発行する」の両方を行う。本番と同じ経路をなぞるため、
+Service 直呼びにはしていない。
+
+**引っかかった点**: devcontainer が `MP_JWT_VERIFY_PUBLICKEY_LOCATION`（bff の JWKS）を環境変数で渡しており、
+環境変数は `application.properties` より優先度が高い。`%test.` プレフィックスでは上書きできず 401 になるため、
+`QuarkusTestProfile` の `getConfigOverrides()` で上書きしている。
 
 ## 5. 実行方法（想定）
 
@@ -161,7 +184,10 @@ markeman 寄りの重心（backend を厚く、E2E を薄く）が合います�
 実装に入る前に決める必要があるもの。
 
 - **テスト用 DB の立て方**: `@QuarkusTest` から testcontainers を直接使うか、`migrate` の
-  `jooqCodegenWithTestcontainers` と同じ仕組みを共有するか。後者なら changelog の適用も同時に検証できる
+  `jooqCodegenWithTestcontainers` と同じ仕組みを共有するか。後者なら changelog の適用も同時に検証できる。
+  **現状は開発用 DB（`member_pulse_dev`）をそのまま使っている**。テストは作ったデータを `finally` で消すが、
+  削除は論理削除なので `deleted_at` 付きの行が回すたびに積もる。実害は出ていない（未削除の行は seed のまま）が、
+  隔離した DB へ移すのが本筋
 - **テストデータの作り方**: seed をそのまま使うか、テストごとにフィクスチャを作るか。
   会社境界のテストには **2 社目のデータ**が要るが、現在の seed は 1 社分しかない
 - **CI の実行環境**: testcontainers が動く必要がある。GitHub Actions を使うかどうか
@@ -169,8 +195,5 @@ markeman 寄りの重心（backend を厚く、E2E を薄く）が合います�
 
 ## 8. 直近の宿題
 
-- **`AreaInput` / `AreaOrderInput` の `dispOrder` バグを直す**。修正方針は 2 つ
-  - (a) `AreaService.create` / `update` で `setDisplayOrder(input.getDispOrder())` を明示する（影響最小）
-  - (b) フィールド名を `displayOrder` に揃え、GraphQL 上の名前は `@Name("dispOrder")` で維持する
-    （`Record.from()` に依存する設計を活かす。他の Input と命名も揃う）
-  いずれにしても**第 1 段階の往復テストとセットで入れる**
+- ~~`AreaInput` / `AreaOrderInput` の `dispOrder` バグを直す~~ → **完了**（案 (b) を採用し、往復テストとセットで実装）
+- 次は第 2 段階（会社境界・認証境界）。**会社境界のテストには 2 社目の seed データが必要**
