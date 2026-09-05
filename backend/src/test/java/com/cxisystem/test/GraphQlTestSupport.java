@@ -8,6 +8,7 @@ import io.restassured.path.json.JsonPath;
 import io.smallrye.jwt.build.Jwt;
 import io.vertx.mutiny.redis.client.RedisAPI;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import java.time.Duration;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.eclipse.microprofile.jwt.Claims;
+import org.jooq.DSLContext;
 import org.junit.jupiter.api.Assertions;
 
 /**
@@ -45,6 +47,9 @@ public abstract class GraphQlTestSupport {
 
   @Inject
   RedisAPI redisAPI;
+
+  @Inject
+  DSLContext dsl;
 
   @Inject
   ObjectMapper objectMapper;
@@ -92,6 +97,47 @@ public abstract class GraphQlTestSupport {
   }
 
   /**
+   * 会社境界の検証用に、もう 1 社を作ります。
+   *
+   * <p>
+   * {@code company} テーブルは {@code company_id} を持たないため RLS の対象外です （RLS は company_id
+   * を持つテーブルにだけ自動で張られます）。そのためテストから直接挿入できます。 作った会社のデータは、その会社のトークンで GraphQL
+   * を叩いて用意します。
+   *
+   * @param code 会社コード。テスト間で衝突しない値を渡します
+   * @return 作成した会社のID
+   */
+  @Transactional
+  protected String createCompany(String code) {
+    String companyId = "test" + UUID.randomUUID().toString().replace("-", "").substring(0, 17);
+    dsl.execute("insert into company (id, code, name, status) values (?, ?, ?, 'active')",
+        companyId, code, "boundary test " + code);
+    return companyId;
+  }
+
+  /**
+   * 指定会社のエリアを物理削除します。GraphQL の削除は論理削除で company への参照が残るため、 会社ごと片付けるときに使います。
+   *
+   * @param companyId 会社ID
+   */
+  @Transactional
+  protected void purgeAreas(String companyId) {
+    // area は RLS の対象。app.current_company_id を立てないと対象行が見えず 0 件削除になる
+    dsl.execute("select set_config('app.current_company_id', ?, true)", companyId);
+    dsl.execute("delete from area where company_id = ?", companyId);
+  }
+
+  /**
+   * テストで作った会社を消します。参照している行が残っていると失敗するため、後始末の最後に呼びます。
+   *
+   * @param companyId 会社ID
+   */
+  @Transactional
+  protected void deleteCompany(String companyId) {
+    dsl.execute("delete from company where id = ?", companyId);
+  }
+
+  /**
    * 認証つきで GraphQL を実行し、エラーが無いことを確かめたうえで data 部分を返します。
    *
    * @param token アクセストークン
@@ -123,7 +169,7 @@ public abstract class GraphQlTestSupport {
   }
 
   /** GraphQL エンドポイントへ POST し、レスポンス全体を JsonPath として返します。 */
-  private JsonPath post(String token, String query, Map<String, Object> variables) {
+  protected JsonPath post(String token, String query, Map<String, Object> variables) {
     Map<String, Object> payload = new LinkedHashMap<>();
     payload.put("query", query);
     payload.put("variables", variables == null ? Map.of() : variables);

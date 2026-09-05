@@ -1,13 +1,13 @@
 # テストコード整備計画（2026-09）
 
 member-pulse にはテストコードがありませんでした。この文書は、何から書くか・何を書かないかを決めて、
-段階的に入れていくための計画です。第 1 段階（backend の土台と往復テスト）は実装済みです。
+段階的に入れていくための計画です。第 1 段階（土台と往復テスト）と第 2 段階（会社境界・認証境界）は実装済みです。
 
 ## 1. 現状
 
 | 層 | テスト | 備考 |
 |---|---|---|
-| `backend` | **第 1 段階を実装済み**（`AreaGraphQlTest` 5 件） | 土台は `GraphQlTestSupport` / `GraphQlTestProfile`。`rest-assured` を追加した |
+| `backend` | **第 2 段階まで実装済み**（16 件） | 往復 4 / 会社境界 4 / 認証境界 8。土台は `GraphQlTestSupport` / `GraphQlTestProfile` |
 | `migrate` | **なし** | `jooqCodegenWithTestcontainers` で fresh DB を立てる仕組みは既にある |
 | `bff` | **なし** | test runner 自体が未導入 |
 | `frontend` | **なし** | `playwright` が devDependency に入っているだけで、設定もテストも無い |
@@ -129,7 +129,7 @@ E2E は backend / bff / DB が起動している必要があるため、起動�
 | 段階 | 内容 | 目的 |
 |---|---|---|
 | ~~**第 1 段階**~~ **完了** | backend のテスト土台（`GraphQlTestSupport` + JWT 発行）と往復テスト | 今回のバグを再現・修正して、二度と起きない状態にした |
-| **第 2 段階** | 会社境界（RLS）と認証境界 | 被害の大きい箇所を先に固める |
+| ~~**第 2 段階**~~ **完了** | 会社境界（RLS）と認証境界 | 被害の大きい箇所を先に固めた |
 | **第 3 段階** | 業務ルール（契約・売上生成）とページング | 仕様の意図を残す |
 | **第 4 段階** | frontend の unit と E2E 主要導線、bff の変換テスト | 手動確認の置き換え |
 | **第 5 段階** | CI で `build` / `test` / `typecheck` / `check` / `validate` を回す | 回帰を自動で止める |
@@ -154,6 +154,29 @@ Service 直呼びにはしていない。
 **引っかかった点**: devcontainer が `MP_JWT_VERIFY_PUBLICKEY_LOCATION`（bff の JWKS）を環境変数で渡しており、
 環境変数は `application.properties` より優先度が高い。`%test.` プレフィックスでは上書きできず 401 になるため、
 `QuarkusTestProfile` の `getConfigOverrides()` で上書きしている。
+
+### 第 2 段階で入れたもの（2026-09-05）
+
+| ファイル | 検証内容 |
+|---|---|
+| `CompanyBoundaryGraphQlTest.java`（4 件） | 他社の行が id 直指定で引けない / 一覧とページングに混ざらない / 更新できない / 削除しても消えない |
+| `AuthBoundaryGraphQlTest.java`（8 件） | 匿名 401、正当なトークンは 200（対照群）、鍵違い・issuer 違い・期限切れ・**セッション不在**の各 401、`/graphql/schema.graphql` と `/q/health` は公開のまま |
+
+**2 社目の用意**: seed には手を入れず、テスト内で `company` を直接作っています。`company` テーブルは
+`company_id` を持たないため RLS の対象外で（RLS は `company_id` を持つテーブルにだけ自動で張られる）、
+テストから挿入できます。その会社のデータは、その会社のトークンで GraphQL を叩いて用意します。
+
+**分かったこと**: 他社の行を id 指定で引くと、権限エラーではなく **`NOT_FOUND`** が返ります。RLS で行が
+見えないため「存在しない」として扱われるためで、他社の存在を推測させない点でも望ましい挙動です。
+テストもこの形で固定しました。
+
+**セッション不在の 401 が重要**: 署名も issuer も期限も正しいトークンでも、Redis にセッションが無ければ
+弾かれます。ログアウト後のトークンがこの形になるため、ここが通ると「セッションを切っても JWT の期限内は
+アクセスできる」状態になります。
+
+**後始末**: テスト会社とその行は検証の成否にかかわらず物理削除します。GraphQL の削除は論理削除で
+`company` への参照が残り、会社を消せなくなるためです。物理削除にも RLS が効くので、削除前に
+`app.current_company_id` を立てています。
 
 ## 5. 実行方法（想定）
 
@@ -188,12 +211,14 @@ markeman 寄りの重心（backend を厚く、E2E を薄く）が合います�
   **現状は開発用 DB（`member_pulse_dev`）をそのまま使っている**。テストは作ったデータを `finally` で消すが、
   削除は論理削除なので `deleted_at` 付きの行が回すたびに積もる。実害は出ていない（未削除の行は seed のまま）が、
   隔離した DB へ移すのが本筋
-- **テストデータの作り方**: seed をそのまま使うか、テストごとにフィクスチャを作るか。
-  会社境界のテストには **2 社目のデータ**が要るが、現在の seed は 1 社分しかない
+- ~~**テストデータの作り方**~~ → 会社境界は seed に手を入れず、テスト内で `company` を作る形にした
+  （RLS 対象外のため挿入できる）。業務データの多いテーブルでフィクスチャが要るかは第 3 段階で判断する
 - **CI の実行環境**: testcontainers が動く必要がある。GitHub Actions を使うかどうか
 - **bff の test runner**: vitest で確定してよいか
 
 ## 8. 直近の宿題
 
 - ~~`AreaInput` / `AreaOrderInput` の `dispOrder` バグを直す~~ → **完了**（案 (b) を採用し、往復テストとセットで実装）
-- 次は第 2 段階（会社境界・認証境界）。**会社境界のテストには 2 社目の seed データが必要**
+- ~~第 2 段階（会社境界・認証境界）~~ → **完了**
+- 次は第 3 段階（業務ルールとページング）。`endMembershipSubscription` の月末制約、
+  `changeMembershipPlan` の履歴の切れ目、`generateMembershipFeeRevenues` の冪等性から

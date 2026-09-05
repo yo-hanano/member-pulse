@@ -126,14 +126,6 @@ class AreaGraphQlTest extends GraphQlTestSupport {
     }
   }
 
-  /** 認証なしのアクセスが 401 になることを確かめます。 */
-  @Test
-  void graphQlRequiresAuthentication() {
-    io.restassured.RestAssured.given().contentType("application/json")
-        .body(Map.of("query", "{ allAreas { id } }")).when().post("/graphql").then()
-        .statusCode(401);
-  }
-
   /** 必須項目が欠けている入力が、バリデーションで弾かれることを確かめます。 */
   @Test
   void areaNameIsRequired() {
