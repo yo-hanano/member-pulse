@@ -45,6 +45,8 @@ dependencies {
 	testImplementation 'io.quarkus:quarkus-junit5'
 	testImplementation 'io.quarkus:quarkus-smallrye-jwt-build'
 	testImplementation 'io.quarkus:quarkus-config-yaml'
+	// GraphQL の契約テストは Service 直呼びではなく実サーバへ HTTP で投げる
+	testImplementation 'io.rest-assured:rest-assured'
 }
 
 /** migrate 側の jOOQ生成タスクを included build 経由で呼び出す */
