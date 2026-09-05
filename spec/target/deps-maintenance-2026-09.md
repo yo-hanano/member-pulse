@@ -93,7 +93,7 @@
 - **typescript 7**: monorepo 整合（frontend が TS6）のため保留
 
 ### mise
-- **vault 1.21.4 → 2.1.0**: メジャー。backend は Vault Transit で JWT 署名し `quarkus-vault` で接続しているため、サーバ／クライアント双方の互換確認が要る。cr-checkers に vault 採用実績が無く参照できない。**単独タスクとして切り出す**
+- ~~**vault 1.21.4 → 2.1.0**~~ → **互換調査は完了**（後述）。実地検証では問題が出なかったが、適用は未実施
 - ~~**liquibase 5.0.3 → 5.0.4 / quarkus 3.36.2 → 3.39.2**~~ → **後半で対応済み**。devcontainer 内で gradle 側と揃えて更新し、`backend build` / `migrate validate` で検証した
 
 ### 既知の警告 / 気づき
@@ -228,11 +228,55 @@ smallrye-graphql 3.0.0.Beta を「採らない」と判断したのと同じ基�
 導入直後のレポートでは backend / migrate とも**更新候補ゼロ**。今回の更新がすべて最新に
 到達していることの裏付けになる（`quarkus-vault 4.9.0` も最新だった）。
 
+### vault 2.x 互換調査（適用は未実施）
+
+**前提の訂正**: 「backend が Vault Transit で JWT 署名し `quarkus-vault` で接続している」と
+書いていたが誤り。実際は次のとおり。
+
+- Vault を使っているのは **bff だけ**。生の HTTP API（`/v1/transit/keys/...`、
+  `/v1/transit/sign/...`、`/v1/secret/data/edge`）を直接叩いている
+- backend の `quarkus-vault` は **依存に入っているだけで未使用**。Java 側の参照も
+  `application.yaml` の設定も無い（起動時に features へは出る）
+- Vault の定義は `.devcontainer` にしか無く、terraform / ansible / kamal 側には無い。
+  つまり**ローカル開発環境専用**で、本番への影響はない
+
+**検証方法**: `hashicorp/vault:2.1.0` を devcontainer と同じ compose ネットワークに
+一時コンテナとして立て、既存環境を触らずに実地確認した（検証後に削除済み）。
+
+| 確認項目 | 結果 |
+|---|---|
+| transit engine 有効化 / rsa-2048 鍵作成 | ✅ HTTP 204 / 200 |
+| 鍵メタ取得（`GET /v1/transit/keys/<key>`） | ✅ `latest_version` / `keys[].public_key` とも 1.20 と同じ構造 |
+| 署名（`POST /v1/transit/sign/<key>/sha2-256`、`marshaling_algorithm: jws` / `pkcs1v15`） | ✅ `vault:v1:` プレフィックス・署名長とも 1.20 と完全に同形 |
+| KV v2（`/v1/secret/data/edge`） | ✅ 読み書きとも同じ |
+| bff を 2.1.0 に向けて起動 | ✅ JWKS 生成 → ログイン → JWT 署名まで通る |
+| backend の JWT 検証（JWKS 経由）+ RLS クエリ | ✅ `allEmployees` が自社スコープで返る |
+| `post-start.sh` が使う CLI（`status` / `secrets list` / `read` / `write -f` / `kv put` / `kv get`） | ✅ 2.1.0 CLI ですべて成功 |
+
+**Vault 2.0 の破壊的変更のうち、当プロジェクトに関係しうるもの**
+
+- コンテナで `cap_ipc_lock` が外れ `mlock()` が呼べなくなった → `disable_mlock = true` が推奨。
+  ただし devcontainer は `-dev` モードなので影響しない。`docker-compose.devcontainer.yaml` の
+  `cap_add: IPC_LOCK` は不要になる
+- HCL の重複属性がエラーになる → 当プロジェクトに HCL 設定ファイルは無い
+- Azure 認証の設定が明示必須に → 未使用
+
+**適用するなら触る箇所**（今回は未実施）
+
+1. `mise.toml` の `vault` を 2.1.0 へ
+2. `.devcontainer/docker-compose.devcontainer.yaml` の `hashicorp/vault:1.20` を 2.1 へ
+   （`cap_add: IPC_LOCK` の削除も検討）
+3. devcontainer リビルド後に `post-start.sh` が通ることを確認
+
+`mise.toml` の vault が 1.21.4 なのに compose のイメージが 1.20 で、**CLI とサーバの
+バージョンがそもそも揃っていない**点も、あわせて直すとよい。
+
 ### 未着手のまま残るもの
 - ~~versions プラグインは未導入~~ → **導入済み**（後述）
 - `ref/cr-checkers` の bind mount は devcontainer リビルド後に有効化済み（`/workspace/ref/` に alcos-portal / cr-checkers / juku-ops / markeman が見えている）
 
 ## 再開時のTODO（順序）
-1. （別タスク）spotless に markeman 相当の規約（`shortenFullyQualifiedTypes` / コメント規約の `forbidRegex`）を入れるか検討する
-2. （別タスク）vault 2.x 移行の互換調査
-3. （別タスク）codegen / graphql-request の v8 対応後に graphql 17、react-router の peer 更新後に typescript 7 を再検討
+1. vault 2.x を実際に適用する（mise + compose イメージ + devcontainer リビルド）。互換調査は上記で完了済み
+2. （別タスク）backend の `quarkus-vault` 依存を外せるか検討する。現状まったく使っていない
+3. （別タスク）spotless に markeman 相当の規約（`shortenFullyQualifiedTypes` / コメント規約の `forbidRegex`）を入れるか検討する
+4. （別タスク）codegen / graphql-request の v8 対応後に graphql 17、react-router の peer 更新後に typescript 7 を再検討
