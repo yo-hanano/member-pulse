@@ -2,28 +2,18 @@ import {
   ActionIcon,
   Alert,
   Badge,
+  Box,
   Button,
   Group,
   Paper,
-  SimpleGrid,
   Stack,
+  Table,
   Text,
   ThemeIcon,
-  Timeline,
   Title,
   Tooltip,
 } from "@mantine/core";
-import {
-  ArrowLeft,
-  Check,
-  CircleSlash,
-  CreditCard,
-  History,
-  Pause,
-  PencilLine,
-  Play,
-  Repeat,
-} from "lucide-react";
+import { ArrowLeft, CircleSlash, CreditCard, Pause, PencilLine, Play, Repeat } from "lucide-react";
 import { useState } from "react";
 import {
   type ActionFunctionArgs,
@@ -47,7 +37,8 @@ import {
 } from "~/routes/_core+/members+/subscription-status";
 import { getGraphQLClient } from "~/services/graphql-client";
 
-// コース管理タブに必要な契約履歴と、プラン変更用の募集中プランを取得する。
+// コース管理タブに必要な契約履歴・プラン変更用の募集中プランに加え、
+// 契約ごとの計上回数・売上を集計するための売上明細も取得する。
 export const clientLoader = async ({ params }: LoaderFunctionArgs) => {
   const memberId = params.memberId;
   if (!memberId) {
@@ -56,9 +47,14 @@ export const clientLoader = async ({ params }: LoaderFunctionArgs) => {
 
   const client = getGraphQLClient();
   const sdk = getSdk(client);
-  const [{ membershipSubscriptionsByMemberId }, { activeMembershipPlans }] = await Promise.all([
+  const [
+    { membershipSubscriptionsByMemberId },
+    { activeMembershipPlans },
+    { revenueRecordsByMemberId },
+  ] = await Promise.all([
     sdk.membershipSubscriptionsByMemberId({ memberId }),
     sdk.activeMembershipPlans(),
+    sdk.revenueRecordsByMemberId({ memberId }),
   ]);
 
   return {
@@ -66,6 +62,7 @@ export const clientLoader = async ({ params }: LoaderFunctionArgs) => {
       (subscription) => subscription != null,
     ),
     plans: (activeMembershipPlans ?? []).filter((plan) => plan != null),
+    revenues: (revenueRecordsByMemberId ?? []).filter((record) => record != null),
   };
 };
 
@@ -186,20 +183,56 @@ export const clientAction = async ({ params, request }: ActionFunctionArgs) => {
 
 export type SubscriptionActionData = Awaited<ReturnType<typeof clientAction>>;
 
-// 会員詳細のコース管理タブ。現在の契約と契約履歴を表示し、契約操作をまとめる。
+// 契約ごとの売上計上の集計値。単価×回数の確認に使う台帳の数値。
+type SubscriptionLedgerStats = {
+  // この契約に紐づく売上明細の件数（自動計上された月謝の月数に相当）。
+  count: number;
+  // この契約に紐づく売上金額の合計。
+  total: number;
+};
+
+// 会員詳細のコース管理タブ。契約を台帳形式で並べ、単価・計上回数・累計売上をまとめる。
 export default function MemberSubscriptionsRoute() {
   const { member } = useOutletContext<MemberDetailContext>();
-  const { subscriptions, plans } = useLoaderData<typeof clientLoader>();
+  const { subscriptions, plans, revenues } = useLoaderData<typeof clientLoader>();
   const navigate = useNavigate();
   const revalidator = useRevalidator();
   const [isPlanChangeOpen, setPlanChangeOpen] = useState(false);
   const [isEndOpen, setEndOpen] = useState(false);
-  // 修正対象の契約。履歴のどの契約からも月額・メモを直せるようにする。
+  // 修正対象の契約。台帳のどの行からも月額・メモを直せるようにする。
   const [editSubscription, setEditSubscription] =
     useState<MembershipSubscriptionItemFragment | null>(null);
 
   // アクティブ契約（終了済み以外）。部分 unique index により最大1件。
   const current = subscriptions.find((subscription) => subscription.status !== "ended");
+
+  // 契約IDごとに計上回数と売上を集計する。売上明細は契約に紐づくものだけ取り込む。
+  const statsBySubscriptionId = new Map<string, SubscriptionLedgerStats>();
+  for (const record of revenues) {
+    const subscriptionId = record.membershipSubscriptionId;
+    if (!subscriptionId) continue;
+    const stats = statsBySubscriptionId.get(subscriptionId) ?? { count: 0, total: 0 };
+    stats.count += 1;
+    stats.total += record.amount ?? 0;
+    statsBySubscriptionId.set(subscriptionId, stats);
+  }
+
+  // 台帳は新しい契約が上に来るよう開始日降順（同日は作成日時降順）で並べる。
+  const ledgerRows = [...subscriptions].sort((a, b) => {
+    const startDiff = (b.startDate ?? "").localeCompare(a.startDate ?? "");
+    if (startDiff !== 0) return startDiff;
+    return (b.createdAt ?? "").localeCompare(a.createdAt ?? "");
+  });
+
+  // 台帳全体のサマリ。契約横断の計上回数・売上を会員単位で把握できるようにする。
+  const totalCount = ledgerRows.reduce(
+    (sum, subscription) => sum + (statsBySubscriptionId.get(subscription.id ?? "")?.count ?? 0),
+    0,
+  );
+  const totalRevenue = ledgerRows.reduce(
+    (sum, subscription) => sum + (statsBySubscriptionId.get(subscription.id ?? "")?.total ?? 0),
+    0,
+  );
 
   const mutation = useActionFetcher<SubscriptionActionData>({
     defaultAction: ({ memberId }: { memberId: string }) => `/members/${memberId}/subscriptions`,
@@ -231,7 +264,7 @@ export default function MemberSubscriptionsRoute() {
         </Button>
       </Group>
 
-      {/* 現在の契約カード。リード詳細・会員詳細と同じカード内ヘッダー文法に合わせる。 */}
+      {/* コース契約台帳。ヘッダーの操作は現在の契約（active/paused）に対して行う。 */}
       <Paper p="lg" radius="sm" shadow="xs" withBorder>
         <Stack gap="md">
           <Group justify="space-between">
@@ -241,10 +274,10 @@ export default function MemberSubscriptionsRoute() {
               </ThemeIcon>
               <Stack gap={0}>
                 <Title order={3} size="h4">
-                  現在の契約
+                  コース契約台帳
                 </Title>
                 <Text c="dimmed" size="sm">
-                  契約中のコースと月額
+                  契約ごとの単価・計上回数・売上
                 </Text>
               </Stack>
             </Group>
@@ -288,30 +321,17 @@ export default function MemberSubscriptionsRoute() {
             ) : null}
           </Group>
 
-          {current ? (
-            <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
-              <Field label="プラン" value={current.membershipPlan?.name ?? "プラン未設定"} />
-              <Field label="月額" value={formatMonthlyFee(current.monthlyFee)} />
-              <Field label="開始日" value={formatDateYmd(current.startDate)} />
-              <Stack gap={4}>
-                <Text fw={600} size="sm">
-                  状態
-                </Text>
-                <Badge
-                  color={subscriptionStatusBadgeColor(current.status)}
-                  radius="sm"
-                  size="lg"
-                  variant="light"
-                >
-                  {formatSubscriptionStatus(current.status)}
-                </Badge>
-              </Stack>
-              <Field className="md:col-span-2" label="契約メモ" value={current.note ?? "-"} />
-            </SimpleGrid>
-          ) : (
-            <Alert color="yellow" title="アクティブな契約がありません">
+          {/* 台帳サマリ。会員単位の契約数・計上回数・累計売上を売上タブと同じ文法で見せる。 */}
+          <Group gap="xl">
+            <SummaryItem label="契約数" value={`${ledgerRows.length}件`} />
+            <SummaryItem label="計上回数" value={`${totalCount}回`} />
+            <SummaryItem label="累計売上" value={formatAmount(totalRevenue)} />
+          </Group>
+
+          {ledgerRows.length === 0 ? (
+            <Alert color="yellow" title="契約がありません">
               <Stack align="flex-start" gap="sm">
-                <Text size="sm">新しい契約を開始すると、ここに契約内容が表示されます。</Text>
+                <Text size="sm">新しい契約を開始すると、ここに契約が台帳として表示されます。</Text>
                 <Button
                   leftSection={<CreditCard size={16} />}
                   onClick={() => setPlanChangeOpen(true)}
@@ -320,81 +340,99 @@ export default function MemberSubscriptionsRoute() {
                 </Button>
               </Stack>
             </Alert>
-          )}
-        </Stack>
-      </Paper>
-
-      {/* 契約履歴タイムライン。リード詳細の対応履歴と同じ文法（日時降順・色とバッジの統一）。 */}
-      <Paper p="lg" radius="sm" shadow="xs" withBorder>
-        <Stack gap="md">
-          <Group gap="sm">
-            <ThemeIcon color="brand" radius="sm" variant="light">
-              <History size={18} />
-            </ThemeIcon>
-            <Stack gap={0}>
-              <Title order={3} size="h4">
-                契約履歴
-              </Title>
-              <Text c="dimmed" size="sm">
-                入会からのコース契約の記録
-              </Text>
-            </Stack>
-          </Group>
-
-          {subscriptions.length === 0 ? (
-            <Text c="dimmed" size="sm">
-              契約履歴はまだありません。
-            </Text>
           ) : (
-            <Timeline active={subscriptions.length - 1} bulletSize={28} lineWidth={2}>
-              {subscriptions.map((subscription) => (
-                <Timeline.Item
-                  key={subscription.id}
-                  bullet={subscriptionBullet(subscription.status)}
-                  color={subscriptionStatusBadgeColor(subscription.status)}
-                  title={
-                    <Group align="flex-start" justify="space-between" gap="sm">
-                      <Stack gap={2}>
-                        {/* 契約期間と状態は判断の起点になるため、1行目に並べて主役として見せる。 */}
-                        <Group gap="xs">
-                          <Text fw={700} size="md">
-                            {formatSubscriptionPeriod(subscription)}
+            <Box className="overflow-x-auto">
+              <Table highlightOnHover miw={760} verticalSpacing="sm">
+                <Table.Thead>
+                  <Table.Tr>
+                    <Table.Th>
+                      <HeaderText>プラン</HeaderText>
+                    </Table.Th>
+                    <Table.Th ta="right" w={120}>
+                      <HeaderText>単価(月額)</HeaderText>
+                    </Table.Th>
+                    <Table.Th w={180}>
+                      <HeaderText>期間</HeaderText>
+                    </Table.Th>
+                    <Table.Th w={90}>
+                      <HeaderText>状態</HeaderText>
+                    </Table.Th>
+                    <Table.Th ta="right" w={80}>
+                      <HeaderText>回数</HeaderText>
+                    </Table.Th>
+                    <Table.Th ta="right" w={120}>
+                      <HeaderText>累計売上</HeaderText>
+                    </Table.Th>
+                    <Table.Th>
+                      <HeaderText>メモ</HeaderText>
+                    </Table.Th>
+                    <Table.Th ta="center" w={70}>
+                      操作
+                    </Table.Th>
+                  </Table.Tr>
+                </Table.Thead>
+                <Table.Tbody>
+                  {ledgerRows.map((subscription) => {
+                    const stats = statsBySubscriptionId.get(subscription.id ?? "");
+                    return (
+                      <Table.Tr key={subscription.id}>
+                        <Table.Td>
+                          <Text fw={600} size="sm">
+                            {subscription.membershipPlan?.name ?? "プラン未設定"}
                           </Text>
+                        </Table.Td>
+                        <Table.Td ta="right">
+                          <Text size="sm">{formatAmount(subscription.monthlyFee)}</Text>
+                        </Table.Td>
+                        <Table.Td>
+                          <Text size="sm">{formatSubscriptionPeriod(subscription)}</Text>
+                        </Table.Td>
+                        <Table.Td>
                           <Badge
                             color={subscriptionStatusBadgeColor(subscription.status)}
                             radius="sm"
-                            size="lg"
-                            variant="filled"
+                            variant="light"
                           >
                             {formatSubscriptionStatus(subscription.status)}
                           </Badge>
-                        </Group>
-                        <Text c="dimmed" size="xs">
-                          {subscription.membershipPlan?.name ?? "プラン未設定"}（
-                          {formatMonthlyFee(subscription.monthlyFee)}/月）
-                        </Text>
-                      </Stack>
-                      <Tooltip label="月額・メモを修正">
-                        <ActionIcon
-                          aria-label="契約を修正"
-                          variant="subtle"
-                          onClick={() => setEditSubscription(subscription)}
-                        >
-                          <PencilLine size={16} />
-                        </ActionIcon>
-                      </Tooltip>
-                    </Group>
-                  }
-                >
-                  {subscription.note ? (
-                    <Text size="sm" style={{ whiteSpace: "pre-wrap" }}>
-                      {subscription.note}
-                    </Text>
-                  ) : null}
-                </Timeline.Item>
-              ))}
-            </Timeline>
+                        </Table.Td>
+                        <Table.Td ta="right">
+                          <Text size="sm">{stats ? `${stats.count}回` : "-"}</Text>
+                        </Table.Td>
+                        <Table.Td ta="right">
+                          <Text fw={600} size="sm">
+                            {stats ? formatAmount(stats.total) : "-"}
+                          </Text>
+                        </Table.Td>
+                        <Table.Td>
+                          <Text c="dimmed" lineClamp={1} size="sm">
+                            {subscription.note ?? "-"}
+                          </Text>
+                        </Table.Td>
+                        <Table.Td>
+                          <Group gap="xs" justify="center" wrap="nowrap">
+                            <Tooltip label="月額・メモを修正">
+                              <ActionIcon
+                                aria-label="契約を修正"
+                                variant="subtle"
+                                onClick={() => setEditSubscription(subscription)}
+                              >
+                                <PencilLine size={16} />
+                              </ActionIcon>
+                            </Tooltip>
+                          </Group>
+                        </Table.Td>
+                      </Table.Tr>
+                    );
+                  })}
+                </Table.Tbody>
+              </Table>
+            </Box>
           )}
+
+          <Text c="dimmed" size="xs">
+            回数・累計売上は売上台帳から集計しています。月謝の計上は売上画面の「月謝を生成」、明細の確認・編集は売上タブで行えます。
+          </Text>
         </Stack>
       </Paper>
 
@@ -423,22 +461,31 @@ export default function MemberSubscriptionsRoute() {
   );
 }
 
-function Field({ className, label, value }: { className?: string; label: string; value: string }) {
+// 台帳サマリの1項目。項目名と値を縦に並べる小さな表示部品（売上タブと同じ文法）。
+function SummaryItem({ label, value }: { label: string; value: string }) {
   return (
-    <Stack className={className} gap={4}>
-      {/* 項目名は読み飛ばされないよう、はっきりした濃さ・大きさで見せる（会員詳細と同じ）。 */}
-      <Text fw={600} size="sm">
+    <Stack gap={2}>
+      <Text c="dimmed" fw={600} size="sm">
         {label}
       </Text>
-      <Text fw={500} size="md" style={{ whiteSpace: "pre-wrap" }}>
+      <Text fw={700} size="lg">
         {value}
       </Text>
     </Stack>
   );
 }
 
-// 月額を「¥12,000」の形式へ整形する。
-function formatMonthlyFee(value: number | undefined | null) {
+// テーブル見出し。読み飛ばされないよう太字で統一する。
+function HeaderText({ children }: { children: React.ReactNode }) {
+  return (
+    <Text fw={700} size="sm">
+      {children}
+    </Text>
+  );
+}
+
+// 金額を「¥12,000」の形式へ整形する。
+function formatAmount(value: number | undefined | null) {
   if (value == null) return "-";
   return `¥${value.toLocaleString()}`;
 }
@@ -449,11 +496,4 @@ function formatSubscriptionPeriod(subscription: MembershipSubscriptionItemFragme
   return subscription.endDate
     ? `${start} 〜 ${formatDateYmd(subscription.endDate)}`
     : `${start} 〜`;
-}
-
-// 契約ステータスごとにタイムラインの bullet アイコンを返す。
-function subscriptionBullet(status: string | undefined | null) {
-  if (status === "paused") return <Pause size={14} />;
-  if (status === "ended") return <CircleSlash size={14} />;
-  return <Check size={14} />;
 }

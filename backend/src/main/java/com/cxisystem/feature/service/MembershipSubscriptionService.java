@@ -61,7 +61,8 @@ public class MembershipSubscriptionService extends
   }
 
   /**
-   * プラン変更を行います。アクティブ契約があれば切替日の前日で終了し、新契約を同一トランザクションで開始します。
+   * プラン変更を行います。コースの切れ目は月単位とし、新契約の開始日は月初に限定します。
+   * アクティブ契約があれば新契約の開始月の前月末で終了し、新契約を同一トランザクションで開始します。
    * アクティブ契約がない会員（契約終了後の再契約）は新契約の開始のみ行います。
    */
   @Rls
@@ -71,8 +72,13 @@ public class MembershipSubscriptionService extends
     memberDao.findOptionalById(memberId)
         .orElseThrow(() -> new NotFoundException("member not found: " + memberId));
 
+    // コースの切れ目は月単位。新契約の開始日は月初に限定する（旧契約は前月末で終了する）。
+    if (input.getStartDate().getDayOfMonth() != 1) {
+      throw new BadRequestException("start date must be the first day of a month: " + memberId);
+    }
+
     membershipSubscriptionDao.findActiveByMemberId(memberId).ifPresent(current -> {
-      // 切替日の前日まで旧契約が有効。同日以前への切替は履歴が壊れるため拒否する。
+      // 切替月の前月末まで旧契約が有効。同日以前への切替は履歴が壊れるため拒否する。
       if (!input.getStartDate().isAfter(current.getStartDate())) {
         throw new BadRequestException(
             "switch date must be after current subscription start date: " + memberId);
@@ -113,13 +119,20 @@ public class MembershipSubscriptionService extends
     return subscriptionRecord.into(MembershipSubscription.class);
   }
 
-  /** 契約を終了日付きで終了します。会員ステータス（退会）は連動せず、別途会員側で操作します。 */
+  /**
+   * 契約を終了日付きで終了します。コースの切れ目は月単位とし、終了日は月末に限定します。
+   * 会員ステータス（退会）は連動せず、別途会員側で操作します。
+   */
   @Rls
   @Transactional
   public MembershipSubscription end(String id, LocalDate endDate) {
     MembershipSubscriptionRecord subscriptionRecord = findRecord(id);
     if (STATUS_ENDED.equals(subscriptionRecord.getStatus())) {
       throw new BadRequestException("subscription is already ended: " + id);
+    }
+    // 契約終了は月末締めに限定する（コースの切れ目は月単位）。
+    if (endDate.getDayOfMonth() != endDate.lengthOfMonth()) {
+      throw new BadRequestException("end date must be the last day of a month: " + id);
     }
     if (endDate.isBefore(subscriptionRecord.getStartDate())) {
       throw new BadRequestException("end date must be on or after start date: " + id);

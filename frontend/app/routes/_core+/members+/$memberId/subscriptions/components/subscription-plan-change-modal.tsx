@@ -8,10 +8,10 @@ import {
   Stack,
   Text,
   Textarea,
-  TextInput,
 } from "@mantine/core";
+import { MonthPickerInput } from "@mantine/dates";
 import { schemaResolver, useForm } from "@mantine/form";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 
 import type {
@@ -23,15 +23,29 @@ import { formatDateYmd } from "~/lib/date";
 import type { MemberDetailContext } from "~/routes/_core+/members+/$memberId/route";
 import type { SubscriptionActionData } from "~/routes/_core+/members+/$memberId/subscriptions/route";
 
-// プラン変更（新規契約）の入力値。入会処理のコース登録ステップと同じ構成。
+// プラン変更（新規契約）の入力値。コースの切れ目は月単位のため、開始日は月初に揃える。
 const planChangeFormSchema = z.object({
   membershipPlanId: z.string().min(1, { message: "コースを選択してください" }),
-  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { message: "切替日を入力してください" }),
+  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { message: "切替月を選択してください" }),
   monthlyFee: z.union([z.number().min(0), z.literal("")]),
   note: z.string().max(1000).optional().or(z.literal("")),
 });
 
 type PlanChangeForm = z.infer<typeof planChangeFormSchema>;
+
+// 月選択の値（YYYY-MM-DD）から、その月の月初日（YYYY-MM-01）の文字列を返す。
+function toMonthStart(value: string | null): string {
+  if (!value) return "";
+  return `${value.slice(0, 7)}-01`;
+}
+
+// 翌月の月初日（YYYY-MM-01）を返す。プラン変更は翌月開始を既定にする。
+function nextMonthStart(): string {
+  const now = new Date();
+  const first = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  const month = String(first.getMonth() + 1).padStart(2, "0");
+  return `${first.getFullYear()}-${month}-01`;
+}
 
 interface Props {
   member: MemberDetailContext["member"];
@@ -60,12 +74,23 @@ export function SubscriptionPlanChangeModal({
     validate: schemaResolver(planChangeFormSchema, { sync: true }),
   });
 
-  // モーダルを開くたびにフォームを初期値へ戻す。
+  // 月選択は表示のため制御コンポーネントにする。フォームの startDate（月初）と同期する。
+  const [startMonth, setStartMonth] = useState<string | null>(nextMonthStart());
+
+  // モーダルを開くたびにフォームと月選択を初期値へ戻す。
   useEffect(() => {
     if (!opened) return;
-    form.setValues(buildInitialValues());
+    const initial = buildInitialValues();
+    form.setValues(initial);
     form.resetDirty();
+    setStartMonth(initial.startDate);
   }, [form.setValues, form.resetDirty, opened]);
+
+  // 月選択を変更したら、その月の月初日をフォームの開始日へ反映する。
+  const handleStartMonthChange = (value: string | null) => {
+    setStartMonth(value);
+    form.setFieldValue("startDate", toMonthStart(value));
+  };
 
   // コース選択肢。拠点指定のあるプランは会員の拠点と一致するものだけに絞る。
   const planOptions = plans
@@ -109,9 +134,9 @@ export function SubscriptionPlanChangeModal({
       <form noValidate onSubmit={handleSubmit}>
         <Stack gap="md">
           {isChange ? (
-            <Alert color="blue" title="現在の契約は切替日の前日で終了します">
+            <Alert color="blue" title="現在の契約は前月末で終了します">
               <Text size="sm">
-                {`現契約（${current?.membershipPlan?.name ?? "プラン未設定"}）は切替日の前日まで有効です。切替日は現契約の開始日（${formatDateYmd(current?.startDate)}）より後の日付を指定してください。`}
+                {`現契約（${current?.membershipPlan?.name ?? "プラン未設定"}）は切替月の前月末まで有効です。切替月は現契約の開始日（${formatDateYmd(current?.startDate)}）より後の月を指定してください。`}
               </Text>
             </Alert>
           ) : null}
@@ -125,12 +150,15 @@ export function SubscriptionPlanChangeModal({
             withAsterisk
             onChange={handlePlanChange}
           />
-          <TextInput
-            key={form.key("startDate")}
-            {...form.getInputProps("startDate")}
-            label={isChange ? "切替日（新契約の開始日）" : "契約開始日"}
-            type="date"
+          <MonthPickerInput
+            description="コースの切れ目は月単位です。選んだ月の月初開始になります"
+            error={form.errors.startDate}
+            label={isChange ? "切替月（新契約の開始月）" : "契約開始月"}
+            placeholder="月を選択"
+            value={startMonth}
+            valueFormat="YYYY年MM月"
             withAsterisk
+            onChange={handleStartMonthChange}
           />
           <NumberInput
             key={form.key("monthlyFee")}
@@ -165,7 +193,7 @@ export function SubscriptionPlanChangeModal({
 function buildInitialValues(): PlanChangeForm {
   return {
     membershipPlanId: "",
-    startDate: new Date().toISOString().slice(0, 10),
+    startDate: nextMonthStart(),
     monthlyFee: "",
     note: "",
   };
