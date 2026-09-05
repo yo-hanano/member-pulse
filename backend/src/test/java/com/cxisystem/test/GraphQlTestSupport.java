@@ -128,6 +128,30 @@ public abstract class GraphQlTestSupport {
   }
 
   /**
+   * 指定会社の業務データをすべて物理削除します。GraphQL の削除は論理削除で company への参照が残るため、
+   * テスト会社を消す前にこれで片付けます。並びは外部キーの依存順です。
+   *
+   * @param companyId 会社ID
+   */
+  @Transactional
+  protected void purgeCompanyData(String companyId) {
+    // いずれも RLS の対象。会社を立ててからでないと対象行が見えず 0 件削除になる
+    dsl.execute("select set_config('app.current_company_id', ?, true)", companyId);
+    for (String table : COMPANY_SCOPED_TABLES) {
+      dsl.execute("delete from " + table + " where company_id = ?", companyId);
+    }
+  }
+
+  /**
+   * 会社に属するテーブルを外部キーの依存順（子から親へ）に並べたものです。参照される側を後ろに置きます。
+   */
+  private static final List<String> COMPANY_SCOPED_TABLES = List.of("monthly_review_cost",
+      "monthly_review_location_snapshot", "monthly_review_snapshot", "monthly_review_location",
+      "monthly_review", "goal_plan_month", "goal_plan", "revenue_record", "membership_subscription",
+      "trial_session", "ad_spend", "cost_item", "member", "membership_plan", "lead",
+      "employee_token", "employee", "business_profile", "location", "area");
+
+  /**
    * テストで作った会社を消します。参照している行が残っていると失敗するため、後始末の最後に呼びます。
    *
    * @param companyId 会社ID
@@ -135,6 +159,79 @@ public abstract class GraphQlTestSupport {
   @Transactional
   protected void deleteCompany(String companyId) {
     dsl.execute("delete from company where id = ?", companyId);
+  }
+
+  /**
+   * テスト用の拠点を作り、その ID を返します。
+   *
+   * @param token アクセストークン
+   * @param name 拠点名
+   * @return 拠点ID
+   */
+  protected String createLocation(String token, String name) {
+    return execute(token, """
+        mutation createLocation($input: LocationInput!) {
+          createLocation(input: $input) { id }
+        }
+        """, Map.of("input", Map.of("name", name))).getString("data.createLocation.id");
+  }
+
+  /**
+   * テスト用の会員プランを作り、その ID を返します。
+   *
+   * @param token アクセストークン
+   * @param name プラン名
+   * @param monthlyFee 月額
+   * @return 会員プランID
+   */
+  protected String createMembershipPlan(String token, String name, int monthlyFee) {
+    return execute(token, """
+        mutation createMembershipPlan($input: MembershipPlanInput!) {
+          createMembershipPlan(input: $input) { id }
+        }
+        """, Map.of("input", Map.of("name", name, "monthlyFee", monthlyFee, "active", true)))
+        .getString("data.createMembershipPlan.id");
+  }
+
+  /**
+   * テスト用の会員を作り、その ID を返します。
+   *
+   * @param token アクセストークン
+   * @param name 会員名
+   * @param locationId 所属拠点
+   * @param joinedAt 入会日
+   * @return 会員ID
+   */
+  protected String createMember(String token, String name, String locationId, String joinedAt) {
+    return execute(token, """
+        mutation createMember($input: MemberInput!) {
+          createMember(input: $input) { id }
+        }
+        """, Map.of("input",
+        Map.of("name", name, "locationId", locationId, "joinedAt", joinedAt, "status", "active")))
+        .getString("data.createMember.id");
+  }
+
+  /**
+   * 会員にコース契約を開始します。開始日は月初である必要があります。
+   *
+   * @param token アクセストークン
+   * @param memberId 会員ID
+   * @param planId 会員プランID
+   * @param startDate 開始日（月初）
+   * @return 契約ID
+   */
+  protected String startSubscription(String token, String memberId, String planId,
+      String startDate) {
+    return execute(token,
+        """
+            mutation changeMembershipPlan($memberId: String!, $subscription: MembershipSubscriptionInput!) {
+              changeMembershipPlan(memberId: $memberId, input: $subscription) { id }
+            }
+            """,
+        Map.of("memberId", memberId, "subscription",
+            Map.of("membershipPlanId", planId, "startDate", startDate)))
+        .getString("data.changeMembershipPlan.id");
   }
 
   /**
