@@ -60,7 +60,9 @@
 | gh | 2.92.0 | **2.100.0** | |
 | kamal | 2.11.0 | **2.12.0** | |
 
-据え置き: `vault 1.21.4`、`liquibase 5.0.3`、`quarkus 3.36.2`、`distill 1.5.2`（理由は後述）
+据え置き: `vault 1.21.4`、`distill 1.5.2`（理由は後述）
+
+`liquibase` と `quarkus` はこの時点では据え置いたが、後半で gradle 側と揃えて更新した（`liquibase 5.0.4` / `quarkus 3.39.2`）。
 
 ### 検証
 ホスト側（devcontainer 外）で `npx pnpm@11.9.0` を使って実施。
@@ -92,53 +94,90 @@
 
 ### mise
 - **vault 1.21.4 → 2.1.0**: メジャー。backend は Vault Transit で JWT 署名し `quarkus-vault` で接続しているため、サーバ／クライアント双方の互換確認が要る。cr-checkers に vault 採用実績が無く参照できない。**単独タスクとして切り出す**
-- **liquibase 5.0.3 → 5.0.4 / quarkus 3.36.2 → 3.39.2**: migrate / backend の gradle 側と足並みを揃える必要があり、当環境では検証できないため据え置き（下記「残作業」）
+- ~~**liquibase 5.0.3 → 5.0.4 / quarkus 3.36.2 → 3.39.2**~~ → **後半で対応済み**。devcontainer 内で gradle 側と揃えて更新し、`backend build` / `migrate validate` で検証した
 
 ### 既知の警告 / 気づき
 - ~~frontend typecheck の `envFile` 非推奨警告~~ → **react-router 8 移行で解消**（typecheck 出力がクリーンになった）
 - **`pnpm run check`（biome）が失敗する既存問題**: `biome.json` が `vcs.useIgnoreFile: false` かつ ignore 未設定のため、gitignore 済みの `frontend/build/` まで lint 対象になる。build 実行後に `check` を回すと診断が約 16,700 件出る。ソース側（`app/` 配下）の指摘は `app/generated/graphql.ts`・`app/graphqls/*.graphql`・`tsconfig.json` のフォーマットのみで、いずれも今回の変更とは無関係の既存分。**別途 biome の ignore 設定を入れるべき**
 - `pnpm install` が `frontend/pnpm-workspace.yaml` の `minimumReleaseAgeExclude` に更新パッケージを自動追記した（既存の mantine エントリと同じ挙動）
-- `ref/cr-checkers` の bind mount は **空**（`.devcontainer/devcontainer.json` に mount 追記済みだが devcontainer 未リビルド）。今回は `~/workspace/cr-checkers` を直接参照した
+- ~~`ref/cr-checkers` の bind mount は **空**~~ → devcontainer リビルド後に有効化済み（`/workspace/ref/` に alcos-portal / cr-checkers / juku-ops / markeman が見えている）
 
-## 残作業
+## 完了済み（2026-09-05 後半 / 未コミット）
 
-### gradle（backend / migrate）— 調査完了・適用は devcontainer 内で
+### gradle wrapper（コミット済み `b5fea82`）
+- `backend` / `migrate` とも `gradle-9.5.1-bin.zip` → `gradle-9.7.1-bin.zip`。mise の gradle と一致
 
-Maven Central の `maven-metadata.xml` で確認（2026-09-05 時点）。
+### gradle 依存（🟢 分）
+| 依存 | 定義箇所 | before | after |
+|---|---|---|---|
+| jooq / jooq-codegen | `backend` / `migrate` | 3.21.5 | **3.21.8** |
+| spotless plugin | `backend` | 8.6.0 | **8.10.2** |
+| lombok | `backend` / `migrate` | 1.18.46 | **1.18.48** |
+| commons-collections4 | `backend` | 4.5.0 | **4.6.0** |
+| datafaker | `migrate` | 2.5.4 | **2.7.0** |
+| postgresql | `migrate` | 42.7.11 | **42.7.13** |
+| slf4j-simple | `migrate` | 2.0.18 | **2.0.19** |
 
-| 依存 | 定義箇所 | 現行 | 最新 | 判定 |
-|---|---|---|---|---|
-| quarkus（BOM / plugin） | `backend/gradle.properties` | 3.36.2 | **3.39.2** | 🟠 mise の quarkus と同時に上げる |
-| liquibase-core | `migrate/build.gradle` | 5.0.3 | **5.0.4** | 🟠 mise の liquibase・lpm と同時 |
-| jooq / jooq-codegen | `backend` / `migrate` | 3.21.5 | **3.21.8** | 🟢 両方同時。生成物の再生成確認が要る |
-| spotless plugin | `backend/build.gradle` | 8.6.0 | **8.10.2** | 🟢 |
-| lombok | `backend` / `migrate` | 1.18.46 | **1.18.48** | 🟢 両方同時 |
-| commons-collections4 | `backend` | 4.5.0 | **4.6.0** | 🟢 マイナー |
-| datafaker | `migrate` | 2.5.4 | **2.7.0** | 🟢 マイナー（seed 生成のみに影響） |
-| postgresql | `migrate` | 42.7.11 | **42.7.13** | 🟢 |
-| slf4j-simple | `migrate` | 2.0.18 | **2.0.19** | 🟢（2.1.0 は alpha なので採らない） |
-| io.smallrye.graphql plugin | `backend` | 2.18.2 | 2.18.2 | ✅ 最新（ライブラリ単体は 2.18.5 だが plugin 経由で解決される） |
-| caffeine | `backend` | 3.2.4 | 3.2.4 | ✅ |
-| password4j | `backend` | 1.8.4 | 1.8.4 | ✅ |
-| commons-lang3 / commons-text / commons-beanutils | `backend` | 3.20.0 / 1.15.0 / 1.11.0 | 同左 | ✅ |
-| jnanoid | `backend` | 2.0.0 | 2.0.0 | ✅ |
-| commons-dbutils | `migrate` | 1.8.1 | 1.8.1 | ✅ |
-| testcontainers-bom | `migrate` | 2.0.5 | 2.0.5 | ✅ |
+### gradle 依存（🟠 分）
+| 依存 | 定義箇所 | before | after |
+|---|---|---|---|
+| quarkus（BOM / plugin） | `backend/gradle.properties` | 3.36.2 | **3.39.2** |
+| liquibase-core | `migrate/build.gradle` | 5.0.3 | **5.0.4** |
 
-- versions プラグインは未導入。導入するなら `com.github.ben-manes.versions` / `io.github.ben-manes.versions` とも **0.61.0**（Gradle Plugin Portal で同一バージョンが公開済み。座標は `io.github.ben-manes` へ移行中なのでそちらを使う）
-- **gradle wrapper が 9.5.1 のまま**: `backend/gradle/wrapper/gradle-wrapper.properties` と `migrate/gradle/wrapper/gradle-wrapper.properties` の `distributionUrl` が `gradle-9.5.1-bin.zip`。`./gradlew` はこちらを使うため、mise の gradle 9.7.1 を上げても**実ビルドは 9.5.1 のまま**。揃えるなら devcontainer 内で `./gradlew wrapper --gradle-version 9.7.1` を backend / migrate それぞれ実行する（distributionUrl の手編集ではなく wrapper タスクで）
-- 検証コマンド: `cd backend && just compile` / `cd migrate && task validate` / `./gradlew jooqCodegenWithTestcontainers compileJava`
+`mise.toml` の `quarkus` (3.36.2 → 3.39.2) と `liquibase` (5.0.3 → 5.0.4) も同時に更新し、`mise install` 済み。
 
-### devcontainer 反映
-- mise のメジャー（node 24.20 / python 3.14 / ruby 4.0 / java 25.0.4）はリビルドで初めて完全に反映される
-- `.devcontainer/devcontainer.json` の `cr-checkers` mount 追記も同時に効く
-- リビルド後は frontend / bff とも `pnpm install` をやり直す（今回ホスト側で node_modules を作り直したため）
+### spotless: eclipse フォーマッタのバージョンを pin（`ref/markeman` 参照）
+`eclipse()` はバージョン未指定だと spotless 側の既定 JDT に追随するため、依存更新だけで整形結果が動く。
+markeman が `eclipse('4.40')` で固定しているのに倣い、member-pulse も **`eclipse('4.40')`** に変更した。
+現行コードに対する整形結果は変わらない（pin 前後とも `spotlessCheck` が同じ状態で通る）ことを確認済み。
+
+markeman にはこのほか `shortenFullyQualifiedTypes()`、`targetExclude 'src/generated/**'`、
+コメント規約の `forbidRegex`（issue 番号 / spec 参照の禁止）があるが、これらは整形規約そのものの変更なので
+依存メンテとは切り離し、別タスクとする。
+
+### smallrye-graphql の確認（据え置きが正しい）
+- Gradle Plugin Portal の `io.smallrye.graphql` plugin の安定最新は **2.18.2**（現行と同じ）。次点は `3.0.0.Beta3` で beta のため採らない
+- 実行時ライブラリは quarkus BOM が解決する。3.39.2 では `io.smallrye:smallrye-graphql:2.18.5` が入る（plugin バージョンとは独立して追随する）
+- ライブラリ単体の最新は `3.0.0.Beta7` で beta。よって 2.18 系が実質最新安定
+
+### 検証（devcontainer 内）
+- `backend`: `./gradlew build` ✅ / `spotlessCheck` ✅ / `test` は NO-SOURCE（テスト未作成）
+- `migrate`: `task validate` ✅（liquibase 5.0.4）/ `./gradlew jooqCodegenWithTestcontainers compileJava --rerun-tasks` ✅（生成 79 ファイル）
+- backend の `compileJava` は included build 経由で migrate の jOOQ codegen を必ず通るため、jooq 3.21.8 での再生成も同時に確認済み
+
+### 疎通テスト（quarkus 3.39.2 / liquibase 5.0.4 で実施）
+backend（`quarkusDev`）と bff（`pnpm run dev`）を実際に起動し、認証境界と RLS 経路まで通した。
+
+| 経路 | 結果 |
+|---|---|
+| backend 起動 | ✅ `Quarkus 3.39.2 started` / features に agroal, jdbc-postgresql, redis-client, smallrye-graphql, smallrye-jwt, vault, narayana-jta |
+| `/q/health` | ✅ Redis `PONG` / Database `UP` |
+| `/graphql/schema.graphql` | ✅ 522 行生成（smallrye-graphql 2.18.5 が動作） |
+| Redis Pub/Sub | ✅ `Subscribed to Redis channel 'logout'` |
+| bff JWKS | ✅ `/.well-known/jwks.json` が RS256 公開鍵を返す（Vault Transit 疎通） |
+| ログイン | ✅ `POST /auth/login`（DB 認証 + Redis セッション + Cookie 発行） |
+| 認証つき Query（RLS 経路） | ✅ `allEmployees` が自社スコープで 1 件。`allPrefectures` も取得できる |
+| 未認証アクセス | ✅ `POST /graphql` が 401 |
+| 書き込み（`@Transactional` + `@Rls`） | ✅ `createArea` → `deleteArea` が成功。`companyId` は JWT の会社と一致。作成データは削除して元の 3 件に戻した |
+| 起動ログのエラー | ✅ backend / bff とも ERROR・例外なし |
+
+`liquibase 5.0.4` は `task st`（`is up to date`）と `task validate` の両方で確認済み。
+
+### 途中で見つかった既存の不具合・注意点
+- **`spotlessCheck` が既に失敗していた**: 機能コミット `2c457d5` の Javadoc が未整形のまま入っていた。`spotlessApply` で解消（`MembershipSubscriptionService.java` の 1 箇所）。spotless 8.6.0 でも同じ違反が出ることを確認済みで、8.10.2 への更新が原因ではない
+- **`./gradlew generateSchema` が失敗する既存問題**: `io.quarkus:quarkus-tls-registry-spi` の variant が `quarkus.prod.deployment-dependency.backend` と `runtime` で曖昧になり解決できない。quarkus 3.36.2 でも同じ失敗を再現したので今回の更新起因ではない。GraphQL スキーマは Dev UI の `http://localhost:8080/graphql/schema.graphql` から取れるため実害は出ていない。**別タスクで plugin 構成を見直す**
+- **devcontainer リビルドで liquibase の lpm ドライバが消える**: `Cannot find database driver: org.postgresql.Driver` になる。`liquibase lpm add -g postgresql` を再実行して復旧する。liquibase 本体のバージョンを上げた直後も同様（インストール先が `installs/.../<version>/bin/lib` のため）
+- **mise 更新直後は現行シェルに反映されない**: `eval "$(mise env -s bash)"` を挟むか、シェルを開き直す
+- **devcontainer リビルド後は bff / frontend の `pnpm install` が必須**: ホスト側で作った `node_modules` が残っていると `pnpm run dev` が `ERR_PNPM_ABORTED_REMOVE_MODULES_DIR_NO_TTY` で落ちる。非対話シェルでは `CI=true pnpm install` で通る（bff は対応済み。**frontend は未実施**）
+
+### 未着手のまま残るもの
+- versions プラグインは未導入。`backend/justfile` に `dep-updates: ./gradlew dependencyUpdates` があるが、プラグイン未導入のため現状は動かない。導入するなら `io.github.ben-manes.versions` **0.61.0**
+- `ref/cr-checkers` の bind mount は devcontainer リビルド後に有効化済み（`/workspace/ref/` に alcos-portal / cr-checkers / juku-ops / markeman が見えている）
 
 ## 再開時のTODO（順序）
-1. gradle wrapper を 9.7.1 へ（backend / migrate それぞれ `./gradlew wrapper --gradle-version 9.7.1`）。mise の gradle と揃える
-2. gradle の 🟢 分（jooq 3.21.8 / spotless 8.10.2 / lombok 1.18.48 / commons-collections4 4.6.0 / datafaker 2.7.0 / postgresql 42.7.13 / slf4j-simple 2.0.19）を devcontainer 内で適用し、`just compile` と `jooqCodegenWithTestcontainers` で検証
-3. quarkus 3.39.2 / liquibase 5.0.4 を gradle + mise 揃えて更新 → backend build / migrate validate で検証
-4. devcontainer リビルドで mise の反映を確認
-5. （別タスク）biome の ignore 設定を入れて `pnpm run check` を通す
-6. （別タスク）vault 2.x 移行の互換調査
-7. （別タスク）codegen / graphql-request の v8 対応後に graphql 17、react-router の peer 更新後に typescript 7 を再検討
+1. （別タスク）biome の ignore 設定を入れて `pnpm run check` を通す
+2. （別タスク）`./gradlew generateSchema` の variant 解決エラーを直す（smallrye-graphql plugin と quarkus plugin の構成見直し）
+3. （別タスク）spotless に markeman 相当の規約（`shortenFullyQualifiedTypes` / `forbidRegex`）を入れるか検討する
+4. （別タスク）gradle versions プラグイン（`io.github.ben-manes.versions` 0.61.0）を入れて `just dep-updates` を機能させる
+5. （別タスク）vault 2.x 移行の互換調査
+6. （別タスク）codegen / graphql-request の v8 対応後に graphql 17、react-router の peer 更新後に typescript 7 を再検討
