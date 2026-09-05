@@ -165,19 +165,74 @@ backend（`quarkusDev`）と bff（`pnpm run dev`）を実際に起動し、認�
 
 ### 途中で見つかった既存の不具合・注意点
 - **`spotlessCheck` が既に失敗していた**: 機能コミット `2c457d5` の Javadoc が未整形のまま入っていた。`spotlessApply` で解消（`MembershipSubscriptionService.java` の 1 箇所）。spotless 8.6.0 でも同じ違反が出ることを確認済みで、8.10.2 への更新が原因ではない
-- **`./gradlew generateSchema` が失敗する既存問題**: `io.quarkus:quarkus-tls-registry-spi` の variant が `quarkus.prod.deployment-dependency.backend` と `runtime` で曖昧になり解決できない。quarkus 3.36.2 でも同じ失敗を再現したので今回の更新起因ではない。GraphQL スキーマは Dev UI の `http://localhost:8080/graphql/schema.graphql` から取れるため実害は出ていない。**別タスクで plugin 構成を見直す**
+- ~~**`./gradlew generateSchema` が失敗する既存問題**~~ → **対応済み**（後述）。当初「実害なし」と書いたが誤りで、frontend の `pnpm run gen-schema` がこのタスクに依存しているため、スキーマを取り直せない状態だった
 - **devcontainer リビルドで liquibase の lpm ドライバが消える**: `Cannot find database driver: org.postgresql.Driver` になる。`liquibase lpm add -g postgresql` を再実行して復旧する。liquibase 本体のバージョンを上げた直後も同様（インストール先が `installs/.../<version>/bin/lib` のため）
 - **mise 更新直後は現行シェルに反映されない**: `eval "$(mise env -s bash)"` を挟むか、シェルを開き直す
 - **devcontainer リビルド後は bff / frontend の `pnpm install` が必須**: ホスト側で作った `node_modules` が残っていると `pnpm run dev` が `ERR_PNPM_ABORTED_REMOVE_MODULES_DIR_NO_TTY` で落ちる。非対話シェルでは `CI=true pnpm install` で通る（bff は対応済み。**frontend は未実施**）
 
+### frontend: biome の対象範囲を直し、診断をゼロにした
+
+`biome.json` が ignore 未設定で、gitignore 済みの `build/` や `.react-router/` まで
+lint していたため診断が 11,307 件出ていた。`ref/cr-checkers` に倣って
+`files.includes` で除外する。
+
+member-pulse は `biome.json` が `frontend/` 配下、`.gitignore` がリポジトリルートに
+あるため `useIgnoreFile` は使えない（ignore file を解決できずエラーになる）。
+`includes` で明示する形にした。除外に加えたのは `build` / `.react-router` / `dist` /
+`node_modules` と、生成物である `app/generated` および `app/graphqls/schema.graphql`。
+
+除外後に残った実コードの指摘も片付けた。
+
+- 未使用 import の削除（`_core+/_layout`）
+- `forEach` のコールバックが `cache.delete()` の boolean を返していたのをブロック本体へ
+- `useActionFetcher`: `defaultAction` の引数列を反変位置の `never[]` で受ける形に変え、
+  `payload` は `unknown`、`body` は `string | FormData` として `as any` を除去。
+  `error` は `ActionResult` に無いため `TAction & { error?: string }` で拾う
+- `useTableSearchParams`: `parsers` を nuqs の `UseQueryStatesKeysMap` に置き換え、
+  setter の戻り型から `void` を外す（nuqs は Promise を返すため）
+- `linter.rules.recommended` を `preset` へ移行（biome 2.5 で非推奨）
+
+`useActionFetcher` でジェネリクス（`TArgs extends unknown[]`）を使う案は採れなかった。
+呼び出し側が `useActionFetcher<XxxActionData>({...})` と第 1 型引数を明示しているため、
+TypeScript は残りの型引数を推論せずデフォルトを使い、`({ areaId }: { areaId: string })` を
+受け付けられなくなる。
+
+結果: `pnpm run check` が診断 0・exit 0。`typecheck` / `build` も成功。
+
+### backend: generateSchema が失敗するのを直した
+
+原因は 2 つ。
+
+1. smallrye-graphql plugin は解決用に `<name>ForClassLoading` / `<name>ForIndexing` と
+   いう configuration の copy を作るが、copy には属性が引き継がれない。そのため quarkus の
+   deployment variant と runtime variant を選び分けられず、`quarkus-tls-registry-spi` の
+   解決に失敗していた。copy 側に `Usage` / `Category` / `LibraryElements` と
+   `quarkus.prod.deployment-dependency.<project>` を補って runtime を選ばせる
+2. `generateSchema` は `build/classes` を丸ごと読むため test 側タスクと出力が重なるが、
+   依存が未宣言で `build` と同時に指定すると Gradle の検証に引っかかっていた。
+   `dependsOn classes` と `mustRunAfter` で順序を固定する
+
+検証: `clean build generateSchema` / 単体実行 / `compileJava spotlessCheck test`。
+生成物は実行時の `/graphql/schema.graphql`（522 行）とも
+`frontend/app/graphqls/schema.graphql` とも完全一致し、`pnpm run gen-schema` も通る。
+
+### gradle versions プラグインを導入した
+
+`io.github.ben-manes.versions` **0.61.0** を backend / migrate 両方に入れた
+（markeman と同じ座標・同じバージョン）。`backend/justfile` の `dep-updates` は
+プラグイン未導入で動かない状態だったのが解消し、migrate 側にも `task dep-updates` を追加した。
+
+alpha / beta / RC を候補から外す `rejectVersionIf` を入れている。今回 slf4j 2.1.0-alpha や
+smallrye-graphql 3.0.0.Beta を「採らない」と判断したのと同じ基準を設定に落としたもの。
+
+導入直後のレポートでは backend / migrate とも**更新候補ゼロ**。今回の更新がすべて最新に
+到達していることの裏付けになる（`quarkus-vault 4.9.0` も最新だった）。
+
 ### 未着手のまま残るもの
-- versions プラグインは未導入。`backend/justfile` に `dep-updates: ./gradlew dependencyUpdates` があるが、プラグイン未導入のため現状は動かない。導入するなら `io.github.ben-manes.versions` **0.61.0**
+- ~~versions プラグインは未導入~~ → **導入済み**（後述）
 - `ref/cr-checkers` の bind mount は devcontainer リビルド後に有効化済み（`/workspace/ref/` に alcos-portal / cr-checkers / juku-ops / markeman が見えている）
 
 ## 再開時のTODO（順序）
-1. （別タスク）biome の ignore 設定を入れて `pnpm run check` を通す
-2. （別タスク）`./gradlew generateSchema` の variant 解決エラーを直す（smallrye-graphql plugin と quarkus plugin の構成見直し）
-3. （別タスク）spotless に markeman 相当の規約（`shortenFullyQualifiedTypes` / `forbidRegex`）を入れるか検討する
-4. （別タスク）gradle versions プラグイン（`io.github.ben-manes.versions` 0.61.0）を入れて `just dep-updates` を機能させる
-5. （別タスク）vault 2.x 移行の互換調査
-6. （別タスク）codegen / graphql-request の v8 対応後に graphql 17、react-router の peer 更新後に typescript 7 を再検討
+1. （別タスク）spotless に markeman 相当の規約（`shortenFullyQualifiedTypes` / コメント規約の `forbidRegex`）を入れるか検討する
+2. （別タスク）vault 2.x 移行の互換調査
+3. （別タスク）codegen / graphql-request の v8 対応後に graphql 17、react-router の peer 更新後に typescript 7 を再検討
