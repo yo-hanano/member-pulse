@@ -43,7 +43,9 @@ export const invalidateMasterData = (...keys: string[]) => {
     cache.clear();
     return;
   }
-  keys.forEach((key) => cache.delete(key));
+  keys.forEach((key) => {
+    cache.delete(key);
+  });
 };
 
 export const invalidateMasterAreas = () => invalidateMasterData(MASTER_CACHE_KEYS.areas);

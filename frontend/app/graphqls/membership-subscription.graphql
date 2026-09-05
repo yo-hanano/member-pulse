@@ -39,7 +39,10 @@ mutation resumeMembershipSubscription($membershipSubscriptionId: String!) {
 }
 
 mutation endMembershipSubscription($membershipSubscriptionId: String!, $endDate: Date!) {
-  endMembershipSubscription(membershipSubscriptionId: $membershipSubscriptionId, endDate: $endDate) {
+  endMembershipSubscription(
+    membershipSubscriptionId: $membershipSubscriptionId
+    endDate: $endDate
+  ) {
     ...MembershipSubscriptionItem
   }
 }
