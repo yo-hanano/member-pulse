@@ -1,4 +1,4 @@
-import { useQueryStates } from "nuqs";
+import { type UseQueryStatesKeysMap, useQueryStates } from "nuqs";
 import { useMemo } from "react";
 
 import { type TableSortingState, toSortDescriptor } from "~/components/table/table-utils";
@@ -23,7 +23,7 @@ export function useTableSearchParams({
   defaultLimit = 10,
   transforms,
 }: {
-  parsers: Record<string, any>;
+  parsers: UseQueryStatesKeysMap;
   urlKeys: Record<string, string>;
   defaultPage?: number;
   defaultLimit?: number;
@@ -31,7 +31,7 @@ export function useTableSearchParams({
 }) {
   const [queryState, setTableParams] = useQueryStates(parsers, {
     urlKeys,
-  }) as unknown as [TableQueryState, (next: Partial<TableQueryState>) => void | Promise<unknown>];
+  }) as unknown as [TableQueryState, (next: Partial<TableQueryState>) => Promise<unknown>];
 
   const page = queryState.pageParam ?? defaultPage;
   const limit = queryState.limitParam ?? defaultLimit;
