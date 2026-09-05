@@ -1,5 +1,6 @@
 plugins {
     id 'java-library'
+    id 'io.github.ben-manes.versions' version '0.61.0'
 }
 
 group = 'com.cxisystem'
@@ -24,6 +25,14 @@ dependencies {
     implementation 'org.slf4j:slf4j-simple:2.0.19'
     compileOnly 'org.projectlombok:lombok:1.18.48'
     annotationProcessor 'org.projectlombok:lombok:1.18.48'
+}
+
+// task dep-updates（./gradlew dependencyUpdates）が拾う候補から不安定版を外す。
+// alpha / beta / RC を候補に出すと毎回手で選別することになるため
+tasks.named('dependencyUpdates') {
+    rejectVersionIf {
+        it.candidate.version ==~ /(?i).*[.-](alpha|beta|rc|cr|m|preview|b|ea)[.\d-]*/
+    }
 }
 
 /** jOOQ 出力先（生成物を main に含めるだけ。“事前 mkdir”等は不要） */

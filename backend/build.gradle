@@ -3,6 +3,7 @@ plugins {
 	id 'io.quarkus'
 	id 'io.smallrye.graphql' version '2.18.2'
 	id 'com.diffplug.spotless' version '8.10.2'
+	id 'io.github.ben-manes.versions' version '0.61.0'
 }
 
 repositories {
@@ -102,6 +103,14 @@ compileJava {
 
 compileTestJava {
 	options.encoding = 'UTF-8'
+}
+
+// just dep-updates（./gradlew dependencyUpdates）が拾う候補から不安定版を外す。
+// alpha / beta / RC を候補に出すと毎回手で選別することになるため
+tasks.named('dependencyUpdates') {
+	rejectVersionIf {
+		it.candidate.version ==~ /(?i).*[.-](alpha|beta|rc|cr|m|preview|b|ea)[.\d-]*/
+	}
 }
 
 spotless {
