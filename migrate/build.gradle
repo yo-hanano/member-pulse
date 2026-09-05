@@ -13,17 +13,17 @@ java {
 repositories { mavenCentral() }
 
 dependencies {
-    api 'org.jooq:jooq:3.21.5'
+    api 'org.jooq:jooq:3.21.8'
     implementation platform('org.testcontainers:testcontainers-bom:2.0.5')
     implementation 'org.testcontainers:testcontainers-postgresql'
-    implementation 'org.jooq:jooq-codegen:3.21.5'
+    implementation 'org.jooq:jooq-codegen:3.21.8'
     implementation 'commons-dbutils:commons-dbutils:1.8.1'
-    implementation 'net.datafaker:datafaker:2.5.4'
-    implementation 'org.postgresql:postgresql:42.7.11'
-    implementation 'org.liquibase:liquibase-core:5.0.3'
-    implementation 'org.slf4j:slf4j-simple:2.0.18'
-    compileOnly 'org.projectlombok:lombok:1.18.46'
-    annotationProcessor 'org.projectlombok:lombok:1.18.46'
+    implementation 'net.datafaker:datafaker:2.7.0'
+    implementation 'org.postgresql:postgresql:42.7.13'
+    implementation 'org.liquibase:liquibase-core:5.0.4'
+    implementation 'org.slf4j:slf4j-simple:2.0.19'
+    compileOnly 'org.projectlombok:lombok:1.18.48'
+    annotationProcessor 'org.projectlombok:lombok:1.18.48'
 }
 
 /** jOOQ 出力先（生成物を main に含めるだけ。“事前 mkdir”等は不要） */
