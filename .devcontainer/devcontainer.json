@@ -56,7 +56,8 @@
     "source=${localEnv:HOME}/.claude,target=/home/vscode/.claude,type=bind,consistency=cached",
     "source=${localEnv:HOME}/workspace/alcos-portal,target=/workspace/ref/alcos-portal,type=bind,consistency=cached",
     "source=${localEnv:HOME}/workspace/juku-ops,target=/workspace/ref/juku-ops,type=bind,consistency=cached",
-    "source=${localEnv:HOME}/workspace/markeman,target=/workspace/ref/markeman,type=bind,consistency=cached"
+    "source=${localEnv:HOME}/workspace/markeman,target=/workspace/ref/markeman,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/workspace/cr-checkers,target=/workspace/ref/cr-checkers,type=bind,consistency=cached"
   ],
   "containerEnv": {
     "GITHUB_TOKEN": "${localEnv:GITHUB_TOKEN}",

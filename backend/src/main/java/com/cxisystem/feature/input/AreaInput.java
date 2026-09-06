@@ -17,5 +17,8 @@ public class AreaInput {
 
   @NotBlank private String name;
 
-  private Integer dispOrder;
+  // jOOQ の Record.from() はフィールド名で対応付けるため、DB カラム display_order に名前を合わせる。
+  // GraphQL 上の名前は既存クライアントに合わせて dispOrder のまま保つ
+  @Name("dispOrder")
+  private Integer displayOrder;
 }

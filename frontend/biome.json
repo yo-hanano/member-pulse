@@ -1,12 +1,21 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.1.3/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.5.12/schema.json",
   "vcs": {
     "enabled": true,
     "clientKind": "git",
     "useIgnoreFile": false
   },
   "files": {
-    "ignoreUnknown": false
+    "ignoreUnknown": false,
+    "includes": [
+      "**",
+      "!**/build",
+      "!**/.react-router",
+      "!**/dist",
+      "!**/node_modules",
+      "!app/generated",
+      "!app/graphqls/schema.graphql"
+    ]
   },
   "formatter": {
     "enabled": true,
@@ -17,7 +26,7 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true
+      "preset": "recommended"
     }
   },
   "javascript": {

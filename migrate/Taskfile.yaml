@@ -38,6 +38,7 @@ tasks:
         echo "  task gen [OUT=...]                             # liquibase generate-changelog from existing DB (migrate)"
         echo "  task tag FILE=...                              # append tagDatabase changeset to changelog file"
         echo "  task seed [ARGS='']                            # run member-pulse seed data generator"
+        echo "  task dep-updates                               # report available dependency updates"
 
   update:
     aliases: [up]
@@ -289,3 +290,10 @@ tasks:
     cmds:
       - ./gradlew --console=plain generateSeedData
 
+  dependency-updates:
+    aliases: [dep-updates]
+    # 依存の更新候補を一覧する（不安定版は除外）
+    desc: Report available dependency updates via Gradle
+    silent: true
+    cmds:
+      - ./gradlew --console=plain dependencyUpdates

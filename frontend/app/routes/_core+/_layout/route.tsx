@@ -20,7 +20,6 @@ import {
   BadgeJapaneseYen,
   BarChart3,
   ClipboardCheck,
-  ClipboardList,
   CreditCard,
   LogOut,
   Map as MapIcon,

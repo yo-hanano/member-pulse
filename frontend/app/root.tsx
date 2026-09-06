@@ -9,7 +9,7 @@ import {
   startNavigationProgress,
 } from "@mantine/nprogress";
 import "@mantine/nprogress/styles.css";
-import { NuqsAdapter } from "nuqs/adapters/react-router/v7";
+import { NuqsAdapter } from "nuqs/adapters/react-router/v8";
 import { useEffect } from "react";
 import {
   isRouteErrorResponse,
